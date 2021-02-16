@@ -8,7 +8,7 @@ export function formatLatex(value) {
   return format(value, {notation: 'fixed', precision: 6});
 }
 export function mathjsToLatex(value) {
-  return value.toTex({parenthesis: "keep", implicit: "hide"});
+  return value.toTex({parenthesis: "keep"});
 }
 
 export function generatePath(categoryPath="", methodPath="") {

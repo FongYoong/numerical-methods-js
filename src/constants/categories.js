@@ -45,11 +45,6 @@ const categories = [
         path : "nonlinear",
         methods : [
             {
-                name: "Newton-Rhapson",
-                path: "newton",
-                component: NonlinearNewton,
-            },
-            {
                 name: "Bisection",
                 path : "bisection",
                 component: NonlinearBisection,
@@ -58,6 +53,11 @@ const categories = [
                 name: "Secant",
                 path : "secant",
                 component: NonlinearSecant,
+            },
+            {
+                name: "Newton-Rhapson",
+                path: "newton",
+                component: NonlinearNewton,
             },
             {
                 name: "Fixed-point",

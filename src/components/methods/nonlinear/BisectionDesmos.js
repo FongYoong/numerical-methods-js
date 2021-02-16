@@ -56,10 +56,12 @@ const DialogContent =  withStyles((theme) => ({
     const updateGraph = useCallback(() => {
         if (calculator.current){
             calculator.current.setExpression({ id: 'function', color: Desmos.Colors.BLUE, latex: mathjsToLatex(params.functionValue)});
-            calculator.current.setExpression({ id: 'derivative', color: Desmos.Colors.GREEN, lineStyle: Desmos.Styles.DOTTED, latex:
-            `(y-${formatLatex(currentResult.funcResult)})/(x-${formatLatex(currentResult.previousX)})=${formatLatex(currentResult.derivResult)}` });
+            calculator.current.setExpression({ id: 'lowerX', color: Desmos.Colors.GREEN, pointStyle: Desmos.Styles.POINT, label: "Lower", showLabel:true, latex:
+            `(${formatLatex(currentResult.oldLowerX)}, ${formatLatex(currentResult.lowerFuncResult)})` });
+            calculator.current.setExpression({ id: 'upperX', color: Desmos.Colors.GREEN, pointStyle: Desmos.Styles.POINT, label: "Upper", showLabel:true, latex:
+            `(${formatLatex(currentResult.oldUpperX)}, ${formatLatex(currentResult.upperFuncResult)})` });
             calculator.current.setExpression({ id: 'root', color: Desmos.Colors.RED, pointStyle: Desmos.Styles.POINT, label: "Root", showLabel:true, latex:
-            `(${formatLatex(currentResult.newX)}, 0)` });
+            `(${formatLatex(currentResult.rootX)}, 0)` });
         }
     }, [calculator, params.functionValue, currentResult]);
     updateGraph();
@@ -110,7 +112,7 @@ const DialogContent =  withStyles((theme) => ({
 
 });
 
-function NewtonDesmos({params, smallScreen}) {
+function BisectionDesmos({params, smallScreen}) {
     const [openDialog, setOpenDialog] = useState(false);
 
     const handleClickOpen = () => {
@@ -136,4 +138,4 @@ function NewtonDesmos({params, smallScreen}) {
     );
 }
 
-export default NewtonDesmos;
+export default BisectionDesmos;

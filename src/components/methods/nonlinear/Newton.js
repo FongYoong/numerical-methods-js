@@ -5,7 +5,7 @@ import NewtonDesmos from "./NewtonDesmos";
 
 import { addStyles, EditableMathField } from 'react-mathquill';
 import {
-    parse, derivative, evaluate, round
+    parse, derivative
   } from 'mathjs';
 import { MathComponent } from 'mathjax-react';
 
@@ -24,6 +24,7 @@ import Tooltip from '@material-ui/core/Tooltip';
 import Fab from '@material-ui/core/Fab';
 import HelpIcon from '@material-ui/icons/Help';
 import Joyride, { Step as JoyrideStep, CallBackProps as JoyrideCallBackProps} from "react-joyride";
+import Snackbar from '@material-ui/core/Snackbar';
 import Collapse from '@material-ui/core/Collapse';
 import { Fade, Zoom, Slide, JackInTheBox } from "react-awesome-reveal";
 import { useTheme } from '@material-ui/core/styles';
@@ -35,7 +36,7 @@ const TOUR_STEPS: JoyrideStep[] = [
         target: ".function-input",
         title: "Function",
         content:
-        "Type a math function which only has the variable x.",
+        "Type a math function which only has the variable x. cos(x), sin(x) and e^x are supported.",
         disableBeacon: true,
     },
     {
@@ -121,17 +122,9 @@ function NonlinearNewton({methodName}) {
 
     const styleClasses = useStyles();
 
-    // Joyride Tour
-    const [runTour, setRunTour] = React.useState(false);
-
-    const joyrideCallback = (state: JoyrideCallBackProps) => {
-        if (state.action === "reset" || state.action === "close") {
-            setRunTour(false);
-        }
-    };
-
     // Derivative
-    const [functionLatex, setFunctionLatex] = useState('3x^2+2x-8');
+    // Another sample would be: `3x^2+2x-8`
+    const [functionLatex, setFunctionLatex] = useState(String.raw`x-\cos\left( x\right)`);
     const [functionText, setFunctionText] = useState('');
 
     let functionValue, derivValue, derivLatex;
@@ -140,7 +133,7 @@ function NonlinearNewton({methodName}) {
     try {
         functionValue = parse(functionText);
         derivValue = derivative(functionText, 'x');
-        derivLatex = derivValue.toTex({parenthesis: "keep", implicit: "hide"});
+        derivLatex = mathjsToLatex(derivValue);
     }
     catch {
         functionError = true;
@@ -158,8 +151,10 @@ function NonlinearNewton({methodName}) {
 
     let hasError = functionError || iterError;
 
+    // Initial x
+    const [initialX, setInitialX] = useState(0.0);
+
     // Solve
-    const [initialX, setInitialX] = useState(0);
 
     let solve = false;
     let results = [];
@@ -194,6 +189,30 @@ function NonlinearNewton({methodName}) {
     else {
         solve = false;
     }
+
+    // Joyride Tour
+    const [runTour, setRunTour] = useState(false);
+    const openHelp = () => {
+        if (hasError) {
+            setOpenErrorSnackbar(true);
+        }
+        else {
+            setRunTour(true)
+        }
+    };
+    const joyrideCallback = (state: JoyrideCallBackProps) => {
+        if (state.action === "reset" || state.action === "close") {
+            setRunTour(false);
+        }
+    };
+    const [openErrorSnackbar, setOpenErrorSnackbar] = useState(false);
+
+    const errorSnackbarClose = (event, reason) => {
+        if (reason === 'clickaway') {
+            return;
+        }
+        setOpenErrorSnackbar(false);
+    };
 
     let params = {functionValue, derivValue, iterations, results};
     
@@ -252,14 +271,14 @@ function NonlinearNewton({methodName}) {
                                         Iterations:
                                     </Typography>
                                     <TextField
-                                    disabled={false}
-                                    type="number"
-                                    onChange={(event)=>setIterations(parseInt(event.target.value))}
-                                    error={iterError}
-                                    label={iterError?"Error":""}
-                                    defaultValue={iterations}
-                                    helperText={iterErrorText}
-                                    variant="outlined"
+                                        disabled={false}
+                                        type="number"
+                                        onChange={(event)=>setIterations(parseInt(event.target.value))}
+                                        error={iterError}
+                                        label={iterError?"Error":""}
+                                        defaultValue={iterations.toString()}
+                                        helperText={iterErrorText}
+                                        variant="outlined"
                                     />
                                 </CardContent>
                             </Card>
@@ -271,12 +290,12 @@ function NonlinearNewton({methodName}) {
                                         Initial x value:
                                     </Typography>
                                     <TextField
-                                    disabled={false}
-                                    type="number"
-                                    onChange={(event)=>setInitialX(parseFloat(event.target.value))}
-                                    label={""}
-                                    defaultValue={0.0}
-                                    variant="outlined"
+                                        disabled={false}
+                                        type="number"
+                                        onChange={(event)=>setInitialX(parseFloat(event.target.value))}
+                                        label={""}
+                                        defaultValue={initialX.toString()}
+                                        variant="outlined"
                                     />
                                 </CardContent>
                             </Card>
@@ -296,7 +315,7 @@ function NonlinearNewton({methodName}) {
                 </Fade>
             </Collapse>
             <Tooltip arrow title="Help" placement="top">
-                <Fab color="secondary" aria-label="help" className={styleClasses.fab} onClick={()=>{setRunTour(true)}}>
+                <Fab color="secondary" aria-label="help" className={styleClasses.fab} onClick={openHelp}>
                     <HelpIcon />
                 </Fab>
             </Tooltip>
@@ -311,6 +330,11 @@ function NonlinearNewton({methodName}) {
                 }}
                 callback={joyrideCallback}
             />
+            <Snackbar open={openErrorSnackbar} autoHideDuration={2000} onClose={errorSnackbarClose}>
+                <Alert onClose={errorSnackbarClose} severity="error">
+                    There is an error with the {functionError?"function":"iterations"}.
+                </Alert>
+            </Snackbar>
         </>
     );
 }
@@ -320,29 +344,39 @@ function Steps({params}) {
     const styleClasses = useStyles();
 
     const [currentIteration, setCurrentIteration] = useState(1);
+
     let hasError = false;
     let errorText = "";
+    
+
 
     let results = params.results;
     let currentResult = results[currentIteration - 1];
-    //console.log(currentResult);
 
     let previousXLatex = String.raw`x_{${currentIteration - 1}}`;
     let newXLatex = String.raw`x_{${currentIteration}}`;
 
-    const latexContent =
-    String.raw`
-    \displaystyle
-    \begin{array}{lll}
-    \\ ${previousXLatex} &=& ${formatLatex(currentResult.previousX)}
-    \\ f(${previousXLatex}) &=& ${formatLatex(currentResult.funcResult)}
-    \\ f'(${previousXLatex}) &=& ${formatLatex(currentResult.derivResult)}
-    \\ ${newXLatex} &=& x_${currentIteration - 1} - \frac{f(${previousXLatex})}{f'(${previousXLatex})}
-    \\                       &=& ${formatLatex(currentResult.newX)}
-    \\ Error &=& |${newXLatex} - ${previousXLatex}|
-    \\       &=& |${formatLatex(currentResult.errorX)}|
-    \end{array}
-    `;
+    let latexContent;
+
+    if (currentIteration > params.iterations) {
+        setCurrentIteration(params.iterations);
+    }
+    else {
+        latexContent =
+        String.raw`
+        \displaystyle
+        \begin{array}{lll}
+        \\ ${previousXLatex} &=& ${formatLatex(currentResult.previousX)}
+        \\ f(${previousXLatex}) &=& ${formatLatex(currentResult.funcResult)}
+        \\ f'(${previousXLatex}) &=& ${formatLatex(currentResult.derivResult)}
+        \\ ${newXLatex} &=& x_${currentIteration - 1} - \frac{f(${previousXLatex})}{f'(${previousXLatex})}
+        \\                       &=& ${formatLatex(currentResult.newX)}
+        \\ Error &=& |${newXLatex} - ${previousXLatex}|
+        \\       &=& |${formatLatex(currentResult.errorX)}|
+        \end{array}
+        `;
+    }
+
 
     const smallScreen = useMediaQuery(useTheme().breakpoints.down('sm'));
     
@@ -355,44 +389,41 @@ function Steps({params}) {
                 </Alert>
             </Collapse>
             <Collapse in={!hasError}>
-
                 <Grid className="results" container direction={smallScreen?"column":"row"} alignItems="center" justify="space-evenly">
                     <Grid xs item className="iteration-slider">
                         <Slide direction="left" triggerOnce>
-                        <Box id="iteration-slider" height={smallScreen?null:"20rem"} width={smallScreen?"70vw":null}>
-                            
-                            <Slider
-                                orientation={smallScreen?"horizontal":"vertical"}
-                                onChange={(event, value) => setCurrentIteration(value)}
-                                defaultValue={1}
-                                aria-labelledby="discrete-slider-small-steps"
-                                step={1}
-                                marks
-                                min={1}
-                                max={params.iterations}
-                                valueLabelDisplay="on"
-                            />
-                            
-                        </Box>
+                            <Box id="iteration-slider" height={smallScreen?null:"20rem"} width={smallScreen?"70vw":null}>
+                                <Slider
+                                    orientation={smallScreen?"horizontal":"vertical"}
+                                    onChange={(event, value) => setCurrentIteration(value)}
+                                    defaultValue={1}
+                                    aria-labelledby="discrete-slider-small-steps"
+                                    step={1}
+                                    marks
+                                    min={1}
+                                    max={params.iterations}
+                                    valueLabelDisplay="on"
+                                />
+                            </Box>
                         </Slide>
                     </Grid>
                     <Grid xs item container spacing={1} direction="column" alignItems="center" justify="center">
                         <Grid xs item className="step-math">
                             <JackInTheBox triggerOnce>
-                            <Card className={styleClasses.card}>
-                                <CardContent className={styleClasses.cardContent}>
-                                    <Typography variant="h6">
-                                        Iteration {currentIteration}:
-                                    </Typography>
-                                    <MathComponent tex={latexContent}/>
-                                </CardContent>
-                            </Card>
+                                <Card className={styleClasses.card}>
+                                    <CardContent className={styleClasses.cardContent}>
+                                        <Typography variant="h6">
+                                            Iteration {currentIteration}:
+                                        </Typography>
+                                        <MathComponent tex={latexContent}/>
+                                    </CardContent>
+                                </Card>
                             </JackInTheBox>
                         </Grid>
                     </Grid>
                     <Grid xs item className="graph-button">
                         <Slide direction="right" triggerOnce>
-                        <NewtonDesmos params={{currentIteration, smallScreen, ...params}} />
+                            <NewtonDesmos params={{currentIteration, smallScreen, ...params}} />
                         </Slide>
                     </Grid>
                 </Grid>
