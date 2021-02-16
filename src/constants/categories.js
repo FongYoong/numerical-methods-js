@@ -1,9 +1,8 @@
-
-import NonlinearNewton from '../components/methods/nonlinear/Newton';
 import NonlinearBisection from '../components/methods/nonlinear/Bisection';
+import NonlinearFalsePosition from '../components/methods/nonlinear/FalsePosition';
+import NonlinearNewton from '../components/methods/nonlinear/Newton';
 import NonlinearSecant from '../components/methods/nonlinear/Secant';
 import NonlinearFixedPoint from '../components/methods/nonlinear/FixedPoint';
-import NonlinearRegula from '../components/methods/nonlinear/Regula';
 
 import LinearGauss from '../components/methods/linear/Gauss';
 import LinearPivot from '../components/methods/linear/Pivot';
@@ -50,9 +49,9 @@ const categories = [
                 component: NonlinearBisection,
             },
             {
-                name: "Secant",
-                path : "secant",
-                component: NonlinearSecant,
+                name: "False-Position",
+                path : "false_position",
+                component: NonlinearFalsePosition,
             },
             {
                 name: "Newton-Rhapson",
@@ -60,15 +59,15 @@ const categories = [
                 component: NonlinearNewton,
             },
             {
-                name: "Fixed-point",
+                name: "Secant",
+                path : "secant",
+                component: NonlinearSecant,
+            },
+            {
+                name: "Fixed-Point",
                 path : "fixed_point",
                 component: NonlinearFixedPoint,
             },
-            {
-                name: "Regula-Fasi",
-                path : "regula_fasi",
-                component: NonlinearRegula,
-            }
         ]
     },
     {
@@ -118,7 +117,7 @@ const categories = [
         ]
     },
     {
-        name : "Eigenvalues/Eigenvectors",
+        name : "Eigenvalues / Eigenvectors",
         path : "eigen",
         methods : [
             {

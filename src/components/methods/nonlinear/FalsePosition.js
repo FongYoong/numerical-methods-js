@@ -1,7 +1,7 @@
 import {isValidMath, mathjsToLatex, formatLatex} from "../../utils";
 import React, {useState, useEffect} from "react";
 import Header from "../../header/Header";
-import BisectionDesmos from "./BisectionDesmos";
+import FalsePositionDesmos from "./FalsePositionDesmos";
 
 import { addStyles, EditableMathField } from 'react-mathquill';
 import {
@@ -96,7 +96,7 @@ const useStyles = makeStyles((theme) => ({
 
 addStyles(); // inserts the required css to the <head> block for mathquill
 
-function NonlinearBisection({methodName}) {
+function NonlinearFalsePosition({methodName}) {
     useEffect(() => {
         // Set webpage title
         document.title = methodName;
@@ -157,42 +157,39 @@ function NonlinearBisection({methodName}) {
             let oldUpperX = (i === 0) ? upperX: results[i - 1].newUpperX;
             let newLowerX = oldLowerX;
             let newUpperX = oldUpperX;
-            let rootX = (newLowerX + newUpperX) / 2;
-            let lowerFuncResult, upperFuncResult, rootFuncResult, errorX;
+            let lowerFuncResult, upperFuncResult, rootX, rootFuncResult, errorX;
+            try {
+                lowerFuncResult = functionValue.evaluate({x : oldLowerX});
+                upperFuncResult = functionValue.evaluate({x : oldUpperX}); // upperFuncResult is for visualisation purposes, no relevance in the calculations
+                rootX = oldUpperX - upperFuncResult * (oldLowerX - oldUpperX) / (lowerFuncResult - upperFuncResult);
+                rootFuncResult = functionValue.evaluate({x : rootX});
+            }
+            catch {
+                hasError = true;
+                functionError = true;
+                functionErrorText = "Only variable x is allowed!";
+                solve = false;
+                break;
+            }
             let rootFound = false;
-            if (i !== 0) {
+            let product = lowerFuncResult * rootFuncResult;
+            if (product < 0) {
+                newUpperX = rootX;
+            }
+            else if (product > 0) {
+                newLowerX = rootX;
+            }
+            else {
+                rootFound = true;
+            }
+
+            if (!rootFound && i !== 0) {
                 // Check if root error is lower than threshold
                 errorX = Math.abs(rootX - results[i - 1].rootX);
                 if (errorX < errorThreshold){
                     rootFound = true;
                 }
             }
-            if (!rootFound){
-                // Update lower and upper x values
-                try {
-                    lowerFuncResult = functionValue.evaluate({x : oldLowerX});
-                    upperFuncResult = functionValue.evaluate({x : oldUpperX}); // upperFuncResult is for visualisation purposes, no relevance in the calculations
-                    rootFuncResult = functionValue.evaluate({x : rootX});
-                }
-                catch {
-                    hasError = true;
-                    functionError = true;
-                    functionErrorText = "Only variable x is allowed!";
-                    solve = false;
-                    break;
-                }
-                let product = lowerFuncResult * rootFuncResult;
-                if (product < 0) {
-                    newUpperX = rootX;
-                }
-                else if (product > 0) {
-                    newLowerX = rootX;
-                }
-                else {
-                    rootFound = true;
-                }
-            }
-            
             results.push({
                 oldLowerX,
                 newLowerX,
@@ -408,12 +405,55 @@ function Steps({params}) {
         \begin{array}{lcr}
         \\ ${oldLowerXLatex} &=& ${formatLatex(currentResult.oldLowerX)}
         \\ ${oldUpperXLatex} &=& ${formatLatex(currentResult.oldUpperX)}
-        \\ ${newRootXLatex} &=& \frac{${oldLowerXLatex} + ${oldUpperXLatex}}{2}
+        \\ ${newRootXLatex} &=&  ${oldUpperXLatex}-\frac{f(${oldUpperXLatex})(${oldLowerXLatex} - ${oldUpperXLatex})}{f(${oldLowerXLatex}) - f(${oldUpperXLatex})}
         \\                       &=& ${formatLatex(currentResult.rootX)}
         \\
         `;
+
         let rootFound = false;
-        if (currentIteration > 1) {
+        latexContent += String.raw`
+        \\ f(${oldLowerXLatex}) &=& ${formatLatex(currentResult.lowerFuncResult)}
+        \\ f(${newRootXLatex}) &=& ${formatLatex(currentResult.rootFuncResult)}
+        \\
+        \\
+        `;
+        let product = currentResult.lowerFuncResult * currentResult.rootFuncResult;
+        if (product < 0) {
+            latexContent += String.raw`
+            \end{array}
+            \\ \text{Given that } f(${oldLowerXLatex})f(${newRootXLatex}) < 0,
+            \\
+            \begin{array}{lcr}
+            \\ ${newLowerXLatex} &=& ${oldLowerXLatex}
+            \\                   &=& ${formatLatex(currentResult.newLowerX)}
+            \\ ${newUpperXLatex} &=& ${newRootXLatex}
+            \\                   &=& ${formatLatex(currentResult.newUpperX)}
+            `;
+        }
+        else if (product > 0) {
+            latexContent += String.raw`
+            \end{array}
+            \\ \text{Given that } f(${oldLowerXLatex})f(${newRootXLatex}) > 0,
+            \\
+            \begin{array}{lcr}
+            \\ ${newLowerXLatex} &=& ${newRootXLatex}
+            \\                   &=& ${formatLatex(currentResult.newLowerX)}
+            \\ ${newUpperXLatex} &=& ${oldUpperXLatex}
+            \\                   &=& ${formatLatex(currentResult.newUpperX)}
+            `;
+        }
+        else {
+            rootFound = true;
+            latexContent += String.raw`
+            \end{array}
+            \\ \text{Root found because }
+            \\
+            \begin{array}{lcr}
+            \\ f(${oldLowerXLatex})f(${newRootXLatex}) == 0.
+            `;
+        }
+        
+        if (!rootFound && currentIteration > 1) {
             let oldRootXLatex = String.raw`x_{root_{${currentIteration - 2}}}`;
             latexContent += String.raw`
             \\ ${oldRootXLatex} &=& ${formatLatex(results[currentIteration - 2].rootX)}
@@ -422,7 +462,6 @@ function Steps({params}) {
             \\
             `;
             if (currentResult.errorX < params.errorThreshold) {
-                rootFound = true;
                 latexContent += String.raw`
                 \end{array}
                 \\
@@ -431,48 +470,6 @@ function Steps({params}) {
                 \begin{array}{lcr}
                 \\ Error &<& Error Threshold
                 \\ ${formatLatex(currentResult.errorX)} &<& ${formatLatex(params.errorThreshold)}
-                `;
-            }
-        }
-        if (!rootFound) {
-            latexContent += String.raw`
-            \\ f(${oldLowerXLatex}) &=& ${formatLatex(currentResult.lowerFuncResult)}
-            \\ f(${newRootXLatex}) &=& ${formatLatex(currentResult.rootFuncResult)}
-            \\
-            \\
-            `;
-            let product = currentResult.lowerFuncResult * currentResult.rootFuncResult;
-            if (product < 0) {
-                latexContent += String.raw`
-                \end{array}
-                \\ \text{Given that } f(${oldLowerXLatex})f(${newRootXLatex}) < 0,
-                \\
-                \begin{array}{lcr}
-                \\ ${newLowerXLatex} &=& ${oldLowerXLatex}
-                \\                   &=& ${formatLatex(currentResult.newLowerX)}
-                \\ ${newUpperXLatex} &=& ${newRootXLatex}
-                \\                   &=& ${formatLatex(currentResult.newUpperX)}
-                `;
-            }
-            else if (product > 0) {
-                latexContent += String.raw`
-                \end{array}
-                \\ \text{Given that } f(${oldLowerXLatex})f(${newRootXLatex}) > 0,
-                \\
-                \begin{array}{lcr}
-                \\ ${newLowerXLatex} &=& ${newRootXLatex}
-                \\                   &=& ${formatLatex(currentResult.newLowerX)}
-                \\ ${newUpperXLatex} &=& ${oldUpperXLatex}
-                \\                   &=& ${formatLatex(currentResult.newUpperX)}
-                `;
-            }
-            else {
-                latexContent += String.raw`
-                \end{array}
-                \\ \text{Root found because }
-                \\
-                \begin{array}{lcr}
-                \\ f(${oldLowerXLatex})f(${newRootXLatex}) == 0.
                 `;
             }
         }
@@ -537,7 +534,7 @@ function Steps({params}) {
                         </Grid>
                         <Grid xs item className="graph-button">
                             <Slide direction="right" triggerOnce>
-                                <BisectionDesmos params={{currentIteration, smallScreen, ...params}} />
+                                <FalsePositionDesmos params={{currentIteration, smallScreen, ...params}} />
                             </Slide>
                         </Grid>
                     </Grid>
@@ -548,4 +545,4 @@ function Steps({params}) {
     )
 }
 
-export default NonlinearBisection;
+export default NonlinearFalsePosition;
