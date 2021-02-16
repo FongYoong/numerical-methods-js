@@ -348,7 +348,7 @@ function NonlinearBisection({methodName}) {
             </Paper>
             
             <Collapse in={solve}>
-                <Fade>
+                <Fade triggerOnce>
                     <Paper className={styleClasses.paper}>
                         {solve && <Steps params={params}/>}
                     </Paper>

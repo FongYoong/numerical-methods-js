@@ -255,7 +255,7 @@ function NonlinearSecant({methodName}) {
                                         </Alert>
                                     </Collapse>
                                     <Collapse in={!functionError}>
-                                        {!functionError && <Fade  triggerOnce><MathComponent tex={derivLatex}/></Fade>}
+                                        {!functionError && <Fade triggerOnce><MathComponent tex={derivLatex}/></Fade>}
                                     </Collapse>
                                 </CardContent>
                             </Card>
@@ -308,7 +308,7 @@ function NonlinearSecant({methodName}) {
             </Paper>
             
             <Collapse in={solve}>
-                <Fade>
+                <Fade triggerOnce>
                     <Paper className={styleClasses.paper}>
                         {solve && <Steps params={params}/>}
                     </Paper>
