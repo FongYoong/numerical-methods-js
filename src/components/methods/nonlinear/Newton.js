@@ -114,6 +114,11 @@ const useStyles = makeStyles((theme) => ({
 addStyles(); // inserts the required css to the <head> block for mathquill
 
 function NonlinearNewton({methodName}) {
+    useEffect(() => {
+        // Set webpage title
+        document.title = methodName;
+    });
+
     const styleClasses = useStyles();
 
     // Joyride Tour
@@ -154,7 +159,6 @@ function NonlinearNewton({methodName}) {
     let hasError = functionError || iterError;
 
     // Solve
-    const [solving, setSolving] = useState(false);
     const [initialX, setInitialX] = useState(0);
 
     let solve = false;
@@ -207,7 +211,7 @@ function NonlinearNewton({methodName}) {
                                         Function:
                                     </Typography>
                                     <EditableMathField
-                                        disabled={solving}
+                                        disabled={false}
                                         latex={functionLatex}
                                         onChange={(mathField) => {
                                             setFunctionText(mathField.text());
@@ -248,7 +252,7 @@ function NonlinearNewton({methodName}) {
                                         Iterations:
                                     </Typography>
                                     <TextField
-                                    disabled={solving}
+                                    disabled={false}
                                     type="number"
                                     onChange={(event)=>setIterations(parseInt(event.target.value))}
                                     error={iterError}
@@ -267,7 +271,7 @@ function NonlinearNewton({methodName}) {
                                         Initial x value:
                                     </Typography>
                                     <TextField
-                                    disabled={solving}
+                                    disabled={false}
                                     type="number"
                                     onChange={(event)=>setInitialX(parseFloat(event.target.value))}
                                     label={""}
@@ -310,15 +314,6 @@ function NonlinearNewton({methodName}) {
         </>
     );
 }
-//  derivValue={derivValue} iterations={iterations} initialValue={initialValue} 
-
-/*
-    <Collapse in={!hasError}>
-        <Button disabled={solving} variant="contained" color="primary" onClick={startSolve}>
-            Solve!
-        </Button>
-    </Collapse>
-*/
 
 function Steps({params}) {
 
@@ -350,10 +345,6 @@ function Steps({params}) {
     `;
 
     const smallScreen = useMediaQuery(useTheme().breakpoints.down('sm'));
-
-    useEffect(() => {
-        //setSolving(false)
-    });
     
     return (
         <Container className={styleClasses.container}>
@@ -413,34 +404,3 @@ function Steps({params}) {
 }
 
 export default NonlinearNewton;
-
-/*
-                            <Grid container spacing={1} alignItems="center" justify="center">
-                                <Grid key={0} item xs={12} sm={6} md={4} lg={4} xl={4}>
-                                    
-                                </Grid>
-                            </Grid>
-*/
-/*
-                    <Card className={styleClasses.card}>
-                        <CardContent className={styleClasses.cardContent}>
-                            <Typography variant="h6">
-                                Iteration {currentIteration}
-                            </Typography>
-                            <Box mx={"2rem"}>
-                                <Slider
-                                    className={styleClasses.slider}
-                                    orientation="vertical"
-                                    onChangeCommitted={(event, value) => setCurrentIteration(value)}
-                                    defaultValue={1}
-                                    aria-labelledby="discrete-slider-small-steps"
-                                    step={1}
-                                    marks
-                                    min={1}
-                                    max={params.iterations}
-                                    valueLabelDisplay="auto"
-                                />
-                            </Box>
-                        </CardContent>
-                    </Card>
-                    */

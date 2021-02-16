@@ -2,7 +2,7 @@ import Header from "../header/Header";
 import Category from "./Category";
 import categories from "../../constants/categories";
 import {generatePath} from "../utils";
-import React from "react";
+import {React, useEffect} from "react";
 import Paper from '@material-ui/core/Paper';
 import Grid from '@material-ui/core/Grid';
 import { Fade, Zoom, Slide, JackInTheBox } from "react-awesome-reveal";
@@ -25,6 +25,11 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 function Menu() {
+  useEffect(() => {
+      // Set webpage title
+      document.title = "Numerical Methods Web Demo";
+  });
+
   const styleClasses = useStyles();
   const history = useHistory();
   const onMethodClick = ({categoryPath, method}) => {
