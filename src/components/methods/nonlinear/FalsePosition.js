@@ -520,7 +520,7 @@ function Steps({params}) {
                         </Grid>
                         <Grid xs item container spacing={1} direction="column" alignItems="center" justify="center">
                             <Grid xs item className="step-math">
-                                <JackInTheBox triggerOnce>
+                                <Zoom duration={500} triggerOnce>
                                     <Card className={styleClasses.card}>
                                         <CardContent className={styleClasses.cardContent}>
                                             <Typography variant="h6">
@@ -529,7 +529,7 @@ function Steps({params}) {
                                             <MathComponent tex={latexContent}/>
                                         </CardContent>
                                     </Card>
-                                </JackInTheBox>
+                                </Zoom>
                             </Grid>
                         </Grid>
                         <Grid xs item className="graph-button">

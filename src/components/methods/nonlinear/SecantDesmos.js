@@ -109,7 +109,7 @@ const DialogContent =  withStyles((theme) => ({
     );
 });
 
-function NewtonDesmos({params, smallScreen}) {
+function SecantDesmos({params, smallScreen}) {
     const [openDialog, setOpenDialog] = useState(false);
 
     const handleClickOpen = () => {
@@ -135,4 +135,4 @@ function NewtonDesmos({params, smallScreen}) {
     );
 }
 
-export default NewtonDesmos;
+export default SecantDesmos;
