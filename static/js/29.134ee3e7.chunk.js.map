@@ -1,0 +1,1 @@
+{"version":3,"sources":["components/methods/linear/Jordan.js"],"names":["LinearJordan"],"mappings":"qIAAA,uBASeA,UAPf,WACI,OACI","file":"static/js/29.134ee3e7.chunk.js","sourcesContent":["import React from \"react\";\r\n\r\nfunction LinearJordan() {\r\n    return (\r\n        <>\r\n        </>\r\n    );\r\n}\r\n\r\nexport default LinearJordan;"],"sourceRoot":""}

@@ -1,1 +1,0 @@
-{"version":3,"sources":["components/methods/optimisation/Parabolic.js"],"names":["OptiParabolic"],"mappings":"qIAAA,uBASeA,UAPf,WACI,OACI","file":"static/js/42.d40736cf.chunk.js","sourcesContent":["import React from \"react\";\r\n\r\nfunction OptiParabolic() {\r\n    return (\r\n        <>\r\n        </>\r\n    );\r\n}\r\n\r\nexport default OptiParabolic;"],"sourceRoot":""}
