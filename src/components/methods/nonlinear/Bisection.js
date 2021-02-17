@@ -1,12 +1,11 @@
 import {isValidMath, mathjsToLatex, formatLatex} from "../../utils";
 import React, {useState, useEffect} from "react";
 import Header from "../../header/Header";
-import BisectionDesmos from "./BisectionDesmos";
+import DesmosGraph from "./DesmosGraph";
+import * as Desmos from 'desmos';
 
 import { addStyles, EditableMathField } from 'react-mathquill';
-import {
-    parse, derivative
-  } from 'mathjs';
+import { parse } from 'mathjs';
 import { MathComponent } from 'mathjax-react';
 
 import Typography from '@material-ui/core/Typography';
@@ -105,7 +104,6 @@ function NonlinearBisection({methodName}) {
     const styleClasses = useStyles();
 
     // Function
-    // Another sample would be: `3x^2+2x-8`
     const [functionLatex, setFunctionLatex] = useState(String.raw`x-\cos\left( x\right)`);
     const [functionText, setFunctionText] = useState('');
 
@@ -390,22 +388,21 @@ function Steps({params}) {
     let results = params.results;
     let currentResult = results[currentIteration - 1];
 
-    let oldLowerXLatex = String.raw`x_{lower_{${currentIteration - 1}}}`;
-    let oldUpperXLatex = String.raw`x_{upper_{${currentIteration - 1}}}`;
-    let newLowerXLatex = String.raw`x_{lower_{${currentIteration}}}`;
-    let newUpperXLatex = String.raw`x_{upper_{${currentIteration}}}`;
-    let newRootXLatex = String.raw`x_{root_{${currentIteration - 1}}}`;
-
-    let latexContent;
+    let latexContent, graphCallback;
 
     if (currentIteration > params.iterations) {
         setCurrentIteration(params.iterations);
     }
     else {
+        let oldLowerXLatex = String.raw`x_{lower_{${currentIteration - 1}}}`;
+        let oldUpperXLatex = String.raw`x_{upper_{${currentIteration - 1}}}`;
+        let newLowerXLatex = String.raw`x_{lower_{${currentIteration}}}`;
+        let newUpperXLatex = String.raw`x_{upper_{${currentIteration}}}`;
+        let newRootXLatex = String.raw`x_{root_{${currentIteration - 1}}}`;
         latexContent=String.raw`
         \displaystyle
         \begin{array}{l}
-        \begin{array}{lcr}
+        \begin{array}{lcl}
         \\ ${oldLowerXLatex} &=& ${formatLatex(currentResult.oldLowerX)}
         \\ ${oldUpperXLatex} &=& ${formatLatex(currentResult.oldUpperX)}
         \\ ${newRootXLatex} &=& \frac{${oldLowerXLatex} + ${oldUpperXLatex}}{2}
@@ -428,7 +425,7 @@ function Steps({params}) {
                 \\
                 \\ \text{Root found because:}
                 \\
-                \begin{array}{lcr}
+                \begin{array}{lcl}
                 \\ Error &<& Error Threshold
                 \\ ${formatLatex(currentResult.errorX)} &<& ${formatLatex(params.errorThreshold)}
                 `;
@@ -447,7 +444,7 @@ function Steps({params}) {
                 \end{array}
                 \\ \text{Given that } f(${oldLowerXLatex})f(${newRootXLatex}) < 0,
                 \\
-                \begin{array}{lcr}
+                \begin{array}{lcl}
                 \\ ${newLowerXLatex} &=& ${oldLowerXLatex}
                 \\                   &=& ${formatLatex(currentResult.newLowerX)}
                 \\ ${newUpperXLatex} &=& ${newRootXLatex}
@@ -459,7 +456,7 @@ function Steps({params}) {
                 \end{array}
                 \\ \text{Given that } f(${oldLowerXLatex})f(${newRootXLatex}) > 0,
                 \\
-                \begin{array}{lcr}
+                \begin{array}{lcl}
                 \\ ${newLowerXLatex} &=& ${newRootXLatex}
                 \\                   &=& ${formatLatex(currentResult.newLowerX)}
                 \\ ${newUpperXLatex} &=& ${oldUpperXLatex}
@@ -471,12 +468,22 @@ function Steps({params}) {
                 \end{array}
                 \\ \text{Root found because }
                 \\
-                \begin{array}{lcr}
+                \begin{array}{lcl}
                 \\ f(${oldLowerXLatex})f(${newRootXLatex}) == 0.
                 `;
             }
         }
         latexContent += String.raw`\end{array}\end{array}`;
+
+        graphCallback = (calculator, currentResult) => {
+            calculator.current.setExpression({ id: 'function', color: Desmos.Colors.BLUE, latex: mathjsToLatex(params.functionValue)});
+            calculator.current.setExpression({ id: 'lowerX', color: Desmos.Colors.GREEN, pointStyle: Desmos.Styles.POINT, label: "Lower", showLabel:true, latex:
+                `(${formatLatex(currentResult.oldLowerX)}, ${formatLatex(currentResult.lowerFuncResult)})` });
+            calculator.current.setExpression({ id: 'upperX', color: Desmos.Colors.GREEN, pointStyle: Desmos.Styles.POINT, label: "Upper", showLabel:true, latex:
+                `(${formatLatex(currentResult.oldUpperX)}, ${formatLatex(currentResult.upperFuncResult)})` });
+            calculator.current.setExpression({ id: 'root', color: Desmos.Colors.RED, pointStyle: Desmos.Styles.POINT, label: "Root", showLabel:true, latex:
+                `(${formatLatex(currentResult.rootX)}, 0)` });
+        }
     }
 
     const smallScreen = useMediaQuery(useTheme().breakpoints.down('sm'));
@@ -537,7 +544,7 @@ function Steps({params}) {
                         </Grid>
                         <Grid xs item className="graph-button">
                             <Slide direction="right" triggerOnce>
-                                <BisectionDesmos params={{currentIteration, smallScreen, ...params}} />
+                                <DesmosGraph params={{currentIteration, graphCallback, smallScreen, ...params}} />
                             </Slide>
                         </Grid>
                     </Grid>

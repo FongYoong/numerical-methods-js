@@ -1,12 +1,11 @@
 import {isValidMath, mathjsToLatex, formatLatex} from "../../utils";
 import React, {useState, useEffect} from "react";
 import Header from "../../header/Header";
-import SecantDesmos from "./NewtonDesmos";
+import DesmosGraph from "./DesmosGraph";
+import * as Desmos from 'desmos';
 
 import { addStyles, EditableMathField } from 'react-mathquill';
-import {
-    parse, derivative
-  } from 'mathjs';
+import { parse } from 'mathjs';
 import { MathComponent } from 'mathjax-react';
 
 import Typography from '@material-ui/core/Typography';
@@ -40,16 +39,16 @@ const TOUR_STEPS: JoyrideStep[] = [
         disableBeacon: true,
     },
     {
-        target: ".derivative-input",
-        title: "Derivative",
+        target: ".perturbation-input",
+        title: "Perturbation",
         content:
-            "The function's derivative will be shown here.",
+            "Specify the perturbation fraction. Higher values produce a better approximation.",
     },
     {
         target: ".iteration-input",
         title: "Iterations",
         content:
-            "Specify the number of iterations to apply Newton's method.",
+            "Specify the number of iterations to apply the modified secant method.",
     },
     {
         target: ".initialX-input",
@@ -123,21 +122,27 @@ function NonlinearSecant({methodName}) {
     const styleClasses = useStyles();
 
     // Derivative
-    // Another sample would be: `3x^2+2x-8`
     const [functionLatex, setFunctionLatex] = useState(String.raw`x-\cos\left( x\right)`);
     const [functionText, setFunctionText] = useState('');
 
-    let functionValue, derivValue, derivLatex;
+    let functionValue;
     let functionError = false;
     let functionErrorText = "";
     try {
         functionValue = parse(functionText);
-        derivValue = derivative(functionText, 'x');
-        derivLatex = mathjsToLatex(derivValue);
     }
     catch {
         functionError = true;
         functionErrorText = "Invalid equation!";
+    }
+
+    // Perturbation
+    const [perturbation, setPerturbation] = useState(0.01);
+    let perturbationError = false;
+    let perturbationErrorText = "";
+    if (perturbation <= 0) {
+        perturbationError = true;
+        perturbationErrorText = "Perturbation must be a positive integer!";
     }
 
     // Iterations
@@ -146,26 +151,26 @@ function NonlinearSecant({methodName}) {
     let iterErrorText = "";
     if (!Number.isInteger(iterations) || iterations <= 0) {
         iterError = true;
-        iterErrorText = "Iterations must be a positive integer";
+        iterErrorText = "Iterations must be a positive integer!";
     }
 
-    let hasError = functionError || iterError;
+    let hasError = functionError || perturbationError || iterError;
 
     // Initial x
-    const [initialX, setInitialX] = useState(0.0);
+    const [initialX, setInitialX] = useState(3.5);
 
     // Solve
-
     let solve = false;
     let results = [];
     if (isValidMath(functionValue) && !hasError) {
         solve = true;
         for (let i = 0; i < iterations; i++) {
             let previousX = (i === 0) ? initialX: results[i - 1].newX;
-            let funcResult, derivResult;
+            let perturbedX = previousX * (1 + perturbation);
+            let funcResult, funcResult2;
             try {
                 funcResult = functionValue.evaluate({x : previousX});
-                derivResult = derivValue.evaluate({x : previousX});
+                funcResult2 = functionValue.evaluate({x : perturbedX});
             }
             catch {
                 hasError = true;
@@ -175,12 +180,13 @@ function NonlinearSecant({methodName}) {
                 break;
             }
             
-            let newX = previousX - funcResult / derivResult;
+            let newX = previousX - perturbation * previousX * funcResult / (funcResult2 - funcResult);
             let errorX = Math.abs(newX - previousX);
             results.push({
                 previousX,
+                perturbedX,
                 funcResult,
-                derivResult,
+                funcResult2,
                 newX,
                 errorX,
             });
@@ -214,7 +220,7 @@ function NonlinearSecant({methodName}) {
         setOpenErrorSnackbar(false);
     };
 
-    let params = {functionValue, derivValue, iterations, results};
+    let params = {functionValue, perturbation, iterations, results};
     
     return (
         <>
@@ -240,23 +246,30 @@ function NonlinearSecant({methodName}) {
                                             setFunctionText(mathField.text())
                                         }}
                                     />
-                                </CardContent>
-                            </Card>
-                        </Grid>
-                        <Grid xs item className="derivative-input">
-                            <Card className={styleClasses.card}>
-                                <CardContent className={styleClasses.cardContent}>
-                                    <Typography variant="h6">
-                                        Derivative:
-                                    </Typography>
                                     <Collapse in={functionError}>
                                         <Alert severity="error">
                                             {functionErrorText}
                                         </Alert>
                                     </Collapse>
-                                    <Collapse in={!functionError}>
-                                        {!functionError && <Fade triggerOnce><MathComponent tex={derivLatex}/></Fade>}
-                                    </Collapse>
+                                </CardContent>
+                            </Card>
+                        </Grid>
+                        <Grid xs item className="perturbation-input">
+                            <Card className={styleClasses.card}>
+                                <CardContent className={styleClasses.cardContent}>
+                                    <Typography variant="h6">
+                                        Perturbation fraction:
+                                    </Typography>
+                                    <TextField
+                                        disabled={false}
+                                        type="number"
+                                        onChange={(event)=>setPerturbation(parseFloat(event.target.value))}
+                                        error={perturbationError}
+                                        label={perturbationError?"Error":""}
+                                        defaultValue={perturbation.toString()}
+                                        helperText={perturbationErrorText}
+                                        variant="outlined"
+                                    />
                                 </CardContent>
                             </Card>
                         </Grid>
@@ -351,28 +364,44 @@ function Steps({params}) {
     let results = params.results;
     let currentResult = results[currentIteration - 1];
 
-    let previousXLatex = String.raw`x_{${currentIteration - 1}}`;
-    let newXLatex = String.raw`x_{${currentIteration}}`;
-
-    let latexContent;
+    let latexContent, graphCallback;
 
     if (currentIteration > params.iterations) {
         setCurrentIteration(params.iterations);
     }
     else {
+        let previousXLatex = String.raw`x_{${currentIteration - 1}}`;
+        let perturbedXLatex = String.raw`${previousXLatex} + 𝛿 \cdot ${previousXLatex}`;
+        let newXLatex = String.raw`x_{${currentIteration}}`;
         latexContent =
         String.raw`
         \displaystyle
-        \begin{array}{lll}
+        \begin{array}{l}
+        \begin{array}{lcl}
         \\ ${previousXLatex} &=& ${formatLatex(currentResult.previousX)}
+        \\ ${perturbedXLatex} &=& ${formatLatex(currentResult.perturbedX)}
         \\ f(${previousXLatex}) &=& ${formatLatex(currentResult.funcResult)}
-        \\ f'(${previousXLatex}) &=& ${formatLatex(currentResult.derivResult)}
-        \\ ${newXLatex} &=& x_${currentIteration - 1} - \frac{f(${previousXLatex})}{f'(${previousXLatex})}
-        \\                       &=& ${formatLatex(currentResult.newX)}
+        \\ f(${perturbedXLatex}) &=& ${formatLatex(currentResult.funcResult2)}
+        \\ ${newXLatex} &=& ${previousXLatex} - \frac{𝛿 \cdot ${previousXLatex} \cdot f(${previousXLatex})}{f(${perturbedXLatex}) - f(${previousXLatex})}
+        \\              &=& ${formatLatex(currentResult.newX)}
+        \end{array}
+        \\
+        \begin{array}{lcl}
         \\ Error &=& |${newXLatex} - ${previousXLatex}|
         \\       &=& |${formatLatex(currentResult.errorX)}|
         \end{array}
+        \end{array}
         `;
+
+        graphCallback = (calculator, currentResult) => {
+            calculator.current.setExpression({ id: 'function', color: Desmos.Colors.BLUE, latex: mathjsToLatex(params.functionValue)});
+            calculator.current.setExpression({ id: 'derivative', color: Desmos.Colors.GREEN, lineStyle: Desmos.Styles.DOTTED, latex:
+                `(y-${formatLatex(currentResult.funcResult)})/(x-${formatLatex(currentResult.previousX)})=${formatLatex((currentResult.funcResult2 - currentResult.funcResult) / (params.perturbation * currentResult.previousX))}` });
+            calculator.current.setExpression({ id: 'initialX', color: Desmos.Colors.ORANGE, pointStyle: Desmos.Styles.POINT, label: "initialX", showLabel:true, latex:
+                `(${formatLatex(currentResult.previousX)}, ${formatLatex(currentResult.funcResult)})` });
+            calculator.current.setExpression({ id: 'root', color: Desmos.Colors.RED, pointStyle: Desmos.Styles.POINT, label: "Root", showLabel:true, latex:
+                `(${formatLatex(currentResult.newX)}, 0)` });
+        }
     }
 
 
@@ -421,7 +450,7 @@ function Steps({params}) {
                     </Grid>
                     <Grid xs item className="graph-button">
                         <Slide direction="right" triggerOnce>
-                            <SecantDesmos params={{currentIteration, smallScreen, ...params}} />
+                            <DesmosGraph params={{currentIteration, graphCallback, smallScreen, ...params}} />
                         </Slide>
                     </Grid>
                 </Grid>

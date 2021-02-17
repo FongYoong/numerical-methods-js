@@ -12,6 +12,7 @@ import LinearSeidel from '../components/methods/linear/Seidel';
 import LinearLU from '../components/methods/linear/LU';
 import LinearSVD from '../components/methods/linear/SVD';
 import LinearInverse from '../components/methods/linear/Inverse';
+import LinearPenrose from '../components/methods/linear/PenroseInverse';
 
 import EigenPower from '../components/methods/eigen/Power';
 import EigenInversePower from '../components/methods/eigen/InversePower';
@@ -47,26 +48,31 @@ const categories = [
                 name: "Bisection",
                 path : "bisection",
                 component: NonlinearBisection,
+                completed: true,
             },
             {
                 name: "False-Position",
                 path : "false_position",
                 component: NonlinearFalsePosition,
-            },
-            {
-                name: "Newton-Rhapson",
-                path: "newton",
-                component: NonlinearNewton,
-            },
-            {
-                name: "Secant",
-                path : "secant",
-                component: NonlinearSecant,
+                completed: true,
             },
             {
                 name: "Fixed-Point",
                 path : "fixed_point",
                 component: NonlinearFixedPoint,
+                completed: true,
+            },
+            {
+                name: "Newton-Rhapson",
+                path: "newton",
+                component: NonlinearNewton,
+                completed: true,
+            },
+            {
+                name: "Modified Secant",
+                path : "secant",
+                component: NonlinearSecant,
+                completed: true,
             },
         ]
     },
@@ -78,41 +84,55 @@ const categories = [
                 name: "Gauss Elimination",
                 path : "gauss",
                 component: LinearGauss,
+                completed: false,
             },
             {
                 name: "Gauss Pivoting",
                 path : "pivot",
                 component: LinearPivot,
+                completed: false,
             },
             {
                 name: "Gauss-Jordan",
                 path : "jordan",
                 component: LinearJordan,
+                completed: false,
             },
             {
                 name: "Jacobi Iteration",
                 path : "jacobi",
                 component: LinearJacobi,
+                completed: false,
             },
             {
                 name: "Gauss-Seidel Iteration",
                 path : "seidel",
                 component: LinearSeidel,
+                completed: false,
             },
             {
                 name: "LU Decomposition",
                 path : "lu",
                 component: LinearLU,
+                completed: false,
             },
             {
                 name: "Singular Value Decomposition",
                 path : "svd",
                 component: LinearSVD,
+                completed: false,
             },
             {
                 name: "Inverse Matrix",
                 path : "inverse",
                 component: LinearInverse,
+                completed: false,
+            },
+            {
+                name: "Moore-Penrose Inverse",
+                path : "penrose_inverse",
+                component: LinearPenrose,
+                completed: false,
             },
         ]
     },
@@ -124,21 +144,25 @@ const categories = [
                 name: "Power Method",
                 path : "power",
                 component: EigenPower,
+                completed: false,
             },
             {
                 name: "Inverse-Power",
                 path : "inverse",
                 component: EigenInversePower,
+                completed: false,
             },
             {
                 name: "Shifted Power",
                 path : "shifted",
                 component: EigenShiftedPower,
+                completed: false,
             },
             {
                 name: "QR Factorisation",
                 path : "qr",
                 component: EigenQR,
+                completed: false,
             },
         ]
     },
@@ -150,28 +174,20 @@ const categories = [
                 name: "Linear",
                 path : "linear",
                 component: CurveLinear,
+                completed: false,
             },
             {
                 name: "Polynomial Regression",
                 path : "poly",
                 component: CurvePoly,
+                completed: false,
             },
             {
                 name: "Spline Interpolation",
                 path : "spline",
                 component: CurveSpline,
+                completed: false,
             }
-        ]
-    },
-    {
-        name : "Fourier Methods",
-        path : "fourier",
-        methods : [
-            {
-                name: "Fast Fourier Transform",
-                path : "fft",
-                component: FFT,
-            },
         ]
     },
     {
@@ -182,10 +198,12 @@ const categories = [
                 name: "Finite Difference",
                 path : "finite",
                 component: DiffFinite,
+                completed: false,
             },
             {
                 name: "Richardson's Extrapolation",
                 component: DiffRichardson,
+                completed: false,
             },
         ]
     },
@@ -197,21 +215,25 @@ const categories = [
                 name: "Rectangle & Midpoint",
                 path : "midpoint",
                 component: IntegralMidpoint,
+                completed: false,
             },
             {
                 name: "Trapezoidal",
                 path : "trapezoidal",
                 component: IntegralTrapezoidal,
+                completed: false,
             },
             {
                 name: "Simpson's Method",
                 path : "simpson",
                 component: IntegralSimpson,
+                completed: false,
             },
             {
                 name: "Gauss Quadrature",
                 path : "quadrature",
                 component: IntegralQuadrature,
+                completed: false,
             },
         ]
     },
@@ -223,29 +245,46 @@ const categories = [
                 name: "Euler",
                 path : "euler",
                 component: OdeEuler,
+                completed: false,
             },
             {
                 name: "Midpoint",
                 path : "midpoint",
                 component: OdeMidpoint,
+                completed: false,
             },
             {
                 name: "Runge-Kutta",
                 path : "runge",
                 component: OdeRunge,
+                completed: false,
             },
             {
                 name: "Multistep",
                 path : "multistep",
                 component: OdeMultistep,
+                completed: false,
             },
             {
                 name: "Predictor-Corrector",
                 path : "predictor",
                 component: OdePredictor,
+                completed: false,
             },
         ]
-    }
+    },
+    {
+        name : "Fourier Methods",
+        path : "fourier",
+        methods : [
+            {
+                name: "Fast Fourier Transform",
+                path : "fft",
+                component: FFT,
+                completed: false,
+            },
+        ]
+    },
 
 ]
 

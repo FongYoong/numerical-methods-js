@@ -1,12 +1,11 @@
 import {isValidMath, mathjsToLatex, formatLatex} from "../../utils";
 import React, {useState, useEffect} from "react";
 import Header from "../../header/Header";
-import NewtonDesmos from "./NewtonDesmos";
+import DesmosGraph from "./DesmosGraph";
+import * as Desmos from 'desmos';
 
 import { addStyles, EditableMathField } from 'react-mathquill';
-import {
-    parse, derivative
-  } from 'mathjs';
+import { parse, derivative } from 'mathjs';
 import { MathComponent } from 'mathjax-react';
 
 import Typography from '@material-ui/core/Typography';
@@ -26,7 +25,7 @@ import HelpIcon from '@material-ui/icons/Help';
 import Joyride, { Step as JoyrideStep, CallBackProps as JoyrideCallBackProps} from "react-joyride";
 import Snackbar from '@material-ui/core/Snackbar';
 import Collapse from '@material-ui/core/Collapse';
-import { Fade, Zoom, Slide, JackInTheBox } from "react-awesome-reveal";
+import { Fade, Zoom, Slide } from "react-awesome-reveal";
 import { useTheme } from '@material-ui/core/styles';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import { makeStyles } from '@material-ui/core/styles';
@@ -146,7 +145,7 @@ function NonlinearNewton({methodName}) {
     let iterErrorText = "";
     if (!Number.isInteger(iterations) || iterations <= 0) {
         iterError = true;
-        iterErrorText = "Iterations must be a positive integer";
+        iterErrorText = "Iterations must be a positive integer!";
     }
 
     let hasError = functionError || iterError;
@@ -155,7 +154,6 @@ function NonlinearNewton({methodName}) {
     const [initialX, setInitialX] = useState(0.0);
 
     // Solve
-
     let solve = false;
     let results = [];
     if (isValidMath(functionValue) && !hasError) {
@@ -351,15 +349,14 @@ function Steps({params}) {
     let results = params.results;
     let currentResult = results[currentIteration - 1];
 
-    let previousXLatex = String.raw`x_{${currentIteration - 1}}`;
-    let newXLatex = String.raw`x_{${currentIteration}}`;
-
-    let latexContent;
+    let latexContent, graphCallback;
 
     if (currentIteration > params.iterations) {
         setCurrentIteration(params.iterations);
     }
     else {
+        let previousXLatex = String.raw`x_{${currentIteration - 1}}`;
+        let newXLatex = String.raw`x_{${currentIteration}}`;
         latexContent =
         String.raw`
         \displaystyle
@@ -367,14 +364,23 @@ function Steps({params}) {
         \\ ${previousXLatex} &=& ${formatLatex(currentResult.previousX)}
         \\ f(${previousXLatex}) &=& ${formatLatex(currentResult.funcResult)}
         \\ f'(${previousXLatex}) &=& ${formatLatex(currentResult.derivResult)}
-        \\ ${newXLatex} &=& x_${currentIteration - 1} - \frac{f(${previousXLatex})}{f'(${previousXLatex})}
+        \\ ${newXLatex} &=& ${previousXLatex} - \frac{f(${previousXLatex})}{f'(${previousXLatex})}
         \\                       &=& ${formatLatex(currentResult.newX)}
         \\ Error &=& |${newXLatex} - ${previousXLatex}|
         \\       &=& |${formatLatex(currentResult.errorX)}|
         \end{array}
         `;
-    }
 
+        graphCallback = (calculator, currentResult) => {
+            calculator.current.setExpression({ id: 'function', color: Desmos.Colors.BLUE, latex: mathjsToLatex(params.functionValue)});
+            calculator.current.setExpression({ id: 'derivative', color: Desmos.Colors.GREEN, lineStyle: Desmos.Styles.DOTTED, latex:
+                `(y-${formatLatex(currentResult.funcResult)})/(x-${formatLatex(currentResult.previousX)})=${formatLatex(currentResult.derivResult)}` });
+            calculator.current.setExpression({ id: 'initialX', color: Desmos.Colors.ORANGE, pointStyle: Desmos.Styles.POINT, label: "initialX", showLabel:true, latex:
+                `(${formatLatex(currentResult.previousX)}, ${formatLatex(currentResult.funcResult)})` });
+            calculator.current.setExpression({ id: 'root', color: Desmos.Colors.RED, pointStyle: Desmos.Styles.POINT, label: "Root", showLabel:true, latex:
+                `(${formatLatex(currentResult.newX)}, 0)` });
+        }
+    }
 
     const smallScreen = useMediaQuery(useTheme().breakpoints.down('sm'));
     
@@ -393,7 +399,7 @@ function Steps({params}) {
                             <Box id="iteration-slider" height={smallScreen?null:"20rem"} width={smallScreen?"70vw":null}>
                                 <Slider
                                     orientation={smallScreen?"horizontal":"vertical"}
-                                    onChange={(event, value) => setCurrentIteration(value)}
+                                    onChange={(event, value) => {setCurrentIteration(value)}}
                                     defaultValue={1}
                                     aria-labelledby="discrete-slider-small-steps"
                                     step={1}
@@ -421,7 +427,7 @@ function Steps({params}) {
                     </Grid>
                     <Grid xs item className="graph-button">
                         <Slide direction="right" triggerOnce>
-                            <NewtonDesmos params={{currentIteration, smallScreen, ...params}} />
+                            <DesmosGraph params={{currentIteration, graphCallback, smallScreen, ...params}} />
                         </Slide>
                     </Grid>
                 </Grid>

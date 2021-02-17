@@ -55,13 +55,9 @@ const DialogContent =  withStyles((theme) => ({
 
     const updateGraph = useCallback(() => {
         if (calculator.current){
-            calculator.current.setExpression({ id: 'function', color: Desmos.Colors.BLUE, latex: mathjsToLatex(params.functionValue)});
-            calculator.current.setExpression({ id: 'derivative', color: Desmos.Colors.GREEN, lineStyle: Desmos.Styles.DOTTED, latex:
-            `(y-${formatLatex(currentResult.funcResult)})/(x-${formatLatex(currentResult.previousX)})=${formatLatex(currentResult.derivResult)}` });
-            calculator.current.setExpression({ id: 'root', color: Desmos.Colors.RED, pointStyle: Desmos.Styles.POINT, label: "Root", showLabel:true, latex:
-            `(${formatLatex(currentResult.newX)}, 0)` });
+            params.graphCallback(calculator, currentResult);
         }
-    }, [calculator, params.functionValue, currentResult]);
+    }, [calculator, currentResult, params]);
     updateGraph();
 
     useEffect(() => {
@@ -109,7 +105,7 @@ const DialogContent =  withStyles((theme) => ({
     );
 });
 
-function SecantDesmos({params, smallScreen}) {
+function NewtonDesmos({params, smallScreen}) {
     const [openDialog, setOpenDialog] = useState(false);
 
     const handleClickOpen = () => {
@@ -135,4 +131,4 @@ function SecantDesmos({params, smallScreen}) {
     );
 }
 
-export default SecantDesmos;
+export default NewtonDesmos;
