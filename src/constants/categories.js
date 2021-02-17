@@ -19,6 +19,12 @@ import EigenInversePower from '../components/methods/eigen/InversePower';
 import EigenShiftedPower from '../components/methods/eigen/ShiftedPower';
 import EigenQR from '../components/methods/eigen/QR';
 
+import OptiGoldenSearch from '../components/methods/optimisation/GoldenSearch';
+import OptiParabolic from '../components/methods/optimisation/Parabolic';
+import OptiNewton from '../components/methods/optimisation/Newton';
+import OptiGradient from '../components/methods/optimisation/Gradient';
+import OptiLinearProg from '../components/methods/optimisation/LinearProg';
+
 import CurveLinear from '../components/methods/curve/Linear';
 import CurvePoly from '../components/methods/curve/Polynomial';
 import CurveSpline from '../components/methods/curve/Spline';
@@ -167,6 +173,42 @@ const categories = [
         ]
     },
     {
+        name : "Optimisation",
+        path : "optimisation",
+        methods : [
+            {
+                name: "Golden-Section Search",
+                path : "golden_search",
+                component: OptiGoldenSearch,
+                completed: false,
+            },
+            {
+                name: "Parabolic Interpolation",
+                path : "parabolic",
+                component: OptiParabolic,
+                completed: false,
+            },
+            {
+                name: "Newton's Method",
+                path : "newton",
+                component: OptiNewton,
+                completed: false,
+            },
+            {
+                name: "Gradient Methods",
+                path : "gradient",
+                component: OptiGradient,
+                completed: false,
+            },
+            {
+                name: "Linear Programming",
+                path : "linear_prog",
+                component: OptiLinearProg,
+                completed: false,
+            },
+        ]
+    },
+    {
         name : "Curve Fitting",
         path : "curve",
         methods : [
@@ -188,6 +230,18 @@ const categories = [
                 component: CurveSpline,
                 completed: false,
             }
+        ]
+    },
+    {
+        name : "Fourier Methods",
+        path : "fourier",
+        methods : [
+            {
+                name: "Fast Fourier Transform",
+                path : "fft",
+                component: FFT,
+                completed: false,
+            },
         ]
     },
     {
@@ -269,18 +323,6 @@ const categories = [
                 name: "Predictor-Corrector",
                 path : "predictor",
                 component: OdePredictor,
-                completed: false,
-            },
-        ]
-    },
-    {
-        name : "Fourier Methods",
-        path : "fourier",
-        methods : [
-            {
-                name: "Fast Fourier Transform",
-                path : "fft",
-                component: FFT,
                 completed: false,
             },
         ]
