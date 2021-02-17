@@ -1,12 +1,12 @@
 import reportWebVitals from './reportWebVitals';
-import React, { Suspense } from 'react';
+import React, { Suspense, lazy } from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
-import App from './App';
+//import App from './App';
 import {HashRouter as Router} from "react-router-dom";
 import { Fade } from "react-awesome-reveal";
 import { Puff } from '@agney/react-loading';
-
+const App = lazy(() => import('./App'));
 
 const suspenseLoader = (
   <Fade>
