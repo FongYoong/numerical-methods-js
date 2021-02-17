@@ -1,13 +1,28 @@
-import React from 'react';
+import reportWebVitals from './reportWebVitals';
+import React, { Suspense } from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 import App from './App';
 import {HashRouter as Router} from "react-router-dom";
-import reportWebVitals from './reportWebVitals';
+import { Fade } from "react-awesome-reveal";
+import { Puff } from '@agney/react-loading';
+
+
+const suspenseLoader = (
+  <Fade>
+    <div className="suspenseLoader">
+      <Puff width="100" />
+      <p>Wait ahh...</p>
+    </div>
+  </Fade>
+);
+
 
 ReactDOM.render(
   <Router>
-    <App />
+    <Suspense fallback={suspenseLoader}>
+      <App />
+    </Suspense>
   </Router>
   ,
   document.getElementById('root')

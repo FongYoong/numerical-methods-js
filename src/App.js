@@ -33,6 +33,7 @@ const useStyles = makeStyles((theme) => ({
 function App() {
 
   const styleClasses = useStyles();
+
   return (
     <div className={styles.App}>
       <CssBaseline />
@@ -40,7 +41,6 @@ function App() {
       <Container>
         <div className={styleClasses.root}>
           <Switch>
-
             <Route exact path={generatePath()}>
               <Menu />
             </Route>
