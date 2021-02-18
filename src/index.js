@@ -20,7 +20,7 @@ const suspenseLoader = (
 const suspenseLoader = (
   <Fade>
     <div className="suspenseLoader">
-      <img alt=" " src={Puff} />
+      <img alt=" " src={Puff} height="125" width="125"/>
       <p>Wait ahh...</p>
     </div>
   </Fade>
