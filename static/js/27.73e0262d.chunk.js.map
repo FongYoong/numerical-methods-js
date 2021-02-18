@@ -1,1 +1,0 @@
-{"version":3,"sources":["components/methods/linear/Inverse.js"],"names":["LinearInverse"],"mappings":"qIAAA,uBASeA,UAPf,WACI,OACI","file":"static/js/27.73e0262d.chunk.js","sourcesContent":["import React from \"react\";\r\n\r\nfunction LinearInverse() {\r\n    return (\r\n        <>\r\n        </>\r\n    );\r\n}\r\n\r\nexport default LinearInverse;"],"sourceRoot":""}
