@@ -2,12 +2,12 @@ import reportWebVitals from './reportWebVitals';
 import React, { Suspense, lazy } from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
-//import App from './App';
 import {HashRouter as Router} from "react-router-dom";
 import { Fade } from "react-awesome-reveal";
-import { Puff } from '@agney/react-loading';
+import Puff from './svg/puff.svg';
 const App = lazy(() => import('./App'));
 
+/*
 const suspenseLoader = (
   <Fade>
     <div className="suspenseLoader">
@@ -16,7 +16,15 @@ const suspenseLoader = (
     </div>
   </Fade>
 );
-
+*/
+const suspenseLoader = (
+  <Fade>
+    <div className="suspenseLoader">
+      <img alt=" " src={Puff} />
+      <p>Wait ahh...</p>
+    </div>
+  </Fade>
+);
 
 ReactDOM.render(
   <Router>

@@ -3,7 +3,7 @@ import React, {useState, useEffect} from "react";
 import Header from "../../header/Header";
 
 import { addStyles, EditableMathField } from 'react-mathquill';
-import { parse } from 'mathjs';
+import { parse } from 'mathjs'; // Remove this
 import { MathComponent } from 'mathjax-react';
 
 import Typography from '@material-ui/core/Typography';
@@ -28,49 +28,22 @@ import { useTheme } from '@material-ui/core/styles';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import { makeStyles } from '@material-ui/core/styles';
 
+import { WidthProvider, Responsive } from "react-grid-layout";
+const ResponsiveReactGridLayout = WidthProvider(Responsive);
+
 const TOUR_STEPS: JoyrideStep[] = [
     {
-        target: ".function-input",
-        title: "Function",
+        target: ".matrix-input",
+        title: "Matrix",
         content:
-        "Type a math function which only has the variable x. cos(x), sin(x) and e^x are supported.",
+        "Specify the input matrix here.",
         disableBeacon: true,
-    },
-    {
-        target: ".iteration-input",
-        title: "Iterations",
-        content:
-            "Specify the number of iterations to apply the fixed point method.",
-    },
-    {
-        target: ".initialX-input",
-        title: "Initial x value",
-        content:
-            "Specify the initial/starting value of x.",
-    },
-    {
-        target: ".results",
-        title: "Results",
-        content:
-            "The results are shown here.",
-    },
-    {
-        target: ".iteration-slider",
-        title: "Iteration slider",
-        content:
-            "Change the slider to view the result of any iteration.",
     },
     {
         target: ".step-math",
         title: "Steps",
         content:
-            "The steps for each iteration are shown here.",
-    },
-    {
-        target: ".graph-button",
-        title: "View graph",
-        content:
-            "Click this to visualise the results.",
+            "The steps are shown here.",
     },
 ];
 
@@ -213,7 +186,7 @@ function LinearGauss({methodName}) {
                         .
                     </Typography>
                     <Grid container spacing={1} direction="row" alignItems="center" justify="center">
-                        <Grid xs item className="function-input">
+                        <Grid xs item className="matrix-input">
                             <Card className={styleClasses.card}>
                                 <CardContent className={styleClasses.cardContent}>
                                     <Typography variant="h6">
