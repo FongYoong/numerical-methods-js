@@ -1,15 +1,10 @@
 import Header from "../header/Header";
 import Category from "./Category";
 import categories from "../../constants/categories";
-import {generatePath} from "../utils";
 import {React, useEffect} from "react";
 import Paper from '@material-ui/core/Paper';
 import Grid from '@material-ui/core/Grid';
-import { Fade, Zoom, Slide, JackInTheBox } from "react-awesome-reveal";
-
-import {
-  useHistory,
-} from "react-router-dom";
+import { Zoom } from "react-awesome-reveal";
 
 import { makeStyles } from '@material-ui/core/styles';
 const useStyles = makeStyles((theme) => ({
@@ -48,10 +43,6 @@ function Menu() {
   });
 
   const styleClasses = useStyles();
-  const history = useHistory();
-  const onMethodClick = ({categoryPath, method}) => {
-    history.push(generatePath(categoryPath, method.path));
-  };
 
   return (
       <>
@@ -62,7 +53,7 @@ function Menu() {
           categories.map((category, i) => (
             <Grid key={i} item xs={12} sm={6} md={4} lg={4} xl={4}>
               <Paper className={styleClasses.paper}>
-                <Category category={category} methods={category.methods} onMethodClick={onMethodClick}/>
+                <Category category={category} methods={category.methods} />
               </Paper>
             </Grid>
           ))

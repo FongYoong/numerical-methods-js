@@ -1,10 +1,11 @@
+import {generatePath} from "../utils";
 import React from "react";
+import { Link } from "react-router-dom";
 import Box from '@material-ui/core/Box';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import { green, red } from '@material-ui/core/colors';
-//import FiberManualRecordOutlinedIcon from '@material-ui/icons/FiberManualRecordOutlined';
 import CheckCircleOutlineOutlinedIcon from '@material-ui/icons/CheckCircleOutlineOutlined';
 import CancelOutlinedIcon from '@material-ui/icons/CancelOutlined';
 import { makeStyles } from '@material-ui/core/styles';
@@ -22,14 +23,11 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
-function MethodType({categoryPath, method, onMethodClick}) {
+function MethodType({categoryPath, method}) {
     const styleClasses = useStyles();
 
-    const onClick = () => {
-        onMethodClick({categoryPath, method});
-    }
     return (
-        <ListItem button className={styleClasses.listItem} onClick={onClick}>
+        <ListItem divider component={Link} button={true} to={generatePath(categoryPath, method.path)} className={styleClasses.listItem}>
             <ListItemIcon>
             {method.completed?
             <CheckCircleOutlineOutlinedIcon style={{ color: green[500] }}/>

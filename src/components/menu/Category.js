@@ -11,7 +11,7 @@ import DoubleArrowIcon from '@material-ui/icons/DoubleArrow';
 import ExpandLess from '@material-ui/icons/ExpandLess';
 import ExpandMore from '@material-ui/icons/ExpandMore';
 
-function Category({category, onMethodClick}) {
+function Category({category}) {
 
     const [open, setOpen] = React.useState(false);
 
@@ -31,7 +31,7 @@ function Category({category, onMethodClick}) {
             <List component="div" disablePadding>
                 {
                     category.methods.map((method, i) => (
-                        <MethodType key = {i} categoryPath={category.path} method={method} onMethodClick={onMethodClick}/>
+                        <MethodType key = {i} categoryPath={category.path} method={method} />
                     ))
                 }
             </List>

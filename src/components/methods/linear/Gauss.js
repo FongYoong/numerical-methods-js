@@ -33,29 +33,29 @@ import ReactDataGrid from 'react-data-grid';
 
 const TOUR_STEPS: JoyrideStep[] = [
     {
-        target: ".matrix-input",
-        title: "Matrix",
-        content:
-        "Specify the input matrix here.",
-        disableBeacon: true,
-    },
-    {
-        target: ".output-col-input",
-        title: "Output",
-        content:
-        "Specify the output.",
-    },
-    {
         target: ".matrix-col-input",
         title: "Column",
         content:
         "Add/Remove columns",
+        disableBeacon: true,
     },
     {
         target: ".matrix-row-input",
         title: "Row",
         content:
         "Add/Remove rows",
+    },
+    {
+        target: ".matrix-input",
+        title: "Matrix",
+        content:
+        "Specify the input matrix here.",
+    },
+    {
+        target: ".output-col-input",
+        title: "Output",
+        content:
+        "Specify the output.",
     },
     {
         target: ".step-math",
@@ -112,14 +112,6 @@ function LinearGauss({methodName}) {
         document.title = methodName;
         
     });
-    window.MathJax = {
-  tex: {
-    autoload: {
-      color: [],
-      colorv2: ['color']
-    }
-  }
-};
 
     const styleClasses = useStyles();
     const smallScreen = useMediaQuery(useTheme().breakpoints.down('sm'));
@@ -392,9 +384,6 @@ function Steps({smallScreen, params}) {
 
     const styleClasses = useStyles();
 
-    let hasError = false;
-    let errorText = "";
-
     const [currentIteration, setCurrentIteration] = useState(1);
     let results = params.results;
     let previousMatrix = currentIteration===1 ? params.originalMatrix : results[currentIteration - 2].finalMatrix;
@@ -472,47 +461,37 @@ function Steps({smallScreen, params}) {
     
     return (
         <Container className={styleClasses.container}>
-
-            <Collapse in={hasError}>
-                <Alert severity="error">
-                    {errorText}
-                </Alert>
-            </Collapse>
-            <Collapse in={!hasError}>
-                <Grid className="results" container direction="column" alignItems="center" justify="flex-start">
-                    <Grid xs item className="iteration-slider">
-                        <Slide direction="left" triggerOnce>
-                            <Box id="iteration-slider" width="70vw">
-                                <Slider
-                                    orientation="horizontal"
-                                    onChange={(event, value) => {setCurrentIteration(value)}}
-                                    defaultValue={1}
-                                    aria-labelledby="discrete-slider-small-steps"
-                                    step={1}
-                                    marks
-                                    min={1}
-                                    max={params.iterations}
-                                    valueLabelDisplay="on"
-                                />
-                            </Box>
-                        </Slide>
-                    </Grid>
-                    <Grid xs item className="step-math">
-                        <Slide direction="right" triggerOnce>
-                            <Card className={styleClasses.card}>
-                                <CardContent className={styleClasses.cardContent}>
-                                    <Typography variant="h6">
-                                        Iteration {currentIteration}:
-                                    </Typography>
-                                    <MathComponent tex={latexContent}/>
-                                </CardContent>
-                            </Card>
-                        </Slide>
-                    </Grid>
+            <Grid className="results" container direction="column" alignItems="center" justify="flex-start">
+                <Grid xs item className="iteration-slider">
+                    <Slide direction="left" triggerOnce>
+                        <Box id="iteration-slider" width="70vw">
+                            <Slider
+                                orientation="horizontal"
+                                onChangeCommitted={(event, value) => {setCurrentIteration(value)}}
+                                defaultValue={1}
+                                aria-labelledby="discrete-slider-small-steps"
+                                step={1}
+                                marks
+                                min={1}
+                                max={params.iterations}
+                                valueLabelDisplay="on"
+                            />
+                        </Box>
+                    </Slide>
                 </Grid>
-
-            </Collapse>
-
+                <Grid xs item className="step-math">
+                    <Slide direction="right" triggerOnce>
+                        <Card className={styleClasses.card}>
+                            <CardContent className={styleClasses.cardContent}>
+                                <Typography variant="h6">
+                                    Iteration {currentIteration}:
+                                </Typography>
+                                <MathComponent tex={latexContent}/>
+                            </CardContent>
+                        </Card>
+                    </Slide>
+                </Grid>
+            </Grid>
         </Container>
     )
 }

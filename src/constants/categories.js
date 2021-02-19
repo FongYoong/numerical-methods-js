@@ -155,7 +155,7 @@ const categories = [
                 name: "Gauss Elimination",
                 path : "gauss",
                 component: LinearGauss,
-                completed: false,
+                completed: true,
             },
             {
                 name: "Jacobi Iteration",
