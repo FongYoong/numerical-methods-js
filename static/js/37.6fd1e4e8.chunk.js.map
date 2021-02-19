@@ -1,0 +1,1 @@
+{"version":3,"sources":["components/methods/ode/Predictor.js"],"names":["OdePredictor"],"mappings":"qIAAA,uBASeA,UAPf,WACI,OACI","file":"static/js/37.6fd1e4e8.chunk.js","sourcesContent":["import React from \"react\";\r\n\r\nfunction OdePredictor() {\r\n    return (\r\n        <>\r\n        </>\r\n    );\r\n}\r\n\r\nexport default OdePredictor;"],"sourceRoot":""}
