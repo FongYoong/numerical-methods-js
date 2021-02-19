@@ -2,6 +2,13 @@ import {
   parse, format
 } from 'mathjs';
 
+export function formatMatrixLatex(value) {
+  //let v = parse(value);
+  //return v.toTex({parenthesis: "keep", implicit: "hide"});
+  value = parseFloat(value);
+  return format(value, {notation: 'fixed', precision: 3});
+}
+
 export function formatLatex(value) {
   //let v = parse(value);
   //return v.toTex({parenthesis: "keep", implicit: "hide"});

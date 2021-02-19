@@ -72,8 +72,6 @@ const NonlinearSecant = lazy(() => import('../components/methods/nonlinear/Secan
 const NonlinearFixedPoint = lazy(() => import('../components/methods/nonlinear/FixedPoint'));
 
 const LinearGauss = lazy(() => import('../components/methods/linear/Gauss'));
-const LinearPivot = lazy(() => import('../components/methods/linear/Pivot'));
-const LinearJordan = lazy(() => import('../components/methods/linear/Jordan'));
 const LinearJacobi = lazy(() => import('../components/methods/linear/Jacobi'));
 const LinearSeidel = lazy(() => import('../components/methods/linear/Seidel'));
 const LinearLU = lazy(() => import('../components/methods/linear/LU'));
@@ -157,18 +155,6 @@ const categories = [
                 name: "Gauss Elimination",
                 path : "gauss",
                 component: LinearGauss,
-                completed: false,
-            },
-            {
-                name: "Gauss Pivoting",
-                path : "pivot",
-                component: LinearPivot,
-                completed: false,
-            },
-            {
-                name: "Gauss-Jordan",
-                path : "jordan",
-                component: LinearJordan,
                 completed: false,
             },
             {
