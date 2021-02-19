@@ -1,0 +1,1 @@
+{"version":3,"sources":["components/methods/integral/Midpoint.js"],"names":["IntegralMidpoint"],"mappings":"qIAAA,uBASeA,UAPf,WACI,OACI","file":"static/js/25.e09a3dc1.chunk.js","sourcesContent":["import React from \"react\";\r\n\r\nfunction IntegralMidpoint() {\r\n    return (\r\n        <>\r\n        </>\r\n    );\r\n}\r\n\r\nexport default IntegralMidpoint;"],"sourceRoot":""}

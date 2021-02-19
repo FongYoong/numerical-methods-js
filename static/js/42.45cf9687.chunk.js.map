@@ -1,1 +1,0 @@
-{"version":3,"sources":["components/methods/optimisation/Newton.js"],"names":["OptiNewton"],"mappings":"qIAAA,uBASeA,UAPf,WACI,OACI","file":"static/js/42.45cf9687.chunk.js","sourcesContent":["import React from \"react\";\r\n\r\nfunction OptiNewton() {\r\n    return (\r\n        <>\r\n        </>\r\n    );\r\n}\r\n\r\nexport default OptiNewton;"],"sourceRoot":""}

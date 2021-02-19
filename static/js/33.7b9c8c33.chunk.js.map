@@ -1,1 +1,0 @@
-{"version":3,"sources":["components/methods/linear/Seidel.js"],"names":["LinearSeidel"],"mappings":"qIAAA,uBASeA,UAPf,WACI,OACI","file":"static/js/33.7b9c8c33.chunk.js","sourcesContent":["import React from \"react\";\r\n\r\nfunction LinearSeidel() {\r\n    return (\r\n        <>\r\n        </>\r\n    );\r\n}\r\n\r\nexport default LinearSeidel;"],"sourceRoot":""}
