@@ -1,4 +1,4 @@
-import {formatLatex, mathjsToLatex} from "../../utils";
+import {mathjsToLatex} from "../../utils";
 import {React, useState, useRef, useEffect, useCallback } from "react";
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
@@ -10,7 +10,8 @@ import Grid from '@material-ui/core/Grid';
 import Box from '@material-ui/core/Box';
 import Slider from '@material-ui/core/Slider';
 import TimelineIcon from '@material-ui/icons/Timeline';
-import { MathComponent } from 'mathjax-react';
+import 'katex/dist/katex.min.css';
+import TeX from '@matejmazur/react-katex';
 import * as Desmos from 'desmos';
 import { Fade } from "react-awesome-reveal";
 
@@ -79,7 +80,7 @@ const DialogContent =  withStyles((theme) => ({
         
         <Grid container direction="column" alignItems="center" justify="center">
             <Box component="div" overflow="visible">
-                <MathComponent tex={`${mathjsToLatex(params.functionValue)}`}/>
+                <TeX math={`${mathjsToLatex(params.functionValue)}`} block />
             </Box>
             <Typography variant="h6">
                 Iteration {currentIteration}:

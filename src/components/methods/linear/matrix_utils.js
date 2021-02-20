@@ -56,32 +56,6 @@ const columnSettings = {
     formatter : WrapperFormatter,
 };
 
-export const initialMatrix = {
-    columns: [
-        { key: "col_1", name: "C1", ...columnSettings },
-        { key: "col_2", name: "C2", ...columnSettings },
-        { key: "col_3", name: "C3", ...columnSettings },
-        { key: "col_4", name: "C4", ...columnSettings },
-    ],
-    rows: [
-        { col_1: 0, col_2: 1, col_3: -3, col_4: 4 },
-        { col_1: 2, col_2: -2, col_3: 1, col_4: 0 },
-        { col_1: 2, col_2: -1, col_3: -2, col_4: 4 },
-        { col_1: -6, col_2: 4, col_3: 3, col_4: -8 },
-    ]
-}
-export const initialOutputColumn = {
-    columns: [
-        { key: "col_1", name: "C1", ...columnSettings },
-        { key: "col_2", name: "C2", ...columnSettings },
-        { key: "col_3", name: "C3", ...columnSettings },
-        { key: "col_4", name: "C4", ...columnSettings },
-    ],
-    rows: [
-        { col_1: 1, col_2: -1, col_3: 0, col_4: 1},
-    ]
-}
-
 export const createNewColumn = (numberOfColumns) => {
     const newNum = numberOfColumns + 1;
     return { key: `col_${newNum}`, name: `C${newNum}`, ...columnSettings };
@@ -103,19 +77,84 @@ export const gridTo2DArray = (rowsArray) => {
     return result;
 }
 
-export const matrixToLatex = (matrix, {leftBracketOnly=false, rightBracketOnly=false, boldRows=[], transpose=false}) => {
+export const cloneArray = (array) => {
+    return JSON.parse(JSON.stringify(array));
+}
+
+export const isDiagonallyDominant = (matrix) => {
+    // Strictly diagonal dominant
+    for (let i  = 0; i < matrix.length; i++) {
+        let diagonal = matrix[i][i];
+        let sum = 0;
+        for (let j  = 0; j < matrix.length; j++) {
+            if (j !== i) {
+                sum += matrix[i][j];
+            }
+        }
+        if (Math.abs(diagonal) <= Math.abs(sum)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+// First 15 factorials.
+export const numberFactorials = [1, 2, 6, 24, 120, 720, 5040, 40320, 362880, 3628800, 39916800, 479001600, 6227020800, 87178291200, 1307674368000];
+
+export const nextPermutation = (array) => {
+    // Mutates array
+    // Find non-increasing suffix
+    let i = array.length - 1;
+    while (i > 0 && array[i - 1] >= array[i])
+        i--;
+    if (i <= 0)
+        return false;
+
+    // Find successor to pivot
+    let j = array.length - 1;
+    while (array[j] <= array[i - 1])
+        j--;
+    let temp = array[i - 1];
+    array[i - 1] = array[j];
+    array[j] = temp;
+
+    // Reverse suffix
+    j = array.length - 1;
+    while (i < j) {
+        temp = array[i];
+        array[i] = array[j];
+        array[j] = temp;
+        i++;
+        j--;
+    }
+    return true;
+}
+
+export const generatePermutationMapping = (target, original=[...Array(target.length).keys()]) => {
+    let mapping = {};
+    let alreadyCovered = [];
+    for (let i = 0; i < original.length; i++) {
+        if (!alreadyCovered.includes(target[i]) && original[i] !== target[i]) {
+            mapping[i] = target[i];
+            alreadyCovered.push(original[i], target[i]);
+        }
+    }
+    return mapping;
+}
+
+export const matrixToLatex = (matrix, {single=false, leftBracketOnly=false, rightBracketOnly=false, boldRows=[], transpose=false}={}) => {
     let latex;
     if (rightBracketOnly) {
-        latex = String.raw`\left|\matrix{`;
+        latex = String.raw`\left|\begin{matrix}`;
     }
     else {
-        latex = String.raw`\left[\matrix{`
+        latex = String.raw`\left[\begin{matrix}`
     }
     const rowLength = matrix.length;
     const colLength = matrix[0].length;
-    if (rowLength === 1) {
+    if (single) {
         // 1D array
-        for (let i = 0; i < colLength; i++){
+        for (let i = 0; i < rowLength; i++){
             let isBold = false;
             for (let b = 0; b < boldRows.length; b++) {
                 if (boldRows[b] === i + 1) {
@@ -123,9 +162,9 @@ export const matrixToLatex = (matrix, {leftBracketOnly=false, rightBracketOnly=f
                     break;
                 }
             }
-            const content = String.raw` ${formatMatrixLatex(matrix[0][i])} `;
+            const content = String.raw` ${formatMatrixLatex(matrix[i])} `;
             if (isBold) {
-                latex += String.raw` \bf{${content}} `;
+                latex += String.raw` \colorbox{aqua}{\bf{${content}}} `;
             }
             else {
                 latex += String.raw`${content}`;
@@ -145,7 +184,7 @@ export const matrixToLatex = (matrix, {leftBracketOnly=false, rightBracketOnly=f
             for (let j = 0; j < colLength; j++){
                 let content = String.raw` ${formatMatrixLatex(matrix[i][j])} `;
                 if (isBold) {
-                    latex += String.raw` \bf{${content}} `;
+                    latex += String.raw` \colorbox{aqua}{\bf{${content}}} `;
                 }
                 else {
                     latex += String.raw`${content}`;
@@ -158,10 +197,122 @@ export const matrixToLatex = (matrix, {leftBracketOnly=false, rightBracketOnly=f
         }
     }
     if (leftBracketOnly) {
-        latex += String.raw`}\right|`;
+        latex += String.raw`\end{matrix}\right|`;
     }
     else {
-        latex += String.raw`}\right]`;
+        latex += String.raw`\end{matrix}\right]`;
     }
     return latex;
+}
+
+///////////////////////////////////////////////////////
+///////////////////////////////////////////////////////
+// Matrix initial values
+///////////////////////////////////////////////////////
+///////////////////////////////////////////////////////
+export const initialMatrix = {
+    columns: [
+        { key: "col_1", name: "C1", ...columnSettings },
+        { key: "col_2", name: "C2", ...columnSettings },
+        { key: "col_3", name: "C3", ...columnSettings },
+        { key: "col_4", name: "C4", ...columnSettings },
+    ],
+    rows: [
+        { col_1: 0, col_2: 1, col_3: -3, col_4: 4 },
+        { col_1: 2, col_2: -2, col_3: 1, col_4: 0 },
+        { col_1: 2, col_2: -1, col_3: -2, col_4: 4 },
+        { col_1: -6, col_2: 4, col_3: 3, col_4: -8 },
+    ]
+}
+export const initialInputColumn = {
+    columns: [
+        { key: "col_1", name: "C1", ...columnSettings },
+        { key: "col_2", name: "C2", ...columnSettings },
+        { key: "col_3", name: "C3", ...columnSettings },
+        { key: "col_4", name: "C4", ...columnSettings },
+    ],
+    rows: [
+        { col_1: 0, col_2: 0, col_3: 0, col_4: 0},
+    ]
+}
+export const initialOutputColumn = {
+    columns: [
+        { key: "col_1", name: "C1", ...columnSettings },
+        { key: "col_2", name: "C2", ...columnSettings },
+        { key: "col_3", name: "C3", ...columnSettings },
+        { key: "col_4", name: "C4", ...columnSettings },
+    ],
+    rows: [
+        { col_1: 1, col_2: -1, col_3: 0, col_4: 1},
+    ]
+}
+
+export const initialMatrix2 = {
+    columns: [
+        { key: "col_1", name: "C1", ...columnSettings },
+        { key: "col_2", name: "C2", ...columnSettings },
+        { key: "col_3", name: "C3", ...columnSettings },
+    ],
+    rows: [
+        { col_1: 1, col_2: -10, col_3: 1 },
+        { col_1: 20, col_2: 1, col_3: -1 },
+        { col_1: -1, col_2: 1, col_3: 10 },
+    ]
+}
+export const initialInputColumn2 = {
+    columns: [
+        { key: "col_1", name: "C1", ...columnSettings },
+        { key: "col_2", name: "C2", ...columnSettings },
+        { key: "col_3", name: "C3", ...columnSettings },
+    ],
+    rows: [
+        { col_1: 0, col_2: 0, col_3: 0 },
+    ]
+}
+export const initialOutputColumn2 = {
+    columns: [
+        { key: "col_1", name: "C1", ...columnSettings },
+        { key: "col_2", name: "C2", ...columnSettings },
+        { key: "col_3", name: "C3", ...columnSettings },
+    ],
+    rows: [
+        { col_1: 13, col_2: 17, col_3: 18 },
+    ]
+}
+
+export const initialMatrix3 = {
+    columns: [
+        { key: "col_1", name: "C1", ...columnSettings },
+        { key: "col_2", name: "C2", ...columnSettings },
+        { key: "col_3", name: "C3", ...columnSettings },
+        { key: "col_4", name: "C4", ...columnSettings },
+    ],
+    rows: [
+        { col_1: -1, col_2: 11, col_3: -1, col_4: 3 },
+        { col_1: 10, col_2: -1, col_3: 2, col_4: 0 },
+        { col_1: 0, col_2: 3, col_3: -1, col_4: 8 },
+        { col_1: 2, col_2: -1, col_3: 10, col_4: -1 },
+    ]
+}
+export const initialInputColumn3 = {
+    columns: [
+        { key: "col_1", name: "C1", ...columnSettings },
+        { key: "col_2", name: "C2", ...columnSettings },
+        { key: "col_3", name: "C3", ...columnSettings },
+        { key: "col_4", name: "C4", ...columnSettings },
+    ],
+    rows: [
+        { col_1: 0, col_2: 0, col_3: 0, col_4: 0 },
+    ]
+}
+export const initialOutputColumn3 = {
+    columns: [
+        { key: "col_1", name: "C1", ...columnSettings },
+        { key: "col_2", name: "C2", ...columnSettings },
+        { key: "col_3", name: "C3", ...columnSettings },
+        { key: "col_4", name: "C4", ...columnSettings },
+    ],
+    rows: [
+        { col_1: 25, col_2: 6, col_3: 15, col_4: -11, },
+    ]
 }

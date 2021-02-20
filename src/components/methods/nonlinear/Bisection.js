@@ -6,7 +6,9 @@ import * as Desmos from 'desmos';
 
 import { addStyles, EditableMathField } from 'react-mathquill';
 import { parse } from 'mathjs';
-import { MathComponent } from 'mathjax-react';
+//import { MathComponent } from 'mathjax-react';
+import 'katex/dist/katex.min.css';
+import TeX from '@matejmazur/react-katex';
 
 import Typography from '@material-ui/core/Typography';
 import Paper from '@material-ui/core/Paper';
@@ -23,9 +25,8 @@ import Tooltip from '@material-ui/core/Tooltip';
 import Fab from '@material-ui/core/Fab';
 import HelpIcon from '@material-ui/icons/Help';
 import Joyride, { Step as JoyrideStep, CallBackProps as JoyrideCallBackProps} from "react-joyride";
-import Snackbar from '@material-ui/core/Snackbar';
 import Collapse from '@material-ui/core/Collapse';
-import { Fade, Zoom, Slide, JackInTheBox } from "react-awesome-reveal";
+import { Fade, Zoom, Slide } from "react-awesome-reveal";
 import { useTheme } from '@material-ui/core/styles';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import { makeStyles } from '@material-ui/core/styles';
@@ -221,25 +222,12 @@ function NonlinearBisection({methodName}) {
     // Joyride Tour
     const [runTour, setRunTour] = useState(false);
     const openHelp = () => {
-        if (hasError) {
-            setOpenErrorSnackbar(true);
-        }
-        else {
-            setRunTour(true)
-        }
+        setRunTour(true)
     };
     const joyrideCallback = (state: JoyrideCallBackProps) => {
         if (state.action === "reset" || state.action === "close") {
             setRunTour(false);
         }
-    };
-    const [openErrorSnackbar, setOpenErrorSnackbar] = useState(false);
-
-    const errorSnackbarClose = (event, reason) => {
-        if (reason === 'clickaway') {
-            return;
-        }
-        setOpenErrorSnackbar(false);
     };
 
     let params = {functionValue, errorThreshold, iterations, exceedIterError, exceedIterErrorText, results};
@@ -368,11 +356,6 @@ function NonlinearBisection({methodName}) {
                 }}
                 callback={joyrideCallback}
             />
-            <Snackbar open={openErrorSnackbar} autoHideDuration={2000} onClose={errorSnackbarClose}>
-                <Alert onClose={errorSnackbarClose} severity="error">
-                    There is an error with the {functionError?"function":"iterations"}.
-                </Alert>
-            </Snackbar>
         </>
     );
 }
@@ -536,7 +519,7 @@ function Steps({params}) {
                                             <Typography variant="h6">
                                                 Iteration {currentIteration}:
                                             </Typography>
-                                            <MathComponent tex={latexContent}/>
+                                            <TeX math={latexContent} block />
                                         </CardContent>
                                     </Card>
                                 </Zoom>
@@ -554,5 +537,5 @@ function Steps({params}) {
         </Container>
     )
 }
-
+//<MathComponent tex={latexContent}/>
 export default NonlinearBisection;

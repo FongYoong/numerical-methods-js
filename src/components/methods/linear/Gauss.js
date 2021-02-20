@@ -1,9 +1,10 @@
 import {formatLatex, formatMatrixLatex} from "../../utils";
-import {initialMatrix, initialOutputColumn, createNewColumn, createNewRow, gridTo2DArray, matrixToLatex} from "./matrix_utils";
+import {initialMatrix, initialOutputColumn, createNewColumn, createNewRow, gridTo2DArray, cloneArray, matrixToLatex} from "./matrix_utils";
 import React, {useState, useEffect} from "react";
 import Header from "../../header/Header";
 
-import { MathComponent } from 'mathjax-react';
+import 'katex/dist/katex.min.css';
+import TeX from '@matejmazur/react-katex';
 
 import Typography from '@material-ui/core/Typography';
 import Link from '@material-ui/core/Link';
@@ -16,7 +17,6 @@ import Grid from '@material-ui/core/Grid';
 import IconButton from '@material-ui/core/IconButton';
 import AddCircleOutlineOutlinedIcon from '@material-ui/icons/AddCircleOutlineOutlined';
 import RemoveCircleOutlineOutlinedIcon from '@material-ui/icons/RemoveCircleOutlineOutlined';
-import { Alert } from '@material-ui/lab';
 import Box from '@material-ui/core/Box';
 import Slider from '@material-ui/core/Slider';
 import Tooltip from '@material-ui/core/Tooltip';
@@ -49,19 +49,25 @@ const TOUR_STEPS: JoyrideStep[] = [
         target: ".matrix-input",
         title: "Matrix",
         content:
-        "Specify the input matrix here.",
+        "Specify the matrix here.",
     },
     {
         target: ".output-col-input",
         title: "Output",
         content:
-        "Specify the output.",
+        "Specify the output vector.",
     },
     {
         target: ".step-math",
         title: "Steps",
         content:
             "The steps are shown here.",
+    },
+    {
+        target: ".iteration-slider",
+        title: "Iteration slider",
+        content:
+            "Change the slider to view the result of any iteration.",
     },
 ];
 
@@ -123,6 +129,18 @@ function LinearGauss({methodName}) {
     const heightPadding = smallScreen ? 5 : 20;
     const [gridState, setGridState] = useState(initialMatrix);
     const [outputColumnState, setOutputColumnState] = useState(initialOutputColumn);
+    function generateGridCallback (state, stateSetter) {
+        return ({ fromRow, toRow, updated }) => {
+            const rows = state.rows.slice();
+            for (let i = fromRow; i <= toRow; i++) {
+                rows[i] = { ...rows[i], ...updated };
+            }
+            stateSetter({
+                ...state, rows
+            });
+        };
+    }
+    /*
     const onGridRowsUpdated = ({ fromRow, toRow, updated }) => {
         const rows = gridState.rows.slice();
         for (let i = fromRow; i <= toRow; i++) {
@@ -141,6 +159,7 @@ function LinearGauss({methodName}) {
             ...outputColumnState, rows
         });
     };
+    */
     const columnCallback = (add) => {
         return () => {
             const columns = gridState.columns.slice();
@@ -152,6 +171,9 @@ function LinearGauss({methodName}) {
                 }
             }
             else {
+                if (columns.length === 1) {
+                    return;
+                }
                 for (let i = 0; i < rows.length; i++) {
                     delete rows[i][`col_${columns.length}`];
                 }
@@ -171,6 +193,9 @@ function LinearGauss({methodName}) {
                 outputRows[0][`col_${outputColumns.length}`] = 0;
             }
             else {
+                if (rows.length === 1) {
+                    return;
+                }
                 rows.pop();
                 for (let i = 0; i < outputRows.length; i++) {
                     delete outputRows[i][`col_${outputColumns.length}`];
@@ -185,16 +210,13 @@ function LinearGauss({methodName}) {
     // Solve
     let solve = true;
     const originalMatrix = gridTo2DArray(gridState.rows);
-    let modifiedMatrix = JSON.parse(JSON.stringify(originalMatrix));
-    const originalOutput = gridTo2DArray(outputColumnState.rows);
-    let modifiedOutput = JSON.parse(JSON.stringify(originalOutput));
+    let modifiedMatrix = cloneArray(originalMatrix);
+    const originalOutput = gridTo2DArray(outputColumnState.rows)[0];
+    let modifiedOutput = cloneArray(originalOutput);
     const rowLength = gridState.rows.length; // row dimension, also the output dimension
     const colLength = gridState.columns.length; // column dimension
     let results = [];
-    // Check is empty matrix
-    // Don't forget to slice every iteration
-    // Check for division by zero
-    let pivotLength = rowLength < colLength ? rowLength : colLength;
+    let pivotLength = rowLength;
     
     for (let pivot  = 0; pivot < pivotLength - 1; pivot++) {
         for (let row  = pivot + 1; row < pivotLength; row++) {
@@ -202,12 +224,12 @@ function LinearGauss({methodName}) {
                 let tempMatrixRow = modifiedMatrix[row - 1];
                 modifiedMatrix[row - 1] = modifiedMatrix[row];
                 modifiedMatrix[row] = tempMatrixRow;
-                let tempOutputElement = modifiedOutput[0][row - 1];
-                modifiedOutput[0][row - 1] = modifiedOutput[0][row];
-                modifiedOutput[0][row] = tempOutputElement;
+                let tempOutputElement = modifiedOutput[row - 1];
+                modifiedOutput[row - 1] = modifiedOutput[row];
+                modifiedOutput[row] = tempOutputElement;
                     results.push({
-                    finalMatrix: JSON.parse(JSON.stringify(modifiedMatrix)),
-                    finalOutput: JSON.parse(JSON.stringify(modifiedOutput)),
+                    finalMatrix: cloneArray(modifiedMatrix),
+                    finalOutput: cloneArray(modifiedOutput),
                     interchange: true,
                     pivot: pivot + 1,
                     row: row + 1,
@@ -227,11 +249,11 @@ function LinearGauss({methodName}) {
                 for (let col  = 0; col < colLength; col++) {
                     modifiedMatrix[row][col] -= factor * modifiedMatrix[pivot][col];
                 }
-                modifiedOutput[0][row] -= factor * modifiedOutput[0][pivot];
+                modifiedOutput[row] -= factor * modifiedOutput[pivot];
             }
             results.push({
-                finalMatrix: JSON.parse(JSON.stringify(modifiedMatrix)),
-                finalOutput: JSON.parse(JSON.stringify(modifiedOutput)),
+                finalMatrix: cloneArray(modifiedMatrix),
+                finalOutput: cloneArray(modifiedOutput),
                 interchange: false,
                 factor,
                 pivot: pivot + 1,
@@ -239,8 +261,6 @@ function LinearGauss({methodName}) {
             });
         }
     }
-    
-    console.log(results);
     let iterations = results.length;
 
     // Joyride Tour
@@ -264,9 +284,9 @@ function LinearGauss({methodName}) {
                 <Zoom duration={500} triggerOnce cascade>
                     <Typography variant="body1">
                         This method is applied to matrices in the form of
-                        <MathComponent display={false} tex={String.raw`\ Ax=B`} />
+                        <TeX math={String.raw`\ Ax=B`} />
                         . <Link rel="noopener noreferrer" href="https://people.richland.edu/james/lecture/m116/matrices/pivot.html" target="_blank" aria-label="Pivoting">Pivoting</Link> is also implemented.
-                        No backsubstitution or Gauss-Jordan form due to &nbsp;
+                        No backsubstitution or Gauss-Jordan form due to&nbsp;
                         <Link color="error" rel="noopener noreferrer" href="https://www.youtube.com/watch?v=vIci3C4JkL0" target="_blank" aria-label="laziness">laziness</Link>.
                     </Typography>
                     <Grid container spacing={1} direction="row" alignItems="center" justify="center">
@@ -274,7 +294,7 @@ function LinearGauss({methodName}) {
                             <Card className={styleClasses.card}>
                                 <CardContent className={styleClasses.cardContent}>
                                     <Grid container spacing={1} direction="column" alignItems="center" justify="center">
-                                        <Grid xs item className="matrix-col-input" container spacing={1} direction="row" alignItems="center" justify="flex-start">
+                                        <Grid xs item className="matrix-col-input" container spacing={1} direction="row" alignItems="center" justify="center">
                                             <Typography variant="subtitle1">
                                                 Columns:
                                             </Typography>
@@ -285,7 +305,7 @@ function LinearGauss({methodName}) {
                                                 <AddCircleOutlineOutlinedIcon  />
                                             </IconButton>
                                         </Grid>
-                                        <Grid xs item className="matrix-row-input" container spacing={1} direction="row" alignItems="center" justify="flex-start">
+                                        <Grid xs item className="matrix-row-input" container spacing={1} direction="row" alignItems="center" justify="center">
                                             <Typography variant="subtitle1">
                                                 Rows:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                             </Typography>
@@ -296,20 +316,18 @@ function LinearGauss({methodName}) {
                                                 <AddCircleOutlineOutlinedIcon />
                                             </IconButton>
                                         </Grid>
-                                        
-                                        <Grid xs item>
-                                            <Typography variant="h6">
-                                                Matrix, A:
-                                            </Typography>
-                                        </Grid>
-
-                                        <Grid xs item className="matrix-input" container spacing={0} direction="row" alignItems="center" justify="center">
+                                        <Grid xs item className="matrix-input" container spacing={1} direction="column" alignItems="center" justify="center">
+                                            <Grid xs item>
+                                                <Typography variant="h6">
+                                                    Matrix, A:
+                                                </Typography>
+                                            </Grid>
                                             <Grid key={Math.random()} item className={styleClasses.overflow}>
                                                 <ReactDataGrid
                                                     columns={gridState.columns}
                                                     rowGetter={i => gridState.rows[i]}
                                                     rowsCount={gridState.rows.length}
-                                                    onGridRowsUpdated={onGridRowsUpdated}
+                                                    onGridRowsUpdated={generateGridCallback(gridState, setGridState)}
                                                     enableCellSelect={true}
                                                     headerRowHeight={1}
                                                     minColumnWidth={columnWidth}
@@ -319,20 +337,18 @@ function LinearGauss({methodName}) {
                                                 />
                                             </Grid>
                                         </Grid>
-
-                                        <Grid xs item>
-                                            <Typography variant="h6">
-                                                Output, B:
-                                            </Typography>
-                                        </Grid>
-                                        
-                                        <Grid xs item className="output-col-input" container spacing={0} direction="row" alignItems="center" justify="center">
+                                        <Grid xs item className="output-col-input" container spacing={1} direction="column" alignItems="center" justify="center">
+                                            <Grid xs item>
+                                                <Typography variant="h6">
+                                                    Output, B:
+                                                </Typography>
+                                            </Grid>
                                             <Grid key={Math.random()} item className={styleClasses.overflow}>
                                                 <ReactDataGrid
                                                     columns={outputColumnState.columns}
                                                     rowGetter={i => outputColumnState.rows[i]}
                                                     rowsCount={outputColumnState.rows.length}
-                                                    onGridRowsUpdated={onOutputColumnStateUpdated}
+                                                    onGridRowsUpdated={generateGridCallback(outputColumnState, setOutputColumnState)}
                                                     enableCellSelect={true}
                                                     headerRowHeight={1}
                                                     minColumnWidth={columnWidth}
@@ -385,16 +401,19 @@ function Steps({smallScreen, params}) {
     const styleClasses = useStyles();
 
     const [currentIteration, setCurrentIteration] = useState(1);
-    let results = params.results;
-    let previousMatrix = currentIteration===1 ? params.originalMatrix : results[currentIteration - 2].finalMatrix;
-    let previousOutput = currentIteration===1 ? params.originalOutput : results[currentIteration - 2].finalOutput;
-    let currentResult = results[currentIteration - 1];
     let latexContent;
 
-    if (currentIteration > params.iterations) {
+    if (currentIteration <= 0) {
+        setCurrentIteration(1);
+    }
+    else if (params.iterations > 0 && currentIteration > params.iterations) {
         setCurrentIteration(params.iterations);
     }
-    else {
+    else if (params.iterations >= 2 ) {
+        let results = params.results;
+        let previousMatrix = currentIteration===1 ? params.originalMatrix : results[currentIteration - 2].finalMatrix;
+        let previousOutput = currentIteration===1 ? params.originalOutput : results[currentIteration - 2].finalOutput;
+        let currentResult = results[currentIteration - 1];
         latexContent = String.raw`
         \displaystyle
         \begin{array}{l}
@@ -410,7 +429,7 @@ function Steps({smallScreen, params}) {
         latexContent += String.raw`\\ \begin{array}{lcl} `;
         const boldRows = currentResult.interchange ? [currentResult.row - 1, currentResult.row] : [currentResult.row, currentResult.pivot];
         const finalLatex= String.raw`\overbrace{${matrixToLatex(currentResult.finalMatrix, {leftBracketOnly:true, boldRows: boldRows})}}^{A}
-        \overbrace{${matrixToLatex(currentResult.finalOutput, {rightBracketOnly:true, boldRows: boldRows})}}^{B}`;
+        \overbrace{${matrixToLatex(currentResult.finalOutput, {single:true, rightBracketOnly:true, boldRows: boldRows})}}^{B}`;
         if (!currentResult.interchange && currentResult.factor === 0) {
             latexContent += String.raw`
                 \\ \text{The factor is zero, so no elimination is done here.}
@@ -419,23 +438,20 @@ function Steps({smallScreen, params}) {
             `;
         }
         else {
-            
             const initialLatex = String.raw`
             \overbrace{${matrixToLatex(previousMatrix, {leftBracketOnly: true, boldRows: boldRows})}}^{A}
-            \overbrace{${matrixToLatex(previousOutput, {rightBracketOnly:true, boldRows: boldRows})}}^{B}`;
+            \overbrace{${matrixToLatex(previousOutput, {single:true, rightBracketOnly:true, boldRows: boldRows})}}^{B}`;
             const operationLatex = currentResult.interchange ?
-            String.raw`R_{${currentResult.row - 1}} \Leftrightarrow R_{${currentResult.row}}`
+            String.raw`R_{${currentResult.row - 1}} \leftrightarrow R_{${currentResult.row}}`
             : String.raw`R_{${currentResult.row}} = R_{${currentResult.row}}-${formatMatrixLatex(currentResult.factor)}R_{${currentResult.pivot}}`;
             if (smallScreen) {
                 latexContent += String.raw`
                 \\ ${initialLatex}
-                \\
                 \\ \begin{array}{lcl}
                        & \downarrow &
                     \\ & ${operationLatex} &
                     \\ & \downarrow &
                     \end{array}
-                \\
                 \\ ${finalLatex}
                 `;
             }
@@ -447,21 +463,22 @@ function Steps({smallScreen, params}) {
                 `;
             }
         }
-        latexContent += String.raw`\end{array}`;
-        
-
-        latexContent += String.raw`
-        \\
-        \begin{array}{lcl}
-        \\
+        latexContent += String.raw`\end{array}\end{array}`;
+    }
+    else {
+        latexContent = String.raw`
+        \displaystyle
+        \begin{array}{l}
+        \\ \text{Cannot do any elimination.}
+        \\ \overbrace{${matrixToLatex(params.originalMatrix, {leftBracketOnly: true})}}^{A}
+            \overbrace{${matrixToLatex(params.originalOutput, {single:true, rightBracketOnly:true})}}^{B}
         \end{array}
         `;
-        latexContent += String.raw`\end{array}`;
     }
     
     return (
         <Container className={styleClasses.container}>
-            <Grid className="results" container direction="column" alignItems="center" justify="flex-start">
+            <Grid container direction="column" alignItems="center" justify="flex-start">
                 <Grid xs item className="iteration-slider">
                     <Slide direction="left" triggerOnce>
                         <Box id="iteration-slider" width="70vw">
@@ -473,7 +490,7 @@ function Steps({smallScreen, params}) {
                                 step={1}
                                 marks
                                 min={1}
-                                max={params.iterations}
+                                max={params.iterations<=0 ? 1 :params.iterations}
                                 valueLabelDisplay="on"
                             />
                         </Box>
@@ -486,7 +503,7 @@ function Steps({smallScreen, params}) {
                                 <Typography variant="h6">
                                     Iteration {currentIteration}:
                                 </Typography>
-                                <MathComponent tex={latexContent}/>
+                                <TeX math={latexContent} block />
                             </CardContent>
                         </Card>
                     </Slide>

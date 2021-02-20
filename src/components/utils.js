@@ -6,7 +6,7 @@ export function formatMatrixLatex(value) {
   //let v = parse(value);
   //return v.toTex({parenthesis: "keep", implicit: "hide"});
   value = parseFloat(value);
-  return format(value, {notation: 'fixed', precision: 3});
+  return format(value, {notation: 'fixed', precision: 4});
 }
 
 export function formatLatex(value) {

@@ -40,8 +40,25 @@ code {
 }
 */
 
+@media only screen and (min-width: 320px) {
+  .katex { font-size: 2vh !important; }
+}
+@media only screen and (min-width: 481px) {
+  .katex { font-size: 1em !important; }
+}
+@media only screen and (min-width: 769px) {
+  .katex { font-size: 1em !important; }
+}
+@media only screen and (min-width: 1025px) {
+  .katex { font-size: 1em !important; }
+}
+@media only screen and (min-width: 1201px) {
+  .katex { font-size: 1em !important; }
+}
 
 /* For MathJax */
+/*
+
 @media only screen and (min-width: 320px) {
   .MathJax {
     font-size: 2vh;
@@ -67,3 +84,4 @@ code {
     font-size: 1em;
   }
 }
+*/
