@@ -1,1 +1,0 @@
-{"version":3,"sources":["components/methods/linear/SVD.js"],"names":["LinearSVD"],"mappings":"qIAAA,uBASeA,UAPf,WACI,OACI","file":"static/js/32.3d9ce468.chunk.js","sourcesContent":["import React from \"react\";\r\n\r\nfunction LinearSVD() {\r\n    return (\r\n        <>\r\n        </>\r\n    );\r\n}\r\n\r\nexport default LinearSVD;"],"sourceRoot":""}

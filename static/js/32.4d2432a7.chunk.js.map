@@ -1,0 +1,1 @@
+{"version":3,"sources":["components/methods/linear/PenroseInverse.js"],"names":["PenroseInverse"],"mappings":"qIAAA,uBASeA,UAPf,WACI,OACI","file":"static/js/32.4d2432a7.chunk.js","sourcesContent":["import React from \"react\";\r\n\r\nfunction PenroseInverse() {\r\n    return (\r\n        <>\r\n        </>\r\n    );\r\n}\r\n\r\nexport default PenroseInverse;"],"sourceRoot":""}

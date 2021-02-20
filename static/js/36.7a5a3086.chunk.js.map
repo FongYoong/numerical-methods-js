@@ -1,1 +1,0 @@
-{"version":3,"sources":["components/methods/ode/Multistep.js"],"names":["OdeMultistep"],"mappings":"qIAAA,uBASeA,UAPf,WACI,OACI","file":"static/js/36.7a5a3086.chunk.js","sourcesContent":["import React from \"react\";\r\n\r\nfunction OdeMultistep() {\r\n    return (\r\n        <>\r\n        </>\r\n    );\r\n}\r\n\r\nexport default OdeMultistep;"],"sourceRoot":""}
