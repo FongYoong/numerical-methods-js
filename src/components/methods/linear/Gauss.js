@@ -322,19 +322,21 @@ function LinearGauss({methodName}) {
                                                     Matrix, A:
                                                 </Typography>
                                             </Grid>
-                                            <Grid key={Math.random()} item className={styleClasses.overflow}>
-                                                <ReactDataGrid
-                                                    columns={gridState.columns}
-                                                    rowGetter={i => gridState.rows[i]}
-                                                    rowsCount={gridState.rows.length}
-                                                    onGridRowsUpdated={generateGridCallback(gridState, setGridState)}
-                                                    enableCellSelect={true}
-                                                    headerRowHeight={1}
-                                                    minColumnWidth={columnWidth}
-                                                    minWidth={columnWidth * gridState.columns.length + widthPadding}
-                                                    rowHeight={rowHeight}
-                                                    minHeight={rowHeight * gridState.rows.length + heightPadding}
-                                                />
+                                            <Grid xs item container spacing={0} direction="row" alignItems="center" justify="center">
+                                                <Grid key={Math.random()} item className={styleClasses.overflow}>
+                                                    <ReactDataGrid
+                                                        columns={gridState.columns}
+                                                        rowGetter={i => gridState.rows[i]}
+                                                        rowsCount={gridState.rows.length}
+                                                        onGridRowsUpdated={generateGridCallback(gridState, setGridState)}
+                                                        enableCellSelect={true}
+                                                        headerRowHeight={1}
+                                                        minColumnWidth={columnWidth}
+                                                        minWidth={columnWidth * gridState.columns.length + widthPadding}
+                                                        rowHeight={rowHeight}
+                                                        minHeight={rowHeight * gridState.rows.length + heightPadding}
+                                                    />
+                                                </Grid>
                                             </Grid>
                                         </Grid>
                                         <Grid xs item className="output-col-input" container spacing={1} direction="column" alignItems="center" justify="center">
@@ -343,19 +345,21 @@ function LinearGauss({methodName}) {
                                                     Output, B:
                                                 </Typography>
                                             </Grid>
-                                            <Grid key={Math.random()} item className={styleClasses.overflow}>
-                                                <ReactDataGrid
-                                                    columns={outputColumnState.columns}
-                                                    rowGetter={i => outputColumnState.rows[i]}
-                                                    rowsCount={outputColumnState.rows.length}
-                                                    onGridRowsUpdated={generateGridCallback(outputColumnState, setOutputColumnState)}
-                                                    enableCellSelect={true}
-                                                    headerRowHeight={1}
-                                                    minColumnWidth={columnWidth}
-                                                    minWidth={columnWidth * outputColumnState.columns.length + widthPadding}
-                                                    rowHeight={rowHeight}
-                                                    minHeight={rowHeight * outputColumnState.rows.length + heightPadding}
-                                                />
+                                            <Grid xs item container spacing={0} direction="row" alignItems="center" justify="center">
+                                                <Grid key={Math.random()} item className={styleClasses.overflow}>
+                                                    <ReactDataGrid
+                                                        columns={outputColumnState.columns}
+                                                        rowGetter={i => outputColumnState.rows[i]}
+                                                        rowsCount={outputColumnState.rows.length}
+                                                        onGridRowsUpdated={generateGridCallback(outputColumnState, setOutputColumnState)}
+                                                        enableCellSelect={true}
+                                                        headerRowHeight={1}
+                                                        minColumnWidth={columnWidth}
+                                                        minWidth={columnWidth * outputColumnState.columns.length + widthPadding}
+                                                        rowHeight={rowHeight}
+                                                        minHeight={rowHeight * outputColumnState.rows.length + heightPadding}
+                                                    />
+                                                </Grid>
                                             </Grid>
                                         </Grid>
                                     </Grid>                                    

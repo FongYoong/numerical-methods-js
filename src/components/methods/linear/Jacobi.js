@@ -170,7 +170,7 @@ function LinearJacobi({methodName}) {
                 outputRows[0][`col_${outputColumns.length}`] = 0;
             }
             else {
-                if (columns.length === 1) {
+                if (columns.length === 2) {
                     return;
                 }
                 rows.pop();
@@ -302,7 +302,7 @@ function LinearJacobi({methodName}) {
                 if (i > 1000) {
                     console.log("Exceeded 1000 iterations!");
                     exceedIterError = true;
-                    exceedIterErrorText = "Exceeded 1000 iterations!";
+                    exceedIterErrorText = "Exceeded 1000 iterations! Try increasing the error threshold.";
                     break;
                 }
             }
@@ -334,7 +334,7 @@ function LinearJacobi({methodName}) {
                         This method is applied to matrices in the form of
                         <TeX math={String.raw`\ Ax=B`} />
                         . <Link rel="noopener noreferrer" href="https://people.richland.edu/james/lecture/m116/matrices/pivot.html" target="_blank" aria-label="Pivoting">Pivoting</Link>
-                        &nbsp;is also implemented.
+                        &nbsp; bla bla bla. Warning: 7x7 matrix, factorial, 7! * 7*7
                     </Typography>
                     <Grid container spacing={1} direction="row" alignItems="center" justify="center">
                         <Grid xs item>
@@ -383,19 +383,21 @@ function LinearJacobi({methodName}) {
                                                     Initial Input, <TeX math={String.raw`X^{(0)}`} />:
                                                 </Typography>
                                             </Grid>
-                                            <Grid key={Math.random()} item className={styleClasses.overflow}>
-                                                <ReactDataGrid
-                                                    columns={inputColumnState.columns}
-                                                    rowGetter={i => inputColumnState.rows[i]}
-                                                    rowsCount={inputColumnState.rows.length}
-                                                    onGridRowsUpdated={generateGridCallback(inputColumnState, setInputColumnState)}
-                                                    enableCellSelect={true}
-                                                    headerRowHeight={1}
-                                                    minColumnWidth={columnWidth}
-                                                    minWidth={columnWidth * inputColumnState.columns.length + widthPadding}
-                                                    rowHeight={rowHeight}
-                                                    minHeight={rowHeight * inputColumnState.rows.length + heightPadding}
-                                                />
+                                            <Grid xs item container spacing={0} direction="row" alignItems="center" justify="center">
+                                                <Grid key={Math.random()} item className={styleClasses.overflow}>
+                                                    <ReactDataGrid
+                                                        columns={inputColumnState.columns}
+                                                        rowGetter={i => inputColumnState.rows[i]}
+                                                        rowsCount={inputColumnState.rows.length}
+                                                        onGridRowsUpdated={generateGridCallback(inputColumnState, setInputColumnState)}
+                                                        enableCellSelect={true}
+                                                        headerRowHeight={1}
+                                                        minColumnWidth={columnWidth}
+                                                        minWidth={columnWidth * inputColumnState.columns.length + widthPadding}
+                                                        rowHeight={rowHeight}
+                                                        minHeight={rowHeight * inputColumnState.rows.length + heightPadding}
+                                                    />
+                                                </Grid>
                                             </Grid>
                                         </Grid>
                                         <Grid xs item className="output-col-input" container spacing={1} direction="column" alignItems="center" justify="center">
@@ -404,19 +406,21 @@ function LinearJacobi({methodName}) {
                                                     Output, B:
                                                 </Typography>
                                             </Grid>
-                                            <Grid key={Math.random()} item className={styleClasses.overflow}>
-                                                <ReactDataGrid
-                                                    columns={outputColumnState.columns}
-                                                    rowGetter={i => outputColumnState.rows[i]}
-                                                    rowsCount={outputColumnState.rows.length}
-                                                    onGridRowsUpdated={generateGridCallback(outputColumnState, setOutputColumnState)}
-                                                    enableCellSelect={true}
-                                                    headerRowHeight={1}
-                                                    minColumnWidth={columnWidth}
-                                                    minWidth={columnWidth * outputColumnState.columns.length + widthPadding}
-                                                    rowHeight={rowHeight}
-                                                    minHeight={rowHeight * outputColumnState.rows.length + heightPadding}
-                                                />
+                                            <Grid xs item container spacing={0} direction="row" alignItems="center" justify="center">
+                                                <Grid key={Math.random()} item className={styleClasses.overflow}>
+                                                    <ReactDataGrid
+                                                        columns={outputColumnState.columns}
+                                                        rowGetter={i => outputColumnState.rows[i]}
+                                                        rowsCount={outputColumnState.rows.length}
+                                                        onGridRowsUpdated={generateGridCallback(outputColumnState, setOutputColumnState)}
+                                                        enableCellSelect={true}
+                                                        headerRowHeight={1}
+                                                        minColumnWidth={columnWidth}
+                                                        minWidth={columnWidth * outputColumnState.columns.length + widthPadding}
+                                                        rowHeight={rowHeight}
+                                                        minHeight={rowHeight * outputColumnState.rows.length + heightPadding}
+                                                    />
+                                                </Grid>
                                             </Grid>
                                         </Grid>
                                         <Grid xs item className="errorThreshold-input">
@@ -567,7 +571,7 @@ function Steps({smallScreen, params}) {
                 \overbrace{${matrixToLatex(currentResult.oldInput, {single: true})}}^{X^{(${currentIteration - 1})}}
                 = \overbrace{${matrixToLatex(output, {single:true})}}^{B}
                 \\ X^{(${currentIteration})}_i = \frac{1}{A_{ii}}
-                    \left[ B_i - \sum_{\begin{array}{l} j = 1, \\ j \ne i \end{array}}^n
+                    \left[ B_i - \sum_{\substack{j = 1, \\ j \ne i}}^n
                         \left( A_{ij} \cdot X^{(${currentIteration - 1})}_i \right)
                     \right]
                     
@@ -581,7 +585,8 @@ function Steps({smallScreen, params}) {
 
                 latexContent += String.raw`
                 \\
-                \\ \text {Given that the matrix A has been permutated in iteration 1, we must restore the original order:}
+                \\ \text {Given that the matrix A has been permutated in iteration 1, }
+                \\ \text {we must restore the original order:}
                 \\
                 \\ X^{(${currentIteration})} = ${matrixToLatex(restoredOutput, {single: true})}
                 `;
@@ -596,7 +601,7 @@ function Steps({smallScreen, params}) {
             if (currentResult.converged) {
                 latexContent += String.raw`
                 \\
-                \\ \text{Root found because:}
+                \\ \text{Converged because:}
                 \\
                 \\ Error < Error Threshold
                 \\ ${formatLatex(currentResult.errorInput)} < ${formatLatex(params.errorThreshold)}
