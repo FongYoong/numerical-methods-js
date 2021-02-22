@@ -1,0 +1,1 @@
+{"version":3,"sources":["components/methods/optimisation/Gradient.js"],"names":["OptiGradient"],"mappings":"qIAAA,uBASeA,UAPf,WACI,OACI","file":"static/js/41.fdbd126f.chunk.js","sourcesContent":["import React from \"react\";\r\n\r\nfunction OptiGradient() {\r\n    return (\r\n        <>\r\n        </>\r\n    );\r\n}\r\n\r\nexport default OptiGradient;"],"sourceRoot":""}
