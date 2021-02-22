@@ -1,0 +1,1 @@
+{"version":3,"sources":["components/methods/curve/Polynomial.js"],"names":["CurvePoly"],"mappings":"qIAAA,uBASeA,UAPf,WACI,OACI","file":"static/js/17.173f2ee6.chunk.js","sourcesContent":["import React from \"react\";\r\n\r\nfunction CurvePoly() {\r\n    return (\r\n        <>\r\n        </>\r\n    );\r\n}\r\n\r\nexport default CurvePoly;"],"sourceRoot":""}
