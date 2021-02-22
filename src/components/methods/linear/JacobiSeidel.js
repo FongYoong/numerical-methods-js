@@ -22,6 +22,9 @@ import AddCircleOutlineOutlinedIcon from '@material-ui/icons/AddCircleOutlineOut
 import RemoveCircleOutlineOutlinedIcon from '@material-ui/icons/RemoveCircleOutlineOutlined';
 import Box from '@material-ui/core/Box';
 import Slider from '@material-ui/core/Slider';
+import Radio from '@material-ui/core/Radio';
+import RadioGroup from '@material-ui/core/RadioGroup';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Tooltip from '@material-ui/core/Tooltip';
 import Fab from '@material-ui/core/Fab';
 import HelpIcon from '@material-ui/icons/Help';
@@ -121,7 +124,7 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
-function LinearJacobi({methodName}) {
+function LinearJacobiSeidel({methodName}) {
     useEffect(() => {
         // Set webpage title
         document.title = methodName;
@@ -193,6 +196,9 @@ function LinearJacobi({methodName}) {
         };
     }
 
+    // Solver Type
+    const [solverType, setSolverType] = useState("jacobi");
+
     // Error threshold
     const [errorThreshold, setErrorThreshold] = useState(0.0002);
     let thresholdError = false;
@@ -214,16 +220,12 @@ function LinearJacobi({methodName}) {
     let modifiedInput = cloneArray(originalInput);
     const matrixSize = gridState.rows.length;
     let results = [];
-    let iterations = 1;
-    // Check if empty matrix
-    // Don't forget to slice every iteration
-    // Check for division by zero
-    // Check diagonal dominance
+    let iterations = 0;
+    let permutated = false;
     let triedPermutating = false; // Failed to obtain a dominant matrix even after permutating.
     if (!hasError) {
         solve = true;
-        // Strictly diagonally dominant
-        let dominant = false;
+        let dominant = false; // Strictly diagonally dominant
         let modifiedMatrix = cloneArray(originalMatrix);
         let modifiedOutput = cloneArray(originalOutput);
         console.log("Original: ", modifiedMatrix);
@@ -231,10 +233,8 @@ function LinearJacobi({methodName}) {
             console.log("Initially not dominant!");
             let numPermutations = numberFactorials[matrixSize];
             let rowIndexes = [...Array(matrixSize).keys()];
-            console.log("Start indexes", rowIndexes);
             for (let i = 0; i < numPermutations - 1; i++) {
                 nextPermutation(rowIndexes);
-                console.log("Indexes", rowIndexes);
                 const permutatedMatrix = rowIndexes.map(ind => modifiedMatrix[ind]);
                 if (isDiagonallyDominant(permutatedMatrix)) {
                     dominant = true;
@@ -252,6 +252,8 @@ function LinearJacobi({methodName}) {
                     permutated: true,
                     rowIndexes: rowIndexes,
                 });
+                permutated = true;
+                iterations += 1;
             }
             else {
                 console.log("Tried permutating but failed!");
@@ -267,15 +269,27 @@ function LinearJacobi({methodName}) {
             console.log("Solve Dominant!");
             let i = 0;
             while (true) {
-                let oldInput = (i === 0) ? originalInput : results[i - 1].newInput;
+                let oldInput = (i === 0) ? originalInput : results[i - 1 + iterations].newInput;
                 let newInput = [];
                 for (let j = 0; j < matrixSize; j++) {
                     let sum = modifiedOutput[j];
-                    for (let k = 0; k < matrixSize; k++) {
-                        if (k !== j) {
-                            sum -= modifiedMatrix[j][k] * oldInput[k];
+                    if (solverType === "jacobi") {
+                        for (let k = 0; k < matrixSize; k++) {
+                            if (k !== j) {
+                                sum -= modifiedMatrix[j][k] * oldInput[k];
+                            }
                         }
-                    }                    
+                    }
+                    else {
+                        for (let k = 0; k < matrixSize; k++) {
+                            if (k < j) {
+                                sum -= modifiedMatrix[j][k] * newInput[k];
+                            }
+                            else if (k > j) {
+                                sum -= modifiedMatrix[j][k] * oldInput[k];
+                            }
+                        }
+                    }
                     sum /= modifiedMatrix[j][j];
                     newInput.push(sum);
                 }
@@ -306,7 +320,7 @@ function LinearJacobi({methodName}) {
                     break;
                 }
             }
-            iterations = i + 1;   // NOT DONE: If not dominant after all the permutations, then 1 iteration.
+            iterations += i;
         }
     }
     console.log(results);
@@ -322,7 +336,7 @@ function LinearJacobi({methodName}) {
         }
     };
 
-    let params = {originalMatrix, originalInput, originalOutput, matrixSize, errorThreshold, iterations, exceedIterError, exceedIterErrorText, results, triedPermutating};
+    let params = {solverType, originalMatrix, originalInput, originalOutput, matrixSize, errorThreshold, iterations, exceedIterError, exceedIterErrorText, results, permutated, triedPermutating};
     
     return (
         <>
@@ -340,9 +354,18 @@ function LinearJacobi({methodName}) {
                         <Grid xs item>
                             <Card className={styleClasses.card}>
                                 <CardContent className={styleClasses.cardContent}>
-                                    <Grid container spacing={1} direction="column" alignItems="center" justify="center">
+                                    <Grid container spacing={3} direction="column" alignItems="center" justify="center">
+                                        <Grid xs item className="solver-type-input" container spacing={1} direction="row" alignItems="center" justify="center">
+                                            <Typography variant="h6">
+                                                Solver Type:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                            </Typography>
+                                            <RadioGroup aria-label="solverType" name="solverType" value={solverType} onChange={(event)=>setSolverType(event.target.value)}>
+                                                <FormControlLabel value="jacobi" control={<Radio />} label="Jacobi" />
+                                                <FormControlLabel value="seidel" control={<Radio />} label="Gauss-Seidel" />
+                                            </RadioGroup>
+                                        </Grid>
                                         <Grid xs item className="matrix-size-input" container spacing={1} direction="row" alignItems="center" justify="center">
-                                            <Typography variant="subtitle1">
+                                            <Typography variant="h6">
                                                 Size:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                             </Typography>
                                             <IconButton variant="contained" color="primary" onClick={sizeCallback(false)} >
@@ -524,7 +547,6 @@ function Steps({smallScreen, params}) {
             \overbrace{${matrixToLatex(params.originalOutput, {single:true, rightBracketOnly:true, boldRows: boldRows})}}^{B}`;
             let operationLatex =  String.raw`\begin{array}{l}`;
             for (const [key, value] of Object.entries(permutationMapping)) {
-                //console.log(`${key}: ${value}`);
                 operationLatex += String.raw`R_{${parseInt(key) + 1}} \leftrightarrow R_{${value + 1}}\\`;
             }
             operationLatex += String.raw`\end{array}`;
@@ -556,45 +578,79 @@ function Steps({smallScreen, params}) {
             }
         }
         else {
-            // Inform if converged
-            let matrix = results[0].permutated ? results[0].newMatrix : params.originalMatrix;
-            let output = results[0].permutated ? results[0].newOutput : params.originalOutput;
-            /*
-            const newLatex= String.raw`
-            \overbrace{${matrixToLatex(currentResult.newMatrix, {leftBracketOnly:true})}}^{A}
-            \overbrace{${matrixToLatex(params.originalInput)}}^{X_{${currentIteration}}}
-            \overbrace{${matrixToLatex(currentResult.newOutput, {single:true, rightBracketOnly:true})}}^{B}`;
-            */
+            let index = params.permutated ? currentIteration - 1: currentIteration;
+            let matrix = params.permutated ? results[0].newMatrix : params.originalMatrix;
+            let output = params.permutated ? results[0].newOutput : params.originalOutput;
+            let solverExpressionLatex = params.solverType === "jacobi" ?
+            String.raw`
+            X^{(${index})}_i &=& \frac{1}{A_{ii}}
+                \left[ B_i - \sum_{\substack{j = 1, \\ j \ne i}}^n \left( A_{ij} \cdot X^{(${index - 1})}_j \right)
+                \right]`
+            :
+            String.raw`
+            X^{(${index})}_i &=& \frac{1}{A_{ii}}
+                \left[ B_i - \sum_{\substack{j = 1}}^{i-1} \left( A_{ij} \cdot X^{(${index})}_j \right)
+                           - \sum_{\substack{j = i+1}}^{n} \left( A_{ij} \cdot X^{(${index - 1})}_j \right)
+
+                \right]`;
             latexContent += String.raw`
-                \\
-                \overbrace{${matrixToLatex(matrix, {leftBracketOnly:true})}}^{A}
-                \overbrace{${matrixToLatex(currentResult.oldInput, {single: true})}}^{X^{(${currentIteration - 1})}}
-                = \overbrace{${matrixToLatex(output, {single:true})}}^{B}
-                \\ X^{(${currentIteration})}_i = \frac{1}{A_{ii}}
-                    \left[ B_i - \sum_{\substack{j = 1, \\ j \ne i}}^n
-                        \left( A_{ij} \cdot X^{(${currentIteration - 1})}_i \right)
-                    \right]
-                    
-                \\ X^{(${currentIteration})} = ${matrixToLatex(currentResult.newInput, {single: true})}
+            \\
+            \overbrace{${matrixToLatex(matrix, {leftBracketOnly:true})}}^{A}
+            \overbrace{${matrixToLatex(currentResult.oldInput, {single: true})}}^{X^{(${index - 1})}}
+            = \overbrace{${matrixToLatex(output, {single:true})}}^{B}
+            \\
+            \begin{array}{lcl}
+            \\ ${solverExpressionLatex}
+            \\
+            \\ &=& \left[\begin{matrix}
+            `;
+            for (let i = 0; i < params.matrixSize; i++) {
+                latexContent += String.raw`\frac{1}{${formatMatrixLatex(matrix[i][i])}} \left[ ${formatMatrixLatex(output[i])}`;
+                if (params.solverType === "jacobi") {
+                    for (let j = 0; j < params.matrixSize; j++) {
+                        if (j !== i) {
+                            latexContent += String.raw`- (${formatMatrixLatex(matrix[i][j])}) (${formatMatrixLatex(currentResult.oldInput[j])}) `;
+                        }
+                    }
+                }
+                else {
+                    for (let j = 0; j < params.matrixSize; j++) {
+                        if (j < i) {
+                            //sum -= modifiedMatrix[i][j] * newInput[j];
+                            latexContent += String.raw`- (${formatMatrixLatex(matrix[i][j])}) (${formatMatrixLatex(currentResult.newInput[j])}) `;
+                        }
+                        else if (j > i) {
+                            //sum -= modifiedMatrix[i][j] * oldInput[j];
+                            latexContent += String.raw`- (${formatMatrixLatex(matrix[i][j])}) (${formatMatrixLatex(currentResult.oldInput[j])}) `;
+                        }
+                    }
+                }
+
+                latexContent += String.raw`\right] \cr`;
+            }
+
+            latexContent += String.raw`
+            \end{matrix}\right]
+            \\
+            \\ X^{(${index})} &=& ${matrixToLatex(currentResult.newInput, {single: true})}
+            \end{array}
             `;
             if (results[0].permutated) {
                 // Reorder the equations
-                const permutationMapping = generatePermutationMapping(results[0].rowIndexes);
-                console.log(permutationMapping);
                 let restoredOutput = cloneArray(currentResult.newInput);
-
+                restoredOutput = results[0].rowIndexes.map(ind => restoredOutput[ind]);
                 latexContent += String.raw`
                 \\
                 \\ \text {Given that the matrix A has been permutated in iteration 1, }
                 \\ \text {we must restore the original order:}
                 \\
-                \\ X^{(${currentIteration})} = ${matrixToLatex(restoredOutput, {single: true})}
+                \\ X^{(${index})}_{restored} = ${matrixToLatex(restoredOutput, {single: true})}
                 `;
             }
             latexContent += String.raw`
             \\
             \begin{array}{lcl}
-            \\ Error &=& |X^{(${currentIteration})} - X^{(${currentIteration - 1})}|
+            \\ Error &=& |X^{(${index})} - X^{(${index - 1})}|
             \\       &=& |${formatLatex(currentResult.errorInput)}|
             \end{array}
             `;
@@ -632,6 +688,17 @@ function Steps({smallScreen, params}) {
             </Collapse>
             <Collapse in={!hasError}>
                 <Grid container direction="column" alignItems="center" justify="flex-start">
+                    <Grid xs item>
+                        <Zoom triggerOnce>
+                            <Card className={styleClasses.card}>
+                                <CardContent className={styleClasses.cardContent}>
+                                    <Typography variant="h6">
+                                        Converged after {params.iterations} iterations
+                                    </Typography>
+                                </CardContent>
+                            </Card>
+                        </Zoom>
+                    </Grid>
                     <Grid xs item className="iteration-slider">
                         <Slide direction="left" triggerOnce>
                             <Box id="iteration-slider" width="70vw">
@@ -667,4 +734,4 @@ function Steps({smallScreen, params}) {
     )
 }
 
-export default LinearJacobi;
+export default LinearJacobiSeidel;

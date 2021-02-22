@@ -72,8 +72,7 @@ const NonlinearSecant = lazy(() => import('../components/methods/nonlinear/Secan
 const NonlinearFixedPoint = lazy(() => import('../components/methods/nonlinear/FixedPoint'));
 
 const LinearGauss = lazy(() => import('../components/methods/linear/Gauss'));
-const LinearJacobi = lazy(() => import('../components/methods/linear/Jacobi'));
-const LinearSeidel = lazy(() => import('../components/methods/linear/Seidel'));
+const LinearJacobiSeidel = lazy(() => import('../components/methods/linear/JacobiSeidel'));
 const LinearLU = lazy(() => import('../components/methods/linear/LU'));
 const LinearSVD = lazy(() => import('../components/methods/linear/SVD'));
 const LinearInverse = lazy(() => import('../components/methods/linear/Inverse'));
@@ -158,16 +157,10 @@ const categories = [
                 completed: true,
             },
             {
-                name: "Jacobi Iteration",
-                path : "jacobi",
-                component: LinearJacobi,
-                completed: false,
-            },
-            {
-                name: "Gauss-Seidel Iteration",
-                path : "seidel",
-                component: LinearSeidel,
-                completed: false,
+                name: "Jacobi / Gauss-Seidel Iteration",
+                path : "jacobi_seidel",
+                component: LinearJacobiSeidel,
+                completed: true,
             },
             {
                 name: "LU Decomposition",
