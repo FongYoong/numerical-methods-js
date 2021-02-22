@@ -416,6 +416,7 @@ function Steps({params}) {
         if (product < 0) {
             latexContent += String.raw`
             \end{array}
+            \\ \hline
             \\ \text{Given that } f(${oldLowerXLatex})f(${newRootXLatex}) < 0,
             \\
             \begin{array}{lcl}
@@ -428,6 +429,7 @@ function Steps({params}) {
         else if (product > 0) {
             latexContent += String.raw`
             \end{array}
+            \\ \hline
             \\ \text{Given that } f(${oldLowerXLatex})f(${newRootXLatex}) > 0,
             \\
             \begin{array}{lcl}
@@ -441,6 +443,7 @@ function Steps({params}) {
             rootFound = true;
             latexContent += String.raw`
             \end{array}
+            \\ \hline
             \\ \text{Root found because }
             \\
             \begin{array}{lcl}
@@ -460,6 +463,7 @@ function Steps({params}) {
                 latexContent += String.raw`
                 \end{array}
                 \\
+                \\ \hline
                 \\ \text{Root found because:}
                 \\
                 \begin{array}{lcl}

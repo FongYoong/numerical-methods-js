@@ -641,14 +641,16 @@ function Steps({smallScreen, params}) {
                 restoredOutput = results[0].rowIndexes.map(ind => restoredOutput[ind]);
                 latexContent += String.raw`
                 \\
+                \\ \hline
                 \\ \text {Given that the matrix A has been permutated in iteration 1, }
-                \\ \text {we must restore the original order:}
+                \\ \text {we must restore it to the original order:}
                 \\
                 \\ X^{(${index})}_{restored} = ${matrixToLatex(restoredOutput, {single: true})}
                 `;
             }
             latexContent += String.raw`
             \\
+            \\ \hline
             \begin{array}{lcl}
             \\ Error &=& |X^{(${index})} - X^{(${index - 1})}|
             \\       &=& |${formatLatex(currentResult.errorInput)}|
@@ -657,6 +659,7 @@ function Steps({smallScreen, params}) {
             if (currentResult.converged) {
                 latexContent += String.raw`
                 \\
+                \\ \hline
                 \\ \text{Converged because:}
                 \\
                 \\ Error < Error Threshold

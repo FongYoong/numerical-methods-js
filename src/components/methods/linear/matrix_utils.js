@@ -316,3 +316,16 @@ export const initialOutputColumn3 = {
         { col_1: 25, col_2: 6, col_3: 15, col_4: -11, },
     ]
 }
+
+export const initialMatrix4 = {
+    columns: [
+        { key: "col_1", name: "C1", ...columnSettings },
+        { key: "col_2", name: "C2", ...columnSettings },
+        { key: "col_3", name: "C3", ...columnSettings },
+    ],
+    rows: [
+        { col_1: 3, col_2: -0.1, col_3: -0.2 },
+        { col_1: 0.1, col_2: 7, col_3: -0.3 },
+        { col_1: 0.3, col_2: -0.2, col_3: 10 },
+    ]
+}

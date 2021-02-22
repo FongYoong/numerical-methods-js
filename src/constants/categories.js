@@ -166,7 +166,7 @@ const categories = [
                 name: "LU Decomposition",
                 path : "lu",
                 component: LinearLU,
-                completed: false,
+                completed: true,
             },
             {
                 name: "Singular Value Decomposition",

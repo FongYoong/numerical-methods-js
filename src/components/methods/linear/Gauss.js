@@ -171,7 +171,7 @@ function LinearGauss({methodName}) {
                 }
             }
             else {
-                if (columns.length === 1) {
+                if (columns.length === 2) {
                     return;
                 }
                 for (let i = 0; i < rows.length; i++) {
@@ -193,7 +193,7 @@ function LinearGauss({methodName}) {
                 outputRows[0][`col_${outputColumns.length}`] = 0;
             }
             else {
-                if (rows.length === 1) {
+                if (rows.length === 2) {
                     return;
                 }
                 rows.pop();
@@ -230,7 +230,7 @@ function LinearGauss({methodName}) {
                     let tempOutputElement = modifiedOutput[pivot];
                     modifiedOutput[pivot] = modifiedOutput[row2];
                     modifiedOutput[row2] = tempOutputElement;
-                        results.push({
+                    results.push({
                         finalMatrix: cloneArray(modifiedMatrix),
                         finalOutput: cloneArray(modifiedOutput),
                         interchange: true,
