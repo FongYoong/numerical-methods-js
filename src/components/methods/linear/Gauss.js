@@ -219,46 +219,55 @@ function LinearGauss({methodName}) {
     let pivotLength = rowLength;
     
     for (let pivot  = 0; pivot < pivotLength - 1; pivot++) {
-        for (let row  = pivot + 1; row < pivotLength; row++) {
-            if (modifiedMatrix[row - 1][pivot] === 0 && modifiedMatrix[row][pivot] !== 0) {
-                let tempMatrixRow = modifiedMatrix[row - 1];
-                modifiedMatrix[row - 1] = modifiedMatrix[row];
-                modifiedMatrix[row] = tempMatrixRow;
-                let tempOutputElement = modifiedOutput[row - 1];
-                modifiedOutput[row - 1] = modifiedOutput[row];
-                modifiedOutput[row] = tempOutputElement;
-                    results.push({
+        let validPivot = true;
+        if (modifiedMatrix[pivot][pivot] === 0 ) {
+            validPivot = false;
+            for (let row2 = pivot + 1; row2 < pivotLength; row2++) {
+                if (modifiedMatrix[row2][pivot] !== 0) {
+                    let tempMatrixRow = modifiedMatrix[pivot];
+                    modifiedMatrix[pivot] = modifiedMatrix[row2];
+                    modifiedMatrix[row2] = tempMatrixRow;
+                    let tempOutputElement = modifiedOutput[pivot];
+                    modifiedOutput[pivot] = modifiedOutput[row2];
+                    modifiedOutput[row2] = tempOutputElement;
+                        results.push({
+                        finalMatrix: cloneArray(modifiedMatrix),
+                        finalOutput: cloneArray(modifiedOutput),
+                        interchange: true,
+                        pivot: pivot + 1,
+                        row: pivot + 1,
+                        row2: row2 + 1,
+                    });
+                    validPivot = true;
+                    break;
+                }
+            }
+        }
+        if (validPivot) {
+            for (let row  = pivot + 1; row < pivotLength; row++) {
+                let factor = modifiedMatrix[row][pivot] / modifiedMatrix[pivot][pivot];
+                let divisionByZero = false;
+                if (factor === 0) {
+                    divisionByZero = true;
+                }
+                else if (isNaN(factor)) {
+                    continue;
+                }
+                if (!divisionByZero) {
+                    for (let col  = 0; col < colLength; col++) {
+                        modifiedMatrix[row][col] -= factor * modifiedMatrix[pivot][col];
+                    }
+                    modifiedOutput[row] -= factor * modifiedOutput[pivot];
+                }
+                results.push({
                     finalMatrix: cloneArray(modifiedMatrix),
                     finalOutput: cloneArray(modifiedOutput),
-                    interchange: true,
+                    interchange: false,
+                    factor,
                     pivot: pivot + 1,
                     row: row + 1,
                 });
             }
-        }
-        for (let row  = pivot + 1; row < pivotLength; row++) {
-            let factor = modifiedMatrix[row][pivot] / modifiedMatrix[pivot][pivot];
-            let divisionByZero = false;
-            if (factor === 0) {
-                divisionByZero = true;
-            }
-            else if (isNaN(factor)) {
-                continue;
-            }
-            if (!divisionByZero) {
-                for (let col  = 0; col < colLength; col++) {
-                    modifiedMatrix[row][col] -= factor * modifiedMatrix[pivot][col];
-                }
-                modifiedOutput[row] -= factor * modifiedOutput[pivot];
-            }
-            results.push({
-                finalMatrix: cloneArray(modifiedMatrix),
-                finalOutput: cloneArray(modifiedOutput),
-                interchange: false,
-                factor,
-                pivot: pivot + 1,
-                row: row + 1,
-            });
         }
     }
     let iterations = results.length;
@@ -431,7 +440,7 @@ function Steps({smallScreen, params}) {
             `;
         }
         latexContent += String.raw`\\ \begin{array}{lcl} `;
-        const boldRows = currentResult.interchange ? [currentResult.row - 1, currentResult.row] : [currentResult.row, currentResult.pivot];
+        const boldRows = currentResult.interchange ? [currentResult.row, currentResult.row2] : [currentResult.row, currentResult.pivot];
         const finalLatex= String.raw`\overbrace{${matrixToLatex(currentResult.finalMatrix, {leftBracketOnly:true, boldRows: boldRows})}}^{A}
         \overbrace{${matrixToLatex(currentResult.finalOutput, {single:true, rightBracketOnly:true, boldRows: boldRows})}}^{B}`;
         if (!currentResult.interchange && currentResult.factor === 0) {
@@ -446,7 +455,7 @@ function Steps({smallScreen, params}) {
             \overbrace{${matrixToLatex(previousMatrix, {leftBracketOnly: true, boldRows: boldRows})}}^{A}
             \overbrace{${matrixToLatex(previousOutput, {single:true, rightBracketOnly:true, boldRows: boldRows})}}^{B}`;
             const operationLatex = currentResult.interchange ?
-            String.raw`R_{${currentResult.row - 1}} \leftrightarrow R_{${currentResult.row}}`
+            String.raw`R_{${currentResult.row}} \leftrightarrow R_{${currentResult.row2}}`
             : String.raw`R_{${currentResult.row}} = R_{${currentResult.row}}-${formatMatrixLatex(currentResult.factor)}R_{${currentResult.pivot}}`;
             if (smallScreen) {
                 latexContent += String.raw`
