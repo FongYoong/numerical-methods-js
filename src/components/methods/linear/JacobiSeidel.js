@@ -1,5 +1,5 @@
 import {formatLatex, formatMatrixLatex} from "../../utils";
-import {initialMatrix3, initialInputColumn3, initialOutputColumn3, createNewColumn, createNewRow, gridTo2DArray, cloneArray,
+import {initialMatrix3 as initialMatrix, initialInputColumn3 as initialInputColumn, initialOutputColumn3 as initialOutputColumn, createNewColumn, createNewRow, gridTo2DArray, cloneArray,
 isDiagonallyDominant, numberFactorials, nextPermutation, generatePermutationMapping, matrixToLatex} from "./matrix_utils";
 import React, {useState, useEffect} from "react";
 import Header from "../../header/Header";
@@ -139,9 +139,9 @@ function LinearJacobiSeidel({methodName}) {
     const rowHeight = smallScreen ? 35 : 35;
     const widthPadding = smallScreen ? 10 : 100;
     const heightPadding = smallScreen ? 5 : 20;
-    const [gridState, setGridState] = useState(initialMatrix3);
-    const [inputColumnState, setInputColumnState] = useState(initialInputColumn3);
-    const [outputColumnState, setOutputColumnState] = useState(initialOutputColumn3);
+    const [gridState, setGridState] = useState(initialMatrix);
+    const [inputColumnState, setInputColumnState] = useState(initialInputColumn);
+    const [outputColumnState, setOutputColumnState] = useState(initialOutputColumn);
     function generateGridCallback (state, stateSetter) {
         return ({ fromRow, toRow, updated }) => {
             const rows = state.rows.slice();
@@ -472,9 +472,9 @@ function LinearJacobiSeidel({methodName}) {
                     </Grid>
                 </Zoom>
                 </Container>
-                <Divider />
-
             </Paper>
+
+            <Divider />
             
             <Collapse in={solve}>
                 <Fade triggerOnce>

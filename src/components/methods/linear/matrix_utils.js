@@ -18,7 +18,7 @@ export class MatrixElementEditor extends React.Component {
     onInputChange = () => {
         let value = this.ref.current.value;
         try {
-            value = parseInt(value);
+            value = parseFloat(value);
             if (isNaN(value)) {
                 value = 0;
             }
@@ -142,7 +142,7 @@ export const generatePermutationMapping = (target, original=[...Array(target.len
     return mapping;
 }
 
-export const matrixToLatex = (matrix, {single=false, leftBracketOnly=false, rightBracketOnly=false, boldRows=[], transpose=false}={}) => {
+export const matrixToLatex = (matrix, {single=false, leftBracketOnly=false, rightBracketOnly=false, boldRows=[], boldColumns=[], transpose=false}={}) => {
     let latex;
     if (rightBracketOnly) {
         latex = String.raw`\left|\begin{matrix}`;
@@ -174,16 +174,23 @@ export const matrixToLatex = (matrix, {single=false, leftBracketOnly=false, righ
     }
     else {
         for (let i = 0; i < rowLength; i++){
-            let isBold = false;
+            let isBoldRow = false;
             for (let b = 0; b < boldRows.length; b++) {
                 if (boldRows[b] === i + 1) {
-                    isBold = true;
+                    isBoldRow = true;
                     break;
                 }
             }
             for (let j = 0; j < colLength; j++){
+                let isBoldRowColumn = false;
+                for (let c = 0; c < boldColumns.length; c++) {
+                    if (boldColumns[c] === j + 1) {
+                        isBoldRowColumn = true;
+                        break;
+                    }
+                }
                 let content = String.raw` ${formatMatrixLatex(matrix[i][j])} `;
-                if (isBold) {
+                if (isBoldRow || isBoldRowColumn) {
                     latex += String.raw` \colorbox{aqua}{\bf{${content}}} `;
                 }
                 else {
@@ -327,5 +334,78 @@ export const initialMatrix4 = {
         { col_1: 3, col_2: -0.1, col_3: -0.2 },
         { col_1: 0.1, col_2: 7, col_3: -0.3 },
         { col_1: 0.3, col_2: -0.2, col_3: 10 },
+    ]
+}
+
+export const initialMatrix5 = {
+    columns: [
+        { key: "col_1", name: "C1", ...columnSettings },
+        { key: "col_2", name: "C2", ...columnSettings },
+    ],
+    rows: [
+        { col_1: 5, col_2: 5 },
+        { col_1: -1, col_2: 7 },
+    ]
+}
+
+export const initialMatrix6 = {
+    columns: [
+        { key: "col_1", name: "C1", ...columnSettings },
+        { key: "col_2", name: "C2", ...columnSettings },
+        { key: "col_3", name: "C3", ...columnSettings },
+    ],
+    rows: [
+        { col_1: 3, col_2: 2, col_3: 2 },
+        { col_1: 2, col_2: 3, col_3: -2 },
+    ]
+}
+export const initialMatrix7 = {
+    columns: [
+        { key: "col_1", name: "C1", ...columnSettings },
+        { key: "col_2", name: "C2", ...columnSettings },
+    ],
+    rows: [
+        { col_1: 2, col_2: 4 },
+        { col_1: 1, col_2: 3 },
+        { col_1: 0, col_2: 0 },
+        { col_1: 0, col_2: 0 },
+    ]
+}
+export const initialMatrix8 = {
+    columns: [
+        { key: "col_1", name: "C1", ...columnSettings },
+        { key: "col_2", name: "C2", ...columnSettings },
+        { key: "col_3", name: "C3", ...columnSettings },
+    ],
+    rows: [
+        { col_1: 1, col_2: -2, col_3: 3 },
+        { col_1: 5, col_2: 8, col_3: -1 },
+        { col_1: 2, col_2: 1, col_3: 1 },
+        { col_1: -1, col_2: 4, col_3: -3 },
+    ]
+}
+export const initialMatrix9 = {
+    columns: [
+        { key: "col_1", name: "C1", ...columnSettings },
+        { key: "col_2", name: "C2", ...columnSettings },
+        { key: "col_3", name: "C3", ...columnSettings },
+    ],
+    rows: [
+        { col_1: 1, col_2: 2, col_3: 3 },
+        { col_1: 3, col_2: 4, col_3: 5 },
+        { col_1: 5, col_2: 6, col_3: 7},
+        { col_1: 7, col_2: 8, col_3: 9 },
+    ]
+}
+export const initialMatrix10 = {
+    columns: [
+        { key: "col_1", name: "C1", ...columnSettings },
+        { key: "col_2", name: "C2", ...columnSettings },
+        { key: "col_3", name: "C3", ...columnSettings },
+    ],
+    rows: [
+        { col_1: 6, col_2: -7, col_3: 2 },
+        { col_1: 4, col_2: -5, col_3: 2 },
+        { col_1: 1, col_2: -1, col_3: 1 },
     ]
 }

@@ -100,7 +100,7 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
-function LinearInverse({methodName}) {
+function LinearQR({methodName}) {
     useEffect(() => {
         // Set webpage title
         document.title = methodName;
@@ -441,4 +441,4 @@ function Steps({smallScreen, params}) {
     )
 }
 
-export default LinearInverse;
+export default LinearQR;

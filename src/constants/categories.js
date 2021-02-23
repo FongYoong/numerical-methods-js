@@ -75,13 +75,13 @@ const LinearGauss = lazy(() => import('../components/methods/linear/Gauss'));
 const LinearJacobiSeidel = lazy(() => import('../components/methods/linear/JacobiSeidel'));
 const LinearLU = lazy(() => import('../components/methods/linear/LU'));
 const LinearSVD = lazy(() => import('../components/methods/linear/SVD'));
+const LinearQR = lazy(() => import('../components/methods/linear/QR'));
 const LinearInverse = lazy(() => import('../components/methods/linear/Inverse'));
 const LinearPenrose = lazy(() => import('../components/methods/linear/PenroseInverse'));
 
 const EigenPower = lazy(() => import('../components/methods/eigen/Power'));
 const EigenInversePower = lazy(() => import('../components/methods/eigen/InversePower'));
 const EigenShiftedPower = lazy(() => import('../components/methods/eigen/ShiftedPower'));
-const EigenQR = lazy(() => import('../components/methods/eigen/QR'));
 
 const OptiGoldenSearch = lazy(() => import('../components/methods/optimisation/GoldenSearch'));
 const OptiParabolic = lazy(() => import('../components/methods/optimisation/Parabolic'));
@@ -102,6 +102,7 @@ const IntegralMidpoint = lazy(() => import('../components/methods/integral/Midpo
 const IntegralTrapezoidal = lazy(() => import('../components/methods/integral/Trapezoidal'));
 const IntegralSimpson = lazy(() => import('../components/methods/integral/Simpson'));
 const IntegralQuadrature = lazy(() => import('../components/methods/integral/Quadrature'));
+const IntegralMonteCarlo = lazy(() => import('../components/methods/integral/MonteCarlo'));
 
 const OdeEuler = lazy(() => import('../components/methods/ode/Euler'));
 const OdeMidpoint = lazy(() => import('../components/methods/ode/Midpoint'));
@@ -172,7 +173,13 @@ const categories = [
                 name: "Singular Value Decomposition",
                 path : "svd",
                 component: LinearSVD,
-                completed: false,
+                completed: true,
+            },
+            {
+                name: "QR Decomposition",
+                path : "qr",
+                component: LinearQR,
+                completed: true,
             },
             {
                 name: "Inverse Matrix",
@@ -208,12 +215,6 @@ const categories = [
                 name: "Shifted Power",
                 path : "shifted",
                 component: EigenShiftedPower,
-                completed: false,
-            },
-            {
-                name: "QR Factorisation",
-                path : "qr",
-                component: EigenQR,
                 completed: false,
             },
         ]
@@ -333,6 +334,12 @@ const categories = [
                 name: "Gauss Quadrature",
                 path : "quadrature",
                 component: IntegralQuadrature,
+                completed: false,
+            },
+            {
+                name: "Monte Carlo Integration",
+                path : "monte_carlo",
+                component: IntegralMonteCarlo,
                 completed: false,
             },
         ]

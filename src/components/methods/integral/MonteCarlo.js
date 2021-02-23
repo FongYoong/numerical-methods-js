@@ -1,10 +1,10 @@
 import React from "react";
 
-function EigenQR() {
+function IntegralMonteCarlo() {
     return (
         <>
         </>
     );
 }
 
-export default EigenQR;
+export default IntegralMonteCarlo;

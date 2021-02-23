@@ -1,8 +1,9 @@
-import {formatLatex, formatMatrixLatex} from "../../utils";
-import {initialMatrix4, createNewColumn, createNewRow, gridTo2DArray, cloneArray, matrixToLatex} from "./matrix_utils";
+import {formatMatrixLatex} from "../../utils";
+import {initialMatrix3 as initialMatrix, createNewColumn, createNewRow, gridTo2DArray, matrixToLatex} from "./matrix_utils";
 import React, {useState, useEffect} from "react";
 import Header from "../../header/Header";
 
+import { transpose, multiply, eigs, deepEqual } from 'mathjs';
 import 'katex/dist/katex.min.css';
 import TeX from '@matejmazur/react-katex';
 
@@ -16,14 +17,11 @@ import Grid from '@material-ui/core/Grid';
 import IconButton from '@material-ui/core/IconButton';
 import AddCircleOutlineOutlinedIcon from '@material-ui/icons/AddCircleOutlineOutlined';
 import RemoveCircleOutlineOutlinedIcon from '@material-ui/icons/RemoveCircleOutlineOutlined';
-import Box from '@material-ui/core/Box';
-import Slider from '@material-ui/core/Slider';
 import Tooltip from '@material-ui/core/Tooltip';
 import Fab from '@material-ui/core/Fab';
 import HelpIcon from '@material-ui/icons/Help';
 import Joyride, { Step as JoyrideStep, CallBackProps as JoyrideCallBackProps} from "react-joyride";
-import Collapse from '@material-ui/core/Collapse';
-import { Fade, Zoom, Slide } from "react-awesome-reveal";
+import { Zoom } from "react-awesome-reveal";
 import { useTheme } from '@material-ui/core/styles';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import { makeStyles } from '@material-ui/core/styles';
@@ -55,12 +53,6 @@ const TOUR_STEPS: JoyrideStep[] = [
         title: "Steps",
         content:
             "The steps are shown here.",
-    },
-    {
-        target: ".iteration-slider",
-        title: "Iteration slider",
-        content:
-            "Change the slider to view the result of any iteration.",
     },
 ];
 
@@ -120,7 +112,7 @@ function LinearSVD({methodName}) {
     const rowHeight = smallScreen ? 35 : 35;
     const widthPadding = smallScreen ? 10 : 100;
     const heightPadding = smallScreen ? 5 : 20;
-    const [gridState, setGridState] = useState(initialMatrix4);
+    const [gridState, setGridState] = useState(initialMatrix);
     function generateGridCallback (state, stateSetter) {
         return ({ fromRow, toRow, updated }) => {
             const rows = state.rows.slice();
@@ -171,67 +163,123 @@ function LinearSVD({methodName}) {
     }
 
     // Solve
-    let solve = false;
     const originalMatrix = gridTo2DArray(gridState.rows);
-    let modifiedMatrix = cloneArray(originalMatrix);
     const rowLength = gridState.rows.length; // row dimension
     const colLength = gridState.columns.length; // column dimension
-    let results = [];
-    let lowerMatrix = [...Array(rowLength).keys()].map(() => Array(colLength).fill(0));
-    let pivotLength = rowLength;
 
-    /*
-    
-    for (let pivot  = 0; pivot < pivotLength - 1; pivot++) {
-        lowerMatrix[pivot][pivot] = 1;
-        let validPivot = true;
-        if (modifiedMatrix[pivot][pivot] === 0 ) {
-            validPivot = false;
-            for (let row2 = pivot + 1; row2 < pivotLength; row2++) {
-                if (modifiedMatrix[row2][pivot] !== 0) {
-                    let tempMatrixRow = modifiedMatrix[pivot];
-                    modifiedMatrix[pivot] = modifiedMatrix[row2];
-                    modifiedMatrix[row2] = tempMatrixRow;
-                    results.push({
-                        finalMatrix: cloneArray(modifiedMatrix),
-                        interchange: true,
-                        pivot: pivot + 1,
-                        row: pivot + 1,
-                        row2: row2 + 1,
-                    });
-                    validPivot = true;
-                    break;
-                }
-            }
-        }
-        if (validPivot) {
-            for (let row  = pivot + 1; row < pivotLength; row++) {
-                let factor = modifiedMatrix[row][pivot] / modifiedMatrix[pivot][pivot];
-                lowerMatrix[row][pivot] = factor;
-                let divisionByZero = false;
-                if (factor === 0) {
-                    divisionByZero = true;
-                }
-                else if (isNaN(factor)) {
-                    continue;
-                }
-                if (!divisionByZero) {
-                    for (let col  = 0; col < matrixSize; col++) {
-                        modifiedMatrix[row][col] -= factor * modifiedMatrix[pivot][col];
-                    }
-                }
-                results.push({
-                    finalMatrix: cloneArray(modifiedMatrix),
-                    interchange: false,
-                    factor,
-                    pivot: pivot + 1,
-                    row: row + 1,
-                });
+    const multiplyTranspose = multiply(transpose(originalMatrix), originalMatrix); // AT*A
+    const multiplyTransposeEigen = eigs(multiplyTranspose);
+    const multiplyTransposeSingularValues = multiplyTransposeEigen.values.slice().reverse().map((v) => Math.sqrt(v));
+    const transposeMultiply = multiply(originalMatrix, transpose(originalMatrix)); // A*AT
+    const transposeMultiplyEigen = eigs(transposeMultiply);
+    const transposeMultiplySingularValues = transposeMultiplyEigen.values.slice().reverse().map((v) => Math.sqrt(v));
+
+    let rightUnitaryT = transpose(multiplyTransposeEigen.vectors).reverse();
+
+    let leftUnitaryT = transpose(transposeMultiplyEigen.vectors).reverse();
+    let leftUnitary = transpose(leftUnitaryT);
+
+    let diagonal = [];
+    if (rowLength <= colLength) {
+        for (let i = 0; i < rowLength; i++) {
+            diagonal.push(Array(colLength).fill(0));
+            if (i < colLength) {
+                diagonal[i][i] = multiplyTransposeSingularValues[i];
             }
         }
     }
-    */
-    let iterations = results.length;
+    else {
+        for (let i = 0; i < rowLength; i++) {
+            diagonal.push(Array(colLength).fill(0));
+            if (i < colLength) {
+                diagonal[i][i] = transposeMultiplySingularValues[i];
+            }
+        }
+    }
+    let product = multiply(leftUnitary, multiply(diagonal, rightUnitaryT));
+
+    let latexContent = String.raw`
+    \displaystyle
+    \begin{array}{l}
+    \begin{array}{lcl}
+    \\ AA^{T} = ${matrixToLatex(multiplyTranspose)}
+    \\ 
+    \\
+    \\ \text{The eigenvectors of } AA^{T}:
+    \\
+    \\ \bf{U} = \left[\begin{matrix}`;
+
+    for (let i = 0 ; i < transposeMultiplyEigen.vectors.length; i++) {
+        latexContent += String.raw` v_{${i + 1}}\cr `;
+    }
+
+    latexContent += String.raw`
+    \end{matrix}\right]^{T} = ${matrixToLatex(leftUnitary)}
+    \\ 
+    \\ \hline
+    \\
+    \\ A^{T}A = ${matrixToLatex(multiplyTranspose)}
+    \\
+    \\
+    \\ \text{The eigenvectors of } A^{T}A:
+    \\
+    \\ \bf{V^{T}} = \left[\begin{matrix}`;
+
+    for (let i = 0 ; i < multiplyTransposeEigen.vectors.length; i++) {
+        latexContent += String.raw` v_{${i + 1}}\cr `;
+    }
+
+    latexContent += String.raw`
+    \end{matrix}\right] = ${matrixToLatex(rightUnitaryT)}
+    \\ 
+    \\ \text{The eigenvalues of } A^{T}A \text{ or singular values,} \ \sigma
+    \\ = ${multiplyTransposeSingularValues.map((v) => formatMatrixLatex(v))}
+    \\
+    \\ \bf{D} = \left[\begin{matrix}`;
+    for (let i = 0; i < rowLength; i++) {
+        for (let j = 0; j < colLength; j++) {
+            if (j === i) {
+                latexContent += String.raw`\colorbox{aqua}{\bf{${formatMatrixLatex(diagonal[i][j])}}}`;
+            }
+            else {
+                latexContent += String.raw`${formatMatrixLatex(diagonal[i][j])}`;
+            }
+            if (j !== colLength - 1) {
+                latexContent += String.raw`&`;
+            }
+        }
+        latexContent += String.raw`\cr`;
+    }
+
+   latexContent += String.raw`
+    \end{matrix}\right]
+    \\
+    \\ \hline
+    \\ \begin{array}{lcl}
+    \\ A &=& ${matrixToLatex(originalMatrix)}
+    \\
+    \\ U &=& ${matrixToLatex(leftUnitary)}
+    \\
+    \\ D &=& ${matrixToLatex(diagonal)}
+    \\
+    \\ V^{T} &=& ${matrixToLatex(rightUnitaryT)}
+    \\
+    \\ A &=& U D V^{T}
+    \\
+    \\   &=& ${matrixToLatex(leftUnitary)} ${matrixToLatex(diagonal)} ${matrixToLatex(rightUnitaryT)}
+    \\
+    \\   &=& ${matrixToLatex(product)}
+    \\ \end{array}
+    \\
+    `;
+    if (!deepEqual(originalMatrix, product) && rowLength > colLength) {
+        latexContent += String.raw`
+        \\ \text{We find that } U D V^{T} \ne A.
+        \\ \text{This is because the my naive SVD algorithm does not work when rows are greater than columns.}
+        \\ \text{I'm too lazy to rectify this, sorry!}
+        `  
+    }
+    latexContent += String.raw`\end{array}\end{array}`;
 
     // Joyride Tour
     const [runTour, setRunTour] = useState(false);
@@ -243,8 +291,6 @@ function LinearSVD({methodName}) {
             setRunTour(false);
         }
     };
-
-    let params = {originalMatrix, rowLength, colLength, iterations, results, lowerMatrix};
     
     return (
         <>
@@ -253,8 +299,7 @@ function LinearSVD({methodName}) {
                 <Container className={styleClasses.container}>
                 <Zoom duration={500} triggerOnce cascade>
                     <Typography variant="body1">
-                        This method is applied to matrices in the form of
-                        <TeX math={String.raw`\ Ax=B`} />.
+                        
                     </Typography>
                     <Grid container spacing={1} direction="row" alignItems="center" justify="center">
                         <Grid xs item>
@@ -313,17 +358,23 @@ function LinearSVD({methodName}) {
                     </Grid>
                 </Zoom>
                 </Container>
-                <Divider />
-
             </Paper>
-            
-            <Collapse in={solve}>
-                <Fade triggerOnce>
-                    <Paper className={styleClasses.paper}>
-                        {solve && <Steps smallScreen={smallScreen} params={params}/>}
-                    </Paper>
-                </Fade>
-            </Collapse>
+
+            <Divider />
+
+            <Container className={styleClasses.container}>
+                <Grid container direction="column" alignItems="center" justify="flex-start">
+                    <Grid xs item className="step-math">
+                        <Zoom direction="right" triggerOnce>
+                            <Card className={styleClasses.card}>
+                                <CardContent className={styleClasses.cardContent}>
+                                    <TeX math={latexContent} block />
+                                </CardContent>
+                            </Card>
+                        </Zoom>
+                    </Grid>
+                </Grid>
+            </Container>
             <Tooltip arrow title="Help" placement="top">
                 <Fab color="secondary" aria-label="help" className={styleClasses.fab} onClick={openHelp}>
                     <HelpIcon />
@@ -342,172 +393,6 @@ function LinearSVD({methodName}) {
             />
         </>
     );
-}
-
-function Steps({smallScreen, params}) {
-
-    const styleClasses = useStyles();
-
-    const [currentIteration, setCurrentIteration] = useState(1);
-    let latexContent;
-
-    if (currentIteration <= 0) {
-        setCurrentIteration(1);
-    }
-    else if (params.iterations > 0 && currentIteration > params.iterations) {
-        setCurrentIteration(params.iterations);
-    }
-    else if (params.iterations >= 2) {
-        let results = params.results;
-        let previousMatrix = currentIteration===1 ? params.originalMatrix : results[currentIteration - 2].finalMatrix;
-        let currentResult = results[currentIteration - 1];
-        latexContent = String.raw`
-        \displaystyle
-        \begin{array}{l}
-        `;
-        if (!currentResult.interchange) {
-            latexContent += String.raw`
-            \begin{array}{lcl}
-            \\ Factor, \bf{f_{${currentResult.row}${currentResult.pivot}}} &=& \frac{U_{${currentResult.row}${currentResult.pivot}}}{U_{${currentResult.pivot}${currentResult.pivot}}}
-            \\        &=& ${formatLatex(currentResult.factor)}
-            \end{array}
-            `;
-        }
-        latexContent += String.raw`\\ \begin{array}{lcl} `;
-        const boldRows = currentResult.interchange ? [currentResult.row, currentResult.row2] : [currentResult.row, currentResult.pivot];
-        const finalLatex= String.raw`\overbrace{${matrixToLatex(currentResult.finalMatrix, {boldRows: boldRows})}}^{U}`;
-        if (!currentResult.interchange && currentResult.factor === 0) {
-            latexContent += String.raw`
-                \\ \text{The factor is zero, so no elimination is done here.}
-                \\
-                \\ ${finalLatex}
-            `;
-        }
-        else {
-            const initialLatex = String.raw`
-            \overbrace{${matrixToLatex(previousMatrix, {boldRows: boldRows})}}^{U}`;
-            const operationLatex = currentResult.interchange ?
-            String.raw`R_{${currentResult.row}} \leftrightarrow R_{${currentResult.row2}}`
-            : String.raw`R_{${currentResult.row}} = R_{${currentResult.row}}-${formatMatrixLatex(currentResult.factor)}R_{${currentResult.pivot}}`;
-            if (smallScreen) {
-                latexContent += String.raw`
-                \\ ${initialLatex}
-                \\ \begin{array}{lcl}
-                       & \downarrow &
-                    \\ & ${operationLatex} &
-                    \\ & \downarrow &
-                    \end{array}
-                \\ ${finalLatex}
-                `;
-            }
-            else {
-                latexContent += String.raw`
-                \\ ${initialLatex}
-                & \overrightarrow{${operationLatex}}
-                & ${finalLatex}
-                `;
-            }
-        }
-        if (currentIteration === params.iterations) {
-            let lowerMatrix = params.lowerMatrix;
-            let lowerFormulaLatex = String.raw`\left[\begin{matrix}`;
-            for (let i = 0; i < params.matrixSize; i++) {
-                for (let j = 0; j < params.matrixSize; j++) {
-                    if (j < i) {
-                        
-                        lowerFormulaLatex += String.raw` \bf{f_{${i + 1}${j + 1}}} `;
-                    }
-                    else if (j === i) {
-                        lowerFormulaLatex += String.raw`1`;
-                    }
-                    else {
-                        lowerFormulaLatex += String.raw`0`;
-                    }
-                    if (j !== params.matrixSize - 1) {
-                        lowerFormulaLatex += String.raw`&`;
-                    }
-                }
-                lowerFormulaLatex += String.raw` \cr`;
-            }
-            lowerFormulaLatex += String.raw`\end{matrix}\right]`;
-            let lowerLatex = String.raw`\left[\begin{matrix}`;
-            for (let i = 0; i < params.matrixSize; i++) {
-                for (let j = 0; j < params.matrixSize; j++) {
-                    if (j < i) {
-                        lowerLatex += String.raw`\colorbox{aqua}{\bf{${formatMatrixLatex(lowerMatrix[i][j])}}}`;
-                    }
-                    else if (j === i) {
-                        lowerLatex += String.raw`1`;
-                    }
-                    else {
-                        lowerLatex += String.raw`0`;
-                    }
-                    if (j !== params.matrixSize - 1) {
-                        lowerLatex += String.raw`&`;
-                    }
-                }
-                lowerLatex += String.raw`\cr`;
-            }
-            lowerLatex += String.raw`\end{matrix}\right]`;
-            latexContent += String.raw`
-            \\ 
-            \\ \hline
-            \\ \begin{array}{lcl}
-            \\ Upper, U &=& ${matrixToLatex(currentResult.finalMatrix)}
-            \\ 
-            \\ Lower, L &=& ${lowerFormulaLatex}
-            \\
-            \\          &=& ${lowerLatex}
-                \end{array}
-            `;
-        }
-        latexContent += String.raw`\end{array}\end{array}`;
-    }
-    else {
-        latexContent = String.raw`
-        \displaystyle
-        \begin{array}{l}
-        \\ \text{Cannot do any elimination.}
-        \\ \overbrace{${matrixToLatex(params.originalMatrix)}}^{A}
-        \end{array}
-        `;
-    }
-    
-    return (
-        <Container className={styleClasses.container}>
-            <Grid container direction="column" alignItems="center" justify="flex-start">
-                <Grid xs item className="iteration-slider">
-                    <Slide direction="left" triggerOnce>
-                        <Box id="iteration-slider" width="70vw">
-                            <Slider
-                                orientation="horizontal"
-                                onChangeCommitted={(event, value) => {setCurrentIteration(value)}}
-                                defaultValue={1}
-                                aria-labelledby="discrete-slider-small-steps"
-                                step={1}
-                                marks
-                                min={1}
-                                max={params.iterations<=0 ? 1 :params.iterations}
-                                valueLabelDisplay="on"
-                            />
-                        </Box>
-                    </Slide>
-                </Grid>
-                <Grid xs item className="step-math">
-                    <Slide direction="right" triggerOnce>
-                        <Card className={styleClasses.card}>
-                            <CardContent className={styleClasses.cardContent}>
-                                <Typography variant="h6">
-                                    Iteration {currentIteration}:
-                                </Typography>
-                                <TeX math={latexContent} block />
-                            </CardContent>
-                        </Card>
-                    </Slide>
-                </Grid>
-            </Grid>
-        </Container>
-    )
 }
 
 export default LinearSVD;

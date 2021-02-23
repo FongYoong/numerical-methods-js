@@ -1,8 +1,9 @@
 import {formatLatex, formatMatrixLatex} from "../../utils";
-import {initialMatrix4, createNewColumn, createNewRow, gridTo2DArray, cloneArray, matrixToLatex} from "./matrix_utils";
+import {initialMatrix4 as initialMatrix, createNewColumn, createNewRow, gridTo2DArray, cloneArray, matrixToLatex} from "./matrix_utils";
 import React, {useState, useEffect} from "react";
 import Header from "../../header/Header";
 
+import { identity } from 'mathjs';
 import 'katex/dist/katex.min.css';
 import TeX from '@matejmazur/react-katex';
 
@@ -114,7 +115,7 @@ function LinearLU({methodName}) {
     const rowHeight = smallScreen ? 35 : 35;
     const widthPadding = smallScreen ? 10 : 100;
     const heightPadding = smallScreen ? 5 : 20;
-    const [gridState, setGridState] = useState(initialMatrix4);
+    const [gridState, setGridState] = useState(initialMatrix);
     function generateGridCallback (state, stateSetter) {
         return ({ fromRow, toRow, updated }) => {
             const rows = state.rows.slice();
@@ -157,12 +158,10 @@ function LinearLU({methodName}) {
     let modifiedMatrix = cloneArray(originalMatrix);
     const matrixSize = gridState.rows.length;
     let results = [];
-    let lowerMatrix = [...Array(matrixSize).keys()].map(() => Array(matrixSize).fill(0));
-    lowerMatrix[matrixSize - 1][matrixSize - 1] = 1;
+    let lowerMatrix = identity(matrixSize, matrixSize).toArray();
     let pivotLength = matrixSize;
     
     for (let pivot  = 0; pivot < pivotLength - 1; pivot++) {
-        lowerMatrix[pivot][pivot] = 1;
         let validPivot = true;
         if (modifiedMatrix[pivot][pivot] === 0 ) {
             validPivot = false;
@@ -231,8 +230,7 @@ function LinearLU({methodName}) {
                 <Container className={styleClasses.container}>
                 <Zoom duration={500} triggerOnce cascade>
                     <Typography variant="body1">
-                        This method is applied to matrices in the form of
-                        <TeX math={String.raw`\ Ax=B`} />.
+                        
                     </Typography>
                     <Grid container spacing={1} direction="row" alignItems="center" justify="center">
                         <Grid xs item>
@@ -253,7 +251,7 @@ function LinearLU({methodName}) {
                                         <Grid xs item className="matrix-input" container spacing={1} direction="column" alignItems="center" justify="center">
                                             <Grid xs item>
                                                 <Typography variant="h6">
-                                                    Matrix, A:
+                                                    Matrix:
                                                 </Typography>
                                             </Grid>
                                             <Grid xs item container spacing={0} direction="row" alignItems="center" justify="center">
@@ -280,9 +278,9 @@ function LinearLU({methodName}) {
                     </Grid>
                 </Zoom>
                 </Container>
-                <Divider />
-
             </Paper>
+
+            <Divider />
             
             <Collapse in={solve}>
                 <Fade triggerOnce>

@@ -378,9 +378,9 @@ function LinearGauss({methodName}) {
                     </Grid>
                 </Zoom>
                 </Container>
-                <Divider />
-
             </Paper>
+
+            <Divider />
             
             <Collapse in={solve}>
                 <Fade triggerOnce>
