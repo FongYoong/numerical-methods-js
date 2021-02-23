@@ -1,5 +1,5 @@
 import {formatMatrixLatex} from "../../utils";
-import {initialMatrix11 as initialMatrix, createNewColumn, createNewRow, gridTo2DArray, cloneArray, matrixToLatex} from "./matrix_utils";
+import {initialMatrix4 as initialMatrix, createNewColumn, createNewRow, gridTo2DArray, cloneArray, matrixToLatex} from "./matrix_utils";
 import React, {useState, useEffect} from "react";
 import Header from "../../header/Header";
 

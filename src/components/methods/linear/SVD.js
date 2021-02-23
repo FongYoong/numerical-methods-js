@@ -1,9 +1,9 @@
 import {formatMatrixLatex} from "../../utils";
-import {initialMatrix3 as initialMatrix, createNewColumn, createNewRow, gridTo2DArray, matrixToLatex} from "./matrix_utils";
+import {initialMatrix6 as initialMatrix, createNewColumn, createNewRow, gridTo2DArray, matrixToLatex} from "./matrix_utils";
 import React, {useState, useEffect} from "react";
 import Header from "../../header/Header";
 
-import { transpose, multiply, eigs, deepEqual } from 'mathjs';
+import { transpose, multiply, eigs } from 'mathjs';
 import 'katex/dist/katex.min.css';
 import TeX from '@matejmazur/react-katex';
 
@@ -272,7 +272,7 @@ function LinearSVD({methodName}) {
     \\ \end{array}
     \\
     `;
-    if (!deepEqual(originalMatrix, product) && rowLength > colLength) {
+    if (rowLength > colLength) {
         latexContent += String.raw`
         \\ \text{We find that } U D V^{T} \ne A.
         \\ \text{This is because the my naive SVD algorithm does not work when rows are greater than columns.}

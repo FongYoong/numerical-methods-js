@@ -185,7 +185,7 @@ const categories = [
                 name: "Inverse Matrix",
                 path : "inverse",
                 component: LinearInverse,
-                completed: false,
+                completed: true,
             },
             {
                 name: "Moore-Penrose Inverse",
