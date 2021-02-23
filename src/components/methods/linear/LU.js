@@ -3,7 +3,7 @@ import {initialMatrix4 as initialMatrix, createNewColumn, createNewRow, gridTo2D
 import React, {useState, useEffect} from "react";
 import Header from "../../header/Header";
 
-import { identity } from 'mathjs';
+import { identity, multiply } from 'mathjs';
 import 'katex/dist/katex.min.css';
 import TeX from '@matejmazur/react-katex';
 
@@ -423,7 +423,16 @@ function Steps({smallScreen, params}) {
             \\ Lower, L &=& ${lowerFormulaLatex}
             \\
             \\          &=& ${lowerLatex}
-                \end{array}
+            \end{array}
+            \\
+            \\ \text{To verify the answer,}
+            \\ \begin{array}{lcl}
+            \\ L U &=& ${matrixToLatex(lowerMatrix)} ${matrixToLatex(currentResult.finalMatrix)}
+            \\
+            \\     &=& ${matrixToLatex(multiply(lowerMatrix, currentResult.finalMatrix))}
+            \\
+            \\     &=&  \text{Original Matrix}
+            \\ \end{array}
             `;
         }
         latexContent += String.raw`\end{array}\end{array}`;

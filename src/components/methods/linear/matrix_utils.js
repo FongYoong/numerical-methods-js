@@ -409,3 +409,15 @@ export const initialMatrix10 = {
         { col_1: 1, col_2: -1, col_3: 1 },
     ]
 }
+export const initialMatrix11 = {
+    columns: [
+        { key: "col_1", name: "C1", ...columnSettings },
+        { key: "col_2", name: "C2", ...columnSettings },
+        { key: "col_3", name: "C3", ...columnSettings },
+    ],
+    rows: [
+        { col_1: 2, col_2: 1, col_3: 2 },
+        { col_1: 1, col_2: 0, col_3: 1 },
+        { col_1: 4, col_2: 1, col_3: 4 },
+    ]
+}

@@ -1,9 +1,9 @@
 import {formatMatrixLatex} from "../../utils";
-import {initialMatrix3 as initialMatrix, createNewColumn, createNewRow, gridTo2DArray, cloneArray, matrixToLatex} from "./matrix_utils";
+import {initialMatrix11 as initialMatrix, createNewColumn, createNewRow, gridTo2DArray, cloneArray, matrixToLatex} from "./matrix_utils";
 import React, {useState, useEffect} from "react";
 import Header from "../../header/Header";
 
-import { zeros, identity, column as getColumn, norm, add, subtract, multiply, squeeze } from 'mathjs';
+import { identity, column as getColumn, lup, usolve, lsolve, multiply, transpose } from 'mathjs';
 import 'katex/dist/katex.min.css';
 import TeX from '@matejmazur/react-katex';
 
@@ -154,61 +154,48 @@ function LinearInverse({methodName}) {
     // Solve
     let solve = true;
     const originalMatrix = gridTo2DArray(gridState.rows);
-    let modifiedMatrix = cloneArray(originalMatrix);
     const matrixSize = gridState.rows.length;
-    let iterations = matrixSize - 1;
+    let iterations = matrixSize;
+    const lupResult = lup(originalMatrix);
+    let lowerMatrix = lupResult.L;
+    let upperMatrix = lupResult.U;
+    let permutation = lupResult.p;
+    let identityMatrix = identity(matrixSize);
+    let inverseMatrix = [];
     let results = [];
-
-    console.log("originalMatrix", originalMatrix);
-    
+    let inverseError = false;
     for (let iter  = 0; iter < iterations; iter++) {
-        let vectorColumn = squeeze(getColumn(modifiedMatrix, iter));
-        for (let i = 0; i < iter; i++) {
-            vectorColumn[i] = 0;
+        let identityColumn = getColumn(identityMatrix, iter).toArray();
+        let d, dError = false, x, xError = false;
+        try {
+            d = lsolve(lowerMatrix, identityColumn).map((v) => v[0]);
         }
-        console.log("vectorColumn", vectorColumn);
-        let columnNorm = norm(vectorColumn, 2);
-        console.log("columnNorm", columnNorm);
-        let vectorBasis = zeros(matrixSize).toArray();
-        vectorBasis[iter] = vectorColumn[iter] < 0 ? -1 : 1;
-        console.log("vectorBasis", vectorBasis);
-
-
-        let vectorCombined = add(vectorColumn, multiply(columnNorm, vectorBasis));
-        console.log("vectorCombined", vectorCombined);
-
-        let transposeMultiply = multiply(vectorCombined, vectorCombined);
-        console.log("transposeMultiply", transposeMultiply);
-        let multiplyTranspose = [];
-        for (let i = 0; i < matrixSize; i++) {
-            multiplyTranspose.push(Array(matrixSize).fill(0));
-            for (let j = 0; j < matrixSize; j++) {
-                multiplyTranspose[i][j] = vectorCombined[i] * vectorCombined[j];
-            }
+        catch {
+            dError = true;
         }
-        console.log("multiplyTranspose", multiplyTranspose);
-
-
-        let householder = subtract(identity(matrixSize), multiply(2 / transposeMultiply, multiplyTranspose)).toArray();
-        console.log("householder", householder);
-
-        let qMatrix = iter === 0 ? householder : multiply(results[iter - 1].qMatrix, householder);
-        console.log("qMatrix", qMatrix);
-
-        modifiedMatrix = multiply(householder, modifiedMatrix);
-        console.log("resultMatrix", modifiedMatrix);
-
+        try {
+            x = usolve(upperMatrix, d).map((v) => v[0]);
+        }
+        catch {
+            xError = true;
+        }
+        inverseMatrix.push(x);
         results.push({
-            vectorColumn,
-            columnNorm,
-            vectorBasis,
-            vectorCombined,
-            transposeMultiply,
-            multiplyTranspose,
-            householder,
-            qMatrix,
-            resultMatrix: cloneArray(modifiedMatrix),
+            identityColumn,
+            d,
+            dError,
+            x,
+            xError,
         });
+        if (dError || xError) {
+            inverseError = true;
+            iterations = iter + 1;
+            break;
+        }
+    }
+    if (!inverseError) {
+        inverseMatrix = transpose(inverseMatrix);
+        inverseMatrix = permutation.map(i => inverseMatrix[i]);
     }
 
     // Joyride Tour
@@ -222,7 +209,7 @@ function LinearInverse({methodName}) {
         }
     };
 
-    let params = {originalMatrix, matrixSize, iterations, results};
+    let params = {originalMatrix, matrixSize, lowerMatrix, upperMatrix, iterations, results, inverseMatrix};
     
     return (
         <>
@@ -252,7 +239,7 @@ function LinearInverse({methodName}) {
                                         <Grid xs item className="matrix-input" container spacing={1} direction="column" alignItems="center" justify="center">
                                             <Grid xs item>
                                                 <Typography variant="h6">
-                                                    Matrix:
+                                                    Matrix, A:
                                                 </Typography>
                                             </Grid>
                                             <Grid xs item container spacing={0} direction="row" alignItems="center" justify="center">
@@ -323,84 +310,90 @@ function Steps({smallScreen, params}) {
     else {
         let results = params.results;
         let currentResult = results[currentIteration - 1];
-        let initialResultMatrix = currentIteration === 1 ? params.originalMatrix : results[currentIteration - 2].resultMatrix;
-        let initialQMatrix = currentIteration === 1 ? null : results[currentIteration - 2].qMatrix;
         latexContent = String.raw`
         \displaystyle
         \begin{array}{l}
-        \begin{array}{lcl}
-        \\ R^{(${currentIteration - 1})} ${currentIteration === 1 ? String.raw`= \text{Original Matrix}` : ""} = ${matrixToLatex(initialResultMatrix, {boldColumns: [currentIteration]})}
+        \begin{array}{lcl}`;
+        if (currentIteration === 1) {
+            latexContent += String.raw`
+            \\
+            \\ \text{After LU decomposition,}
+            \\ \begin{array}{lcl}
+            \\ A &=& L U
+            \\
+            \\   &=& ${matrixToLatex(params.lowerMatrix)} ${matrixToLatex(params.lowerMatrix)}
+            \end{array}
+            \\
+            \\ \hline
+            `
+        }
+        latexContent += String.raw`
+        \\ I_{${currentIteration}} = ${matrixToLatex(currentResult.identityColumn, {single: true})}
         \\
-        \\ \text{Column, }c = ${matrixToLatex(currentResult.vectorColumn, {single: true})}
-        \text{${currentIteration > 1 ? "\\ Note: The first " + (currentIteration - 1) + " elements of c must be zero.": ""}}
+        \\ \text{Using backsubstitution,}
+        \\ \begin{array}{rcl}
+         L d &=& I_{${currentIteration}}
         \\
-        \\ \text{Norm, }\lVert c \rVert = ${formatMatrixLatex(currentResult.columnNorm)}
-        \\
-        \\ \text{Basis, }e = ${matrixToLatex(currentResult.vectorBasis, {single: true})}
-        \\
-        \\ \hline
-        \begin{array}{lcl}
-        \\ v &=& c + \lVert c \rVert e
-        \\
-        \\   &=& ${matrixToLatex(currentResult.vectorColumn, {single: true})} +  ${formatMatrixLatex(currentResult.columnNorm)} ${matrixToLatex(currentResult.vectorBasis, {single: true})}
-        \\
-        \\   &=& ${matrixToLatex(currentResult.vectorCombined, {single: true})}
-        \\ \end{array}
-        \\ \begin{array}{lcl}
-        \\ v^{T}v &=& ${matrixToLatex([currentResult.vectorCombined])} ${matrixToLatex(currentResult.vectorCombined, {single: true})}
-        \\
-        \\        &=& ${formatMatrixLatex(currentResult.transposeMultiply)}
-        \\ \end{array}
-        \\ \begin{array}{lcl}
-        \\ vv^{T} &=& ${matrixToLatex(currentResult.vectorCombined, {single: true})} ${matrixToLatex([currentResult.vectorCombined])}
-        \\
-        \\        &=& ${matrixToLatex(currentResult.multiplyTranspose)}
-        \\ \end{array}
-        \\
-        \\ \hline
-        \begin{array}{lcl}
-        \\ \text{Householder, } H^{(${currentIteration})} &=& I - \frac{2}{v^{T}v} vv^{T}
-        \\
-        \\                           &=& ${matrixToLatex(identity(currentResult.vectorColumn.length).toArray())} - \frac{2}{${formatMatrixLatex(currentResult.transposeMultiply)}} ${matrixToLatex(currentResult.multiplyTranspose)}
-        \\
-        \\                           &=& ${matrixToLatex(currentResult.householder)}
-        \\ \end{array}
-        \\
-        \\ \hline
-        \begin{array}{lcl}
-        \\ Q^{(${currentIteration})} &=& ${currentIteration > 1 ? "Q^{(" + (currentIteration - 1) + ")}" : "" } H^{(${currentIteration})}
-        \\
-        \\                           &=& ${currentIteration > 1 ? matrixToLatex(initialQMatrix) : ""} ${matrixToLatex(currentResult.householder)}
-        \\
-        \\                           ${currentIteration > 1 ? "&=&" + matrixToLatex(currentResult.qMatrix) : ""}
-        \\ \end{array}
-        \\
-        \\ \hline
-        \begin{array}{lcl}
-        \\ R^{(${currentIteration})} &=& H^{(${currentIteration})} R^{(${currentIteration - 1})}
-        \\
-        \\                           &=& ${matrixToLatex(currentResult.householder)} ${matrixToLatex(initialResultMatrix)}
-        \\
-        \\                           &=& ${matrixToLatex(currentResult.resultMatrix)}
-        \\ \end{array}
-        `;
-        if (currentIteration === params.iterations) {
+        \\ ${matrixToLatex(params.lowerMatrix)} d &=& ${matrixToLatex(currentResult.identityColumn, {single: true})}
+        \\`
+        if (!currentResult.dError) {
+            latexContent += String.raw`
+            \\ d &=& ${matrixToLatex(currentResult.d, {single: true})}
+            \\ \end{array}
+            \\
+            \\ \hline
+            \\ \text{Using backsubstitution again,}
+            \\ \begin{array}{rcl}
+            U x &=& d
+            \\
+            \\ ${matrixToLatex(params.upperMatrix)} x &=& ${matrixToLatex(currentResult.d, {single: true})}
+            \\
+            `;
+            if (!currentResult.xError) {
+                latexContent += String.raw`
+                \\ x &=& ${matrixToLatex(currentResult.x, {single: true})}
+                \\ \end{array}
+                \\
+                \\ \hline
+                \\ A^{-1}_{${currentIteration}} = x = ${matrixToLatex(currentResult.x, {single: true})}
+
+                `;
+            }
+            else {
+                latexContent += String.raw`
+                \\ \end{array}
+                \\ \text{Given that x cannot be solved,}
+                \\ \text{an inverse does not exist.}
+                \\
+                `;
+            }
+        }
+        else {
+            latexContent += String.raw`
+            \\ \end{array}
+            \\ \text{Given that d cannot be solved,}
+            \\ \text{an inverse does not exist.}
+            \\
+            `;
+        }
+        
+        if (currentIteration === params.iterations && !currentResult.dError && !currentResult.xError) {
             latexContent += String.raw`
             \\
             \\ \hline
+            \\ Inverse, A^{-1} = 
             \\ \text{To verify the answer,}
             \\ \begin{array}{lcl}
-            \\ Q^{(${currentIteration})} R^{(${currentIteration})} &=& ${matrixToLatex(currentResult.qMatrix)} ${matrixToLatex(currentResult.resultMatrix)}
+            \\ A A^{-1} &=& ${matrixToLatex(params.originalMatrix)} ${matrixToLatex(params.inverseMatrix)}
             \\
-            \\                           &=& ${matrixToLatex(multiply(currentResult.qMatrix, currentResult.resultMatrix))}
+            \\                           &=& ${matrixToLatex(multiply(params.originalMatrix, params.inverseMatrix))}
             \\
-            \\                           &=&  \text{Original Matrix}
+            \\                           &=&  \text{Identity Matrix}
             \\ \end{array}
             \\
             \\
             `
         }
-        
         latexContent += String.raw`\end{array}\end{array}`;
     }
     
