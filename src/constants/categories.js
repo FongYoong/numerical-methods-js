@@ -215,7 +215,7 @@ const categories = [
                 name: "Shifted Power",
                 path : "shifted",
                 component: EigenShiftedPower,
-                completed: false,
+                completed: true,
             },
         ]
     },

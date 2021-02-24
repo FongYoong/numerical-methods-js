@@ -38,11 +38,17 @@ import ReactDataGrid from 'react-data-grid';
 
 const TOUR_STEPS: JoyrideStep[] = [
     {
+        target: ".scaling-input",
+        title: "Use Scaling",
+        content:
+        "Enable/Disable scaling",
+        disableBeacon: true,
+    },
+    {
         target: ".matrix-size-input",
         title: "Size",
         content:
         "Increase/Reduce the matrix's size",
-        disableBeacon: true,
     },
     {
         target: ".matrix-input",
@@ -60,7 +66,7 @@ const TOUR_STEPS: JoyrideStep[] = [
         target: ".iteration-input",
         title: "Iterations",
         content:
-            "Specify the number of iterations to apply the power method.",
+            "Specify the number of iterations to apply the inverse power method.",
     },
     {
         target: ".step-math",

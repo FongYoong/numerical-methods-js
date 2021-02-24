@@ -37,11 +37,17 @@ import ReactDataGrid from 'react-data-grid';
 
 const TOUR_STEPS: JoyrideStep[] = [
     {
+        target: ".scaling-input",
+        title: "Use Scaling",
+        content:
+        "Enable/Disable scaling",
+        disableBeacon: true,
+    },
+    {
         target: ".matrix-size-input",
         title: "Size",
         content:
         "Increase/Reduce the matrix's size",
-        disableBeacon: true,
     },
     {
         target: ".matrix-input",

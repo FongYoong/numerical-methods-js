@@ -471,3 +471,22 @@ export const initialInputColumn13 = {
         { col_1: -0.7, col_2: 1},
     ]
 }
+export const initialMatrix14 = {
+    columns: [
+        { key: "col_1", name: "C1", ...columnSettings },
+        { key: "col_2", name: "C2", ...columnSettings },
+    ],
+    rows: [
+        { col_1: 7, col_2: -2 },
+        { col_1: 3, col_2: -1 },
+    ]
+}
+export const initialInputColumn14 = {
+    columns: [
+        { key: "col_1", name: "C1", ...columnSettings },
+        { key: "col_2", name: "C2", ...columnSettings },
+    ],
+    rows: [
+        { col_1: 1, col_2: 0},
+    ]
+}
