@@ -332,7 +332,7 @@ function LinearGauss({methodName}) {
                                                 </Typography>
                                             </Grid>
                                             <Grid xs item container spacing={0} direction="row" alignItems="center" justify="center">
-                                                <Grid key={Math.random()} item className={styleClasses.overflow}>
+                                                <Grid key={0} item className={styleClasses.overflow}>
                                                     <ReactDataGrid
                                                         columns={gridState.columns}
                                                         rowGetter={i => gridState.rows[i]}
@@ -355,7 +355,7 @@ function LinearGauss({methodName}) {
                                                 </Typography>
                                             </Grid>
                                             <Grid xs item container spacing={0} direction="row" alignItems="center" justify="center">
-                                                <Grid key={Math.random()} item className={styleClasses.overflow}>
+                                                <Grid key={1} item className={styleClasses.overflow}>
                                                     <ReactDataGrid
                                                         columns={outputColumnState.columns}
                                                         rowGetter={i => outputColumnState.rows[i]}

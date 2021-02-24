@@ -173,7 +173,7 @@ const categories = [
                 name: "Singular Value Decomposition",
                 path : "svd",
                 component: LinearSVD,
-                completed: true,
+                completed: false,
             },
             {
                 name: "QR Decomposition",

@@ -243,7 +243,7 @@ function LinearInverse({methodName}) {
                                                 </Typography>
                                             </Grid>
                                             <Grid xs item container spacing={0} direction="row" alignItems="center" justify="center">
-                                                <Grid key={Math.random()} item className={styleClasses.overflow}>
+                                                <Grid key={0} item className={styleClasses.overflow}>
                                                     <ReactDataGrid
                                                         columns={gridState.columns}
                                                         rowGetter={i => gridState.rows[i]}
@@ -381,7 +381,9 @@ function Steps({smallScreen, params}) {
             latexContent += String.raw`
             \\
             \\ \hline
-            \\ Inverse, A^{-1} = 
+            \\
+            \\ Inverse, A^{-1} = ${matrixToLatex(params.inverseMatrix)}
+            \\
             \\ \text{To verify the answer,}
             \\ \begin{array}{lcl}
             \\ A A^{-1} &=& ${matrixToLatex(params.originalMatrix)} ${matrixToLatex(params.inverseMatrix)}

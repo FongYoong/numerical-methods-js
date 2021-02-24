@@ -299,7 +299,7 @@ function LinearSVD({methodName}) {
                 <Container className={styleClasses.container}>
                 <Zoom duration={500} triggerOnce cascade>
                     <Typography variant="body1">
-                        
+                        Incomplete! Experimental!
                     </Typography>
                     <Grid container spacing={1} direction="row" alignItems="center" justify="center">
                         <Grid xs item>
@@ -335,7 +335,7 @@ function LinearSVD({methodName}) {
                                                 </Typography>
                                             </Grid>
                                             <Grid xs item container spacing={0} direction="row" alignItems="center" justify="center">
-                                                <Grid key={Math.random()} item className={styleClasses.overflow}>
+                                                <Grid key={0} item className={styleClasses.overflow}>
                                                     <ReactDataGrid
                                                         columns={gridState.columns}
                                                         rowGetter={i => gridState.rows[i]}
