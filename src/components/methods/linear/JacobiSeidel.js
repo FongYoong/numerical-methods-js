@@ -1,6 +1,7 @@
 import {formatLatex, formatMatrixLatex} from "../../utils";
-import {initialMatrix3 as initialMatrix, initialInputColumn3 as initialInputColumn, initialOutputColumn3 as initialOutputColumn, createNewColumn, createNewRow, gridTo2DArray, cloneArray,
-isDiagonallyDominant, numberFactorials, nextPermutation, generatePermutationMapping, matrixToLatex} from "./matrix_utils";
+import {initialMatrix3 as initialMatrix, initialInputColumn3 as initialInputColumn, initialOutputColumn3 as initialOutputColumn,
+generateGridCallback, createNewColumn, createNewRow, gridTo2DArray, cloneArray,
+isDiagonallyDominant, numberFactorials, nextPermutation, generatePermutationMapping, matrixToLatex} from "../../matrix_utils";
 import React, {useState, useEffect} from "react";
 import Header from "../../header/Header";
 
@@ -142,17 +143,6 @@ function LinearJacobiSeidel({methodName}) {
     const [gridState, setGridState] = useState(initialMatrix);
     const [inputColumnState, setInputColumnState] = useState(initialInputColumn);
     const [outputColumnState, setOutputColumnState] = useState(initialOutputColumn);
-    function generateGridCallback (state, stateSetter) {
-        return ({ fromRow, toRow, updated }) => {
-            const rows = state.rows.slice();
-            for (let i = fromRow; i <= toRow; i++) {
-                rows[i] = { ...rows[i], ...updated };
-            }
-            stateSetter({
-                ...state, rows
-            });
-        };
-    }
     const sizeCallback = (add) => {
         return () => {
             const columns = gridState.columns.slice();

@@ -1,5 +1,5 @@
 import {formatLatex, formatMatrixLatex} from "../../utils";
-import {initialMatrix, initialOutputColumn, createNewColumn, createNewRow, gridTo2DArray, cloneArray, matrixToLatex} from "./matrix_utils";
+import {initialMatrix, initialOutputColumn, generateGridCallback, createNewColumn, createNewRow, gridTo2DArray, cloneArray, matrixToLatex} from "../../matrix_utils";
 import React, {useState, useEffect} from "react";
 import Header from "../../header/Header";
 
@@ -129,17 +129,6 @@ function LinearGauss({methodName}) {
     const heightPadding = smallScreen ? 5 : 20;
     const [gridState, setGridState] = useState(initialMatrix);
     const [outputColumnState, setOutputColumnState] = useState(initialOutputColumn);
-    function generateGridCallback (state, stateSetter) {
-        return ({ fromRow, toRow, updated }) => {
-            const rows = state.rows.slice();
-            for (let i = fromRow; i <= toRow; i++) {
-                rows[i] = { ...rows[i], ...updated };
-            }
-            stateSetter({
-                ...state, rows
-            });
-        };
-    }
     /*
     const onGridRowsUpdated = ({ fromRow, toRow, updated }) => {
         const rows = gridState.rows.slice();

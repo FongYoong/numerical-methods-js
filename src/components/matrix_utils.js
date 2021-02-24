@@ -1,7 +1,19 @@
-import {formatMatrixLatex} from "../../utils";
+import {formatMatrixLatex} from "./utils";
 import React from "react";
 
-export class MatrixElementEditor extends React.Component {
+export function generateGridCallback (state, stateSetter) {
+    return ({ fromRow, toRow, updated }) => {
+        const rows = state.rows.slice();
+        for (let i = fromRow; i <= toRow; i++) {
+            rows[i] = { ...rows[i], ...updated };
+        }
+        stateSetter({
+            ...state, rows
+        });
+    };
+}
+
+class MatrixElementEditor extends React.Component {
     ref = React.createRef();
     constructor(props) {
         super(props);
@@ -43,7 +55,7 @@ const style = {
     flexDirection: "column",
 };
 
-export default class WrapperFormatter extends React.Component {
+class WrapperFormatter extends React.Component {
 
     render() {
         return (<div style={style}>{this.props.value}</div>)
@@ -419,5 +431,43 @@ export const initialMatrix11 = {
         { col_1: 2, col_2: 1, col_3: 2 },
         { col_1: 1, col_2: 0, col_3: 1 },
         { col_1: 4, col_2: 1, col_3: 4 },
+    ]
+}
+export const initialMatrix12 = {
+    columns: [
+        { key: "col_1", name: "C1", ...columnSettings },
+        { key: "col_2", name: "C2", ...columnSettings },
+    ],
+    rows: [
+        { col_1: 4, col_2: -2 },
+        { col_1: 3, col_2: -1 },
+    ]
+}
+export const initialInputColumn12 = {
+    columns: [
+        { key: "col_1", name: "C1", ...columnSettings },
+        { key: "col_2", name: "C2", ...columnSettings },
+    ],
+    rows: [
+        { col_1: 1, col_2: 0},
+    ]
+}
+export const initialMatrix13 = {
+    columns: [
+        { key: "col_1", name: "C1", ...columnSettings },
+        { key: "col_2", name: "C2", ...columnSettings },
+    ],
+    rows: [
+        { col_1: 2, col_2: 3 },
+        { col_1: 4, col_2: 1 },
+    ]
+}
+export const initialInputColumn13 = {
+    columns: [
+        { key: "col_1", name: "C1", ...columnSettings },
+        { key: "col_2", name: "C2", ...columnSettings },
+    ],
+    rows: [
+        { col_1: -0.7, col_2: 1},
     ]
 }

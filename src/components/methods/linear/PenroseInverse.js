@@ -1,5 +1,5 @@
 import {formatMatrixLatex} from "../../utils";
-import {initialMatrix6 as initialMatrix, createNewColumn, createNewRow, gridTo2DArray, matrixToLatex, cloneArray} from "./matrix_utils";
+import {initialMatrix6 as initialMatrix, generateGridCallback, createNewColumn, createNewRow, gridTo2DArray, matrixToLatex, cloneArray} from "../../matrix_utils";
 import React, {useState, useEffect} from "react";
 import Header from "../../header/Header";
 
@@ -113,17 +113,6 @@ function LinearPenrose({methodName}) {
     const widthPadding = smallScreen ? 10 : 100;
     const heightPadding = smallScreen ? 5 : 20;
     const [gridState, setGridState] = useState(initialMatrix);
-    function generateGridCallback (state, stateSetter) {
-        return ({ fromRow, toRow, updated }) => {
-            const rows = state.rows.slice();
-            for (let i = fromRow; i <= toRow; i++) {
-                rows[i] = { ...rows[i], ...updated };
-            }
-            stateSetter({
-                ...state, rows
-            });
-        };
-    }
     const columnCallback = (add) => {
         return () => {
             const columns = gridState.columns.slice();

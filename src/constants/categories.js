@@ -203,13 +203,13 @@ const categories = [
                 name: "Power Method",
                 path : "power",
                 component: EigenPower,
-                completed: false,
+                completed: true,
             },
             {
                 name: "Inverse-Power",
                 path : "inverse",
                 component: EigenInversePower,
-                completed: false,
+                completed: true,
             },
             {
                 name: "Shifted Power",
