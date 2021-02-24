@@ -17,6 +17,7 @@
     "mathjax": "^3.1.2",
     "mathjax-full": "^3.1.2",
     "mathjs": "^9.2.0",
+    "ml-matrix": "^6.6.0",
     "react": "^17.0.1",
     "react-awesome-reveal": "^3.4.0",
     "react-data-grid": "^6.1.0",

@@ -490,3 +490,27 @@ export const initialInputColumn14 = {
         { col_1: 1, col_2: 0},
     ]
 }
+export const initialMatrix15 = {
+    columns: [
+        { key: "col_1", name: "C1", ...columnSettings },
+        { key: "col_2", name: "C2", ...columnSettings },
+        { key: "col_3", name: "C3", ...columnSettings },
+        { key: "col_4", name: "C4", ...columnSettings },
+    ],
+    rows: [
+        { col_1: 5, col_2: 0, col_3: 0, col_4: -1, },
+        { col_1: 1, col_2: 0, col_3: -1, col_4: 1, },
+        { col_1: -1.5, col_2: 1, col_3: -2, col_4: 1, },
+        { col_1: -1, col_2: 1, col_3: 3, col_4: -3, },
+    ]
+}
+export const initialMatrix16 = {
+    columns: [
+        { key: "col_1", name: "C1", ...columnSettings },
+        { key: "col_2", name: "C2", ...columnSettings },
+    ],
+    rows: [
+        { col_1: 1, col_2: -1},
+        { col_1: 2, col_2: -1},
+    ]
+}

@@ -1,70 +1,5 @@
 import { lazy } from 'react';
 
-/*
-import NonlinearBisection from '../components/methods/nonlinear/Bisection';
-import NonlinearFalsePosition from '../components/methods/nonlinear/FalsePosition';
-import NonlinearNewton from '../components/methods/nonlinear/Newton';
-import NonlinearSecant from '../components/methods/nonlinear/Secant';
-import NonlinearFixedPoint from '../components/methods/nonlinear/FixedPoint';
-*/
-
-/*
-import LinearGauss from '../components/methods/linear/Gauss';
-import LinearPivot from '../components/methods/linear/Pivot';
-import LinearJordan from '../components/methods/linear/Jordan';
-import LinearJacobi from '../components/methods/linear/Jacobi';
-import LinearSeidel from '../components/methods/linear/Seidel';
-import LinearLU from '../components/methods/linear/LU';
-import LinearSVD from '../components/methods/linear/SVD';
-import LinearInverse from '../components/methods/linear/Inverse';
-import LinearPenrose from '../components/methods/linear/PenroseInverse';
-*/
-
-/*
-import EigenPower from '../components/methods/eigen/Power';
-import EigenInversePower from '../components/methods/eigen/InversePower';
-import EigenShiftedPower from '../components/methods/eigen/ShiftedPower';
-import EigenQR from '../components/methods/eigen/QR';
-*/
-
-/*
-import OptiGoldenSearch from '../components/methods/optimisation/GoldenSearch';
-import OptiParabolic from '../components/methods/optimisation/Parabolic';
-import OptiNewton from '../components/methods/optimisation/Newton';
-import OptiGradient from '../components/methods/optimisation/Gradient';
-import OptiLinearProg from '../components/methods/optimisation/LinearProg';
-*/
-
-/*
-import CurveLinear from '../components/methods/curve/Linear';
-import CurvePoly from '../components/methods/curve/Polynomial';
-import CurveSpline from '../components/methods/curve/Spline';
-*/
-
-/*
-import FFT from '../components/methods/fourier/FFT';
-*/
-
-/*
-import DiffFinite from '../components/methods/differential/Finite';
-import DiffRichardson from '../components/methods/differential/Richardson';
-*/
-
-/*
-import IntegralMidpoint from '../components/methods/integral/Midpoint';
-import IntegralTrapezoidal from '../components/methods/integral/Trapezoidal';
-import IntegralSimpson from '../components/methods/integral/Simpson';
-import IntegralQuadrature from '../components/methods/integral/Quadrature';
-*/
-
-/*
-import OdeEuler from '../components/methods/ode/Euler';
-import OdeMidpoint from '../components/methods/ode/Midpoint';
-import OdeRunge from '../components/methods/ode/Runge';
-import OdeMultistep from '../components/methods/ode/Multistep';
-import OdePredictor from '../components/methods/ode/Predictor';
-*/
-
 const NonlinearBisection = lazy(() => import('../components/methods/nonlinear/Bisection'));
 const NonlinearFalsePosition = lazy(() => import('../components/methods/nonlinear/FalsePosition'));
 const NonlinearNewton = lazy(() => import('../components/methods/nonlinear/Newton'));
@@ -82,10 +17,10 @@ const LinearPenrose = lazy(() => import('../components/methods/linear/PenroseInv
 const EigenPower = lazy(() => import('../components/methods/eigen/Power'));
 const EigenInversePower = lazy(() => import('../components/methods/eigen/InversePower'));
 const EigenShiftedPower = lazy(() => import('../components/methods/eigen/ShiftedPower'));
+const EigenDiscs = lazy(() => import('../components/methods/eigen/Discs'));
 
 const OptiGoldenSearch = lazy(() => import('../components/methods/optimisation/GoldenSearch'));
 const OptiParabolic = lazy(() => import('../components/methods/optimisation/Parabolic'));
-const OptiNewton = lazy(() => import('../components/methods/optimisation/Newton'));
 const OptiGradient = lazy(() => import('../components/methods/optimisation/Gradient'));
 const OptiLinearProg = lazy(() => import('../components/methods/optimisation/LinearProg'));
 
@@ -217,6 +152,12 @@ const categories = [
                 component: EigenShiftedPower,
                 completed: true,
             },
+            {
+                name: "Gerschgorin Discs",
+                path : "discs",
+                component: EigenDiscs,
+                completed: true,
+            },
         ]
     },
     {
@@ -233,12 +174,6 @@ const categories = [
                 name: "Parabolic Interpolation",
                 path : "parabolic",
                 component: OptiParabolic,
-                completed: false,
-            },
-            {
-                name: "Newton's Method",
-                path : "newton",
-                component: OptiNewton,
                 completed: false,
             },
             {

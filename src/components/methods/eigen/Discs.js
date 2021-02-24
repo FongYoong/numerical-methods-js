@@ -1,9 +1,12 @@
-import {formatMatrixLatex} from "../../utils";
-import {initialMatrix6 as initialMatrix, generateGridCallback, createNewColumn, createNewRow, gridTo2DArray, matrixToLatex, cloneArray} from "../../matrix_utils";
+import {formatLatex} from "../../utils";
+import {initialMatrix16 as initialMatrix, initialInputColumn12 as initialInputColumn,
+generateGridCallback, createNewColumn, createNewRow, gridTo2DArray, matrixToLatex} from "../../matrix_utils";
 import React, {useState, useEffect} from "react";
 import Header from "../../header/Header";
+import Graph from "../../Graph";
+import * as Desmos from 'desmos';
 
-import { transpose, multiply, eigs } from 'mathjs';
+import {Matrix as MLMatrix, EigenvalueDecomposition as MLEigen} from 'ml-matrix';
 import 'katex/dist/katex.min.css';
 import TeX from '@matejmazur/react-katex';
 
@@ -21,7 +24,7 @@ import Tooltip from '@material-ui/core/Tooltip';
 import Fab from '@material-ui/core/Fab';
 import HelpIcon from '@material-ui/icons/Help';
 import Joyride, { Step as JoyrideStep, CallBackProps as JoyrideCallBackProps} from "react-joyride";
-import { Zoom } from "react-awesome-reveal";
+import { Zoom, Slide } from "react-awesome-reveal";
 import { useTheme } from '@material-ui/core/styles';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import { makeStyles } from '@material-ui/core/styles';
@@ -30,17 +33,11 @@ import ReactDataGrid from 'react-data-grid';
 
 const TOUR_STEPS: JoyrideStep[] = [
     {
-        target: ".matrix-col-input",
-        title: "Column",
+        target: ".matrix-size-input",
+        title: "Size",
         content:
-        "Add/Remove columns",
+        "Increase/Reduce the matrix's size",
         disableBeacon: true,
-    },
-    {
-        target: ".matrix-row-input",
-        title: "Row",
-        content:
-        "Add/Remove rows",
     },
     {
         target: ".matrix-input",
@@ -53,6 +50,12 @@ const TOUR_STEPS: JoyrideStep[] = [
         title: "Steps",
         content:
             "The steps are shown here.",
+    },
+    {
+        target: ".graph-button",
+        title: "View graph",
+        content:
+            "Click this to visualise the results.",
     },
 ];
 
@@ -97,11 +100,10 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
-function LinearPenrose({methodName}) {
+function EigenDiscs({methodName}) {
     useEffect(() => {
         // Set webpage title
         document.title = methodName;
-        
     });
 
     const styleClasses = useStyles();
@@ -113,187 +115,115 @@ function LinearPenrose({methodName}) {
     const widthPadding = smallScreen ? 10 : 100;
     const heightPadding = smallScreen ? 5 : 20;
     const [gridState, setGridState] = useState(initialMatrix);
-    const columnCallback = (add) => {
+    const [inputColumnState, setInputColumnState] = useState(initialInputColumn);
+    const sizeCallback = (add) => {
         return () => {
             const columns = gridState.columns.slice();
             const rows = gridState.rows.slice();
+            const inputColumns = inputColumnState.columns.slice();
+            const inputRows = inputColumnState.rows.slice();
             if (add) {
                 columns.push(createNewColumn(columns.length));
+                rows.push(createNewRow(gridState.columns.length));
                 for (let i = 0; i < rows.length; i++) {
                     rows[i][`col_${columns.length}`] = 0;
                 }
+                inputColumns.push(createNewColumn(inputColumns.length));
+                inputRows[0][`col_${inputColumns.length}`] = 0;
             }
             else {
-                if (columns.length === 2 || columns.length - 1 === rows.length) {
+                if (columns.length === 2) {
                     return;
                 }
+                rows.pop();
                 for (let i = 0; i < rows.length; i++) {
                     delete rows[i][`col_${columns.length}`];
                 }
                 columns.pop();
+                for (let i = 0; i < inputRows.length; i++) {
+                    delete inputRows[i][`col_${inputColumns.length}`];
+                }
+                inputColumns.pop();
             }
             setGridState({columns, rows});
-        };
-    }
-    const rowCallback = (add) => {
-        return () => {
-            const rows = gridState.rows.slice();
-            if (add) {
-                if (rows.length + 1 === gridState.columns.length) {
-                    return;
-                }
-                rows.push(createNewRow(gridState.columns.length));
-            }
-            else {
-                if (rows.length === 2) {
-                    return;
-                }
-                rows.pop();
-            }
-            setGridState({...gridState, rows});
+            setInputColumnState({columns: inputColumns, rows: inputRows});
         };
     }
 
     // Solve
     const originalMatrix = gridTo2DArray(gridState.rows);
-    const rowLength = gridState.rows.length; // row dimension
-    const colLength = gridState.columns.length; // column dimension
-
-    const multiplyTranspose = multiply(transpose(originalMatrix), originalMatrix); // AT*A
-    const multiplyTransposeEigen = eigs(multiplyTranspose);
-    const multiplyTransposeSingularValues = multiplyTransposeEigen.values.slice().reverse().map((v) => Math.sqrt(v));
-    const transposeMultiply = multiply(originalMatrix, transpose(originalMatrix)); // A*AT
-    const transposeMultiplyEigen = eigs(transposeMultiply);
-    const transposeMultiplySingularValues = transposeMultiplyEigen.values.slice().reverse().map((v) => Math.sqrt(v));
-
-    let rightUnitaryT = transpose(multiplyTransposeEigen.vectors).reverse();
-    let rightUnitary = transpose(rightUnitaryT);
-
-    let leftUnitaryT = transpose(transposeMultiplyEigen.vectors).reverse();
-    let leftUnitary = transpose(leftUnitaryT);
-
-    let diagonal = [];
-    if (rowLength <= colLength) {
-        for (let i = 0; i < rowLength; i++) {
-            diagonal.push(Array(colLength).fill(0));
-            if (i < colLength) {
-                diagonal[i][i] = multiplyTransposeSingularValues[i];
-            }
-        }
-    }
-    else {
-        for (let i = 0; i < rowLength; i++) {
-            diagonal.push(Array(colLength).fill(0));
-            if (i < colLength) {
-                diagonal[i][i] = transposeMultiplySingularValues[i];
-            }
-        }
-    }
-    let diagonalInverse = cloneArray(diagonal);
-    for (let i = 0; i < rowLength; i++) {
-        if (diagonalInverse[i][i] !== 0) {
-            diagonalInverse[i][i] = 1 / diagonalInverse[i][i];
-        }
-    }
-    diagonalInverse = transpose(diagonalInverse);
-    let pseudoInverse = multiply(rightUnitary, multiply(diagonalInverse, leftUnitaryT));
-    let productInverseRight = multiply(originalMatrix, pseudoInverse); // Right inverse
-    let productInverseLeft = multiply(pseudoInverse, originalMatrix); // Right inverse
+    const matrixSize = originalMatrix.length;
+    const originalMLMatrix = new MLMatrix(originalMatrix);
+    const eigenObject = new MLEigen(originalMLMatrix);
+    //console.log(eigenObject);
+    const realEigenValues = eigenObject.realEigenvalues;
+    const imaginaryEigenvalues = eigenObject.imaginaryEigenvalues;
+    
     let latexContent = String.raw`
     \displaystyle
     \begin{array}{l}
-    \begin{array}{lcl}
-    \\ AA^{T} = ${matrixToLatex(multiplyTranspose)}
+    \\ \text{The  discs are:}
     \\
-    \\ \text{The eigenvectors of } AA^{T}:
-    \\
-    \\ \bf{U} = \left[\begin{matrix}`;
+    `;
 
-    for (let i = 0 ; i < transposeMultiplyEigen.vectors.length; i++) {
-        latexContent += String.raw` v_{${i + 1}}\cr `;
-    }
-
-    latexContent += String.raw`
-    \end{matrix}\right]^{T} = ${matrixToLatex(leftUnitary)}
-    \\ 
-    \\ \hline
-    \\
-    \\ A^{T}A = ${matrixToLatex(multiplyTranspose)}
-    \\
-    \\
-    \\ \text{The eigenvectors of } A^{T}A:
-    \\
-    \\ \bf{V^{T}} = \left[\begin{matrix}`;
-
-    for (let i = 0 ; i < multiplyTransposeEigen.vectors.length; i++) {
-        latexContent += String.raw` v_{${i + 1}}\cr `;
-    }
-
-    latexContent += String.raw`
-    \end{matrix}\right] = ${matrixToLatex(rightUnitaryT)}
-    \\ 
-    \\ \text{The eigenvalues of } A^{T}A \text{ or singular values,} \ \sigma
-    \\ = ${multiplyTransposeSingularValues.map((v) => formatMatrixLatex(v))}
-    \\
-    \\ \bf{D} = \left[\begin{matrix}`;
-    for (let i = 0; i < rowLength; i++) {
-        for (let j = 0; j < colLength; j++) {
-            if (j === i) {
-                latexContent += String.raw`\colorbox{aqua}{\bf{${formatMatrixLatex(diagonal[i][j])}}}`;
-            }
-            else {
-                latexContent += String.raw`${formatMatrixLatex(diagonal[i][j])}`;
-            }
-            if (j !== colLength - 1) {
-                latexContent += String.raw`&`;
+    let radiuses = [];
+    
+    for (let i = 0; i < matrixSize; i++) {
+        let sum = 0;
+        latexContent += String.raw`
+        \\ \begin{array}{lcl}
+        \\ | \lambda - ${formatLatex(originalMatrix[i][i])} | &\leq&
+        `;
+        for (let j = 0; j < matrixSize; j++) {
+            if (j !== i) {
+                sum += Math.abs(originalMatrix[i][j]) 
+                latexContent += String.raw`
+                | ${formatLatex(originalMatrix[i][j])} |
+                `;
+                if (j !== matrixSize - 1) {
+                    latexContent += String.raw`+`;
+                }
             }
         }
-        latexContent += String.raw`\cr`;
+        latexContent += String.raw`
+        \\ &\leq& ${formatLatex(sum)}
+        \end{array}
+        `;
+        radiuses.push(sum);
+    }
+    
+    latexContent += String.raw`
+    \\ \hline
+    \\
+    \\ \begin{array}{lcl}
+    \\ \text{For reference, the matrix's eigenvalues are:}
+    \\
+    `;
+
+    for (let i = 0; i < matrixSize; i++) {
+        latexContent += String.raw`
+        \\ \lambda_{${i + 1}} = ${formatLatex(realEigenValues[i])}
+        `;
+        if (imaginaryEigenvalues[i] !== 0) {
+            latexContent += String.raw`
+            + j (${formatLatex(imaginaryEigenvalues[i])})
+            `;
+        }
     }
 
-   latexContent += String.raw`
-    \end{matrix}\right]
-    \\
-    \\ \hline
-    \\ \begin{array}{lcl}
-    \\ A &=& ${matrixToLatex(originalMatrix)}
-    \\
-    \\ U^{T} &=& ${matrixToLatex(leftUnitaryT)}
-    \\
-    \\ D^{+} &=& \text{Reciprocal of the singular values}
-    \\
-    \\       &=& ${matrixToLatex(diagonalInverse)}
-    \\
-    \\ V &=& ${matrixToLatex(rightUnitary)}
-    \\
-    \\ A^{-1} &=& V D^{+} U^{T}
-    \\
-    \\   &=& ${matrixToLatex(rightUnitary)} ${matrixToLatex(diagonalInverse)} ${matrixToLatex(leftUnitaryT)}
-    \\
-    \\   &=& ${matrixToLatex(pseudoInverse)}
-    \\ \end{array}
-    \\
-    \\ \text{To verify the pseudoinverse,}
-    \\ \begin{array}{lcl}
-    \\ AA^{-1} &=& ${matrixToLatex(originalMatrix)} ${matrixToLatex(pseudoInverse)}
-    \\
-    \\         &=& ${matrixToLatex(productInverseRight)}
-    \\
-    \\ A^{-1}A &=& ${matrixToLatex(pseudoInverse)} ${matrixToLatex(originalMatrix)}
-    \\
-    \\         &=& ${matrixToLatex(productInverseLeft)}
-    \\ \end{array}
-    \\
-    \\ 
+    latexContent += String.raw`
+    \\ \end{array} \end{array}
     `;
-    if (rowLength > colLength) {
-        latexContent += String.raw`
-        \\ \text{We find that } U D V^{T} \ne A.
-        \\ \text{This is because the my naive SVD algorithm does not work when rows are greater than columns.}
-        \\ \text{I'm too lazy to rectify this, sorry!}
-        `  
+    
+    let graphCallback = (calculator, currentResult) => {
+        for (let i = 0; i < matrixSize; i++) {
+            calculator.current.setExpression({ id: `Eigenvalue ${i+1}`, color: Desmos.Colors.RED, pointStyle: Desmos.Styles.POINT, label: `Eigenvalue ${i+1}`, showLabel:true, latex:
+            `(${formatLatex(realEigenValues[i])}, ${formatLatex(imaginaryEigenvalues[i])})` });
+            calculator.current.setExpression({ id: `Disk ${i+1}`, color: Desmos.Colors.BLUE, latex: String.raw
+            `(x - ${formatLatex(originalMatrix[i][i])})^2 + y^2 <= ${radiuses[i]*radiuses[i]}
+            ` });
+        }
     }
-    latexContent += String.raw`\end{array}\end{array}`;
 
     // Joyride Tour
     const [runTour, setRunTour] = useState(false);
@@ -313,39 +243,28 @@ function LinearPenrose({methodName}) {
                 <Container className={styleClasses.container}>
                 <Zoom duration={500} triggerOnce cascade>
                     <Typography variant="body1">
-                        Incomplete! Experimental!
+                        
                     </Typography>
                     <Grid container spacing={1} direction="row" alignItems="center" justify="center">
                         <Grid xs item>
                             <Card className={styleClasses.card}>
                                 <CardContent className={styleClasses.cardContent}>
-                                    <Grid container spacing={1} direction="column" alignItems="center" justify="center">
-                                        <Grid xs item className="matrix-col-input" container spacing={1} direction="row" alignItems="center" justify="center">
-                                            <Typography variant="subtitle1">
-                                                Columns:
+                                    <Grid container spacing={3} direction="column" alignItems="center" justify="center">
+                                        <Grid xs item className="matrix-size-input" container spacing={1} direction="row" alignItems="center" justify="center">
+                                            <Typography variant="h6">
+                                                Size:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                             </Typography>
-                                            <IconButton variant="contained" color="primary" onClick={columnCallback(false)}>
+                                            <IconButton variant="contained" color="primary" onClick={sizeCallback(false)} >
                                                 <RemoveCircleOutlineOutlinedIcon color="error" />
                                             </IconButton>
-                                            <IconButton variant="contained" color="primary" onClick={columnCallback(true)}>
-                                                <AddCircleOutlineOutlinedIcon  />
-                                            </IconButton>
-                                        </Grid>
-                                        <Grid xs item className="matrix-row-input" container spacing={1} direction="row" alignItems="center" justify="center">
-                                            <Typography variant="subtitle1">
-                                                Rows:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                            </Typography>
-                                            <IconButton variant="contained" color="primary" onClick={rowCallback(false)} >
-                                                <RemoveCircleOutlineOutlinedIcon color="error" />
-                                            </IconButton>
-                                            <IconButton variant="contained" color="primary" onClick={rowCallback(true)} >
+                                            <IconButton variant="contained" color="primary" onClick={sizeCallback(true)} >
                                                 <AddCircleOutlineOutlinedIcon />
                                             </IconButton>
                                         </Grid>
                                         <Grid xs item className="matrix-input" container spacing={1} direction="column" alignItems="center" justify="center">
                                             <Grid xs item>
                                                 <Typography variant="h6">
-                                                    Matrix, A:
+                                                    Matrix:
                                                 </Typography>
                                             </Grid>
                                             <Grid xs item container spacing={0} direction="row" alignItems="center" justify="center">
@@ -375,17 +294,22 @@ function LinearPenrose({methodName}) {
             </Paper>
 
             <Divider />
-
+            
             <Container className={styleClasses.container}>
-                <Grid container direction="column" alignItems="center" justify="flex-start">
+                <Grid container spacing={1} direction="row" alignItems="center" justify="center">
                     <Grid xs item className="step-math">
-                        <Zoom triggerOnce>
+                        <Slide direction="left" triggerOnce>
                             <Card className={styleClasses.card}>
                                 <CardContent className={styleClasses.cardContent}>
                                     <TeX math={latexContent} block />
                                 </CardContent>
                             </Card>
-                        </Zoom>
+                        </Slide>
+                    </Grid>
+                    <Grid xs item className="graph-button">
+                        <Slide direction="right" triggerOnce>
+                            <Graph params={{Iterations: 0, graphCallback, smallScreen}} />
+                        </Slide>
                     </Grid>
                 </Grid>
             </Container>
@@ -409,4 +333,4 @@ function LinearPenrose({methodName}) {
     );
 }
 
-export default LinearPenrose;
+export default EigenDiscs;

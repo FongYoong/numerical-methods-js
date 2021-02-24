@@ -1,7 +1,7 @@
 import {isValidMath, mathjsToLatex, formatLatex} from "../../utils";
 import React, {useState, useEffect} from "react";
 import Header from "../../header/Header";
-import DesmosGraph from "./DesmosGraph";
+import Graph from "../../Graph";
 import * as Desmos from 'desmos';
 
 import { addStyles, EditableMathField } from 'react-mathquill';
@@ -387,7 +387,7 @@ function Steps({params}) {
                     </Grid>
                     <Grid xs item className="graph-button">
                         <Slide direction="right" triggerOnce>
-                            <DesmosGraph params={{currentIteration, graphCallback, smallScreen, ...params}} />
+                            <Graph params={{currentIteration, graphCallback, smallScreen, ...params}} />
                         </Slide>
                     </Grid>
                 </Grid>

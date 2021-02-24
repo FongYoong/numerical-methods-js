@@ -1,4 +1,4 @@
-import {mathjsToLatex} from "../../utils";
+import {mathjsToLatex} from "./utils";
 import {React, useState, useRef, useEffect, useCallback } from "react";
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
@@ -50,7 +50,7 @@ const DialogContent =  withStyles((theme) => ({
     const params = props.params;
     const [currentIteration, setCurrentIteration] = useState(params.currentIteration);
     const defaultIteration = params.currentIteration;
-    const currentResult = params.results[currentIteration - 1];
+    const currentResult = params.iterations > 0 ? params.results[currentIteration - 1] : null;
     const desmosDiv = useRef(null);
     const calculator = useRef(null);
 
@@ -79,25 +79,28 @@ const DialogContent =  withStyles((theme) => ({
     return (
         
         <Grid container direction="column" alignItems="center" justify="center">
-            <Box component="div" overflow="visible">
-                <TeX math={`${mathjsToLatex(params.functionValue)}`} block />
-            </Box>
+            {params.functionValue && <Box component="div" overflow="visible">
+                    <TeX math={`${mathjsToLatex(params.functionValue)}`} block />
+                </Box>
+            }
             <Typography variant="h6">
-                Iteration {currentIteration}:
+                {params.iterations > 0 ? `Iteration ${currentIteration}:` : <br />}
             </Typography>
-            <Box width="70%">
-                <Slider
-                    orientation="horizontal"
-                    onChange={(event, value) => setCurrentIteration(value)}
-                    defaultValue={defaultIteration}
-                    aria-labelledby="discrete-slider-small-steps"
-                    step={1}
-                    marks
-                    min={1}
-                    max={params.iterations}
-                    valueLabelDisplay="auto"
-                />
-            </Box>
+            {params.iterations > 0 &&
+                <Box width="70%">
+                    <Slider
+                        orientation="horizontal"
+                        onChange={(event, value) => setCurrentIteration(value)}
+                        defaultValue={defaultIteration}
+                        aria-labelledby="discrete-slider-small-steps"
+                        step={1}
+                        marks
+                        min={1}
+                        max={params.iterations}
+                        valueLabelDisplay="auto"
+                    />
+                </Box>
+            }
             <Grid item>
                 <div ref={desmosDiv}>
                 </div>
@@ -106,7 +109,7 @@ const DialogContent =  withStyles((theme) => ({
     );
 });
 
-function NewtonDesmos({params, smallScreen}) {
+function Graph({params, smallScreen}) {
     const [openDialog, setOpenDialog] = useState(false);
 
     const handleClickOpen = () => {
@@ -132,4 +135,4 @@ function NewtonDesmos({params, smallScreen}) {
     );
 }
 
-export default NewtonDesmos;
+export default Graph;
