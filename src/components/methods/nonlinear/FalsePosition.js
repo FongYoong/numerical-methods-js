@@ -211,9 +211,6 @@ function NonlinearFalsePosition({methodName}) {
         }
         iterations = i;
     }
-    else {
-        solve = false;
-    }
 
     // Joyride Tour
     const [runTour, setRunTour] = useState(false);
@@ -262,8 +259,8 @@ function NonlinearFalsePosition({methodName}) {
                         </Grid>
                     </Grid>
 
-                    <Grid container spacing={1} direction="row" alignItems="center" justify="center">
-                        <Grid xs item className="lowerX-input">
+                    <Grid className="interval-input" container spacing={1} direction="row" alignItems="center" justify="center">
+                        <Grid xs item>
                             <Card className={styleClasses.card}>
                                 <CardContent className={styleClasses.cardContent}>
                                     <Typography variant="h6">
@@ -282,7 +279,7 @@ function NonlinearFalsePosition({methodName}) {
                                 </CardContent>
                             </Card>
                         </Grid>
-                        <Grid xs item className="upperX-input">
+                        <Grid xs item>
                             <Card className={styleClasses.card}>
                                 <CardContent className={styleClasses.cardContent}>
                                     <Typography variant="h6">

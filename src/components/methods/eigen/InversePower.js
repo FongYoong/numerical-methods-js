@@ -69,12 +69,6 @@ const TOUR_STEPS: JoyrideStep[] = [
             "Specify the number of iterations to apply the inverse power method.",
     },
     {
-        target: ".step-math",
-        title: "Steps",
-        content:
-            "The steps are shown here.",
-    },
-    {
         target: ".iteration-slider",
         title: "Iteration slider",
         content:

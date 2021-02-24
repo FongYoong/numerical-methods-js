@@ -184,9 +184,6 @@ function NonlinearNewton({methodName}) {
             });
         }
     }
-    else {
-        solve = false;
-    }
 
     // Joyride Tour
     const [runTour, setRunTour] = useState(false);

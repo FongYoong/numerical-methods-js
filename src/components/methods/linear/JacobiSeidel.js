@@ -40,11 +40,17 @@ import ReactDataGrid from 'react-data-grid';
 
 const TOUR_STEPS: JoyrideStep[] = [
     {
+        target: ".solver-type-input",
+        title: "Solver Type",
+        content:
+        "Choose either Jacobi or Gauss-Seidel.",
+        disableBeacon: true,
+    },
+    {
         target: ".matrix-size-input",
         title: "Size",
         content:
         "Increase/Reduce the matrix's size",
-        disableBeacon: true,
     },
     {
         target: ".matrix-input",

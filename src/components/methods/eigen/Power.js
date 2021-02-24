@@ -56,10 +56,16 @@ const TOUR_STEPS: JoyrideStep[] = [
         "Specify the matrix here.",
     },
     {
-        target: ".step-math",
-        title: "Steps",
+        target: ".input-col-input",
+        title: "Input",
         content:
-            "The steps are shown here.",
+        "Specify the initial input vector.",
+    },
+    {
+        target: ".iteration-input",
+        title: "Iterations",
+        content:
+            "Specify the number of iterations to apply the power method.",
     },
     {
         target: ".iteration-slider",

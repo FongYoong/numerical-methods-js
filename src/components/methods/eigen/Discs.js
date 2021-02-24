@@ -1,6 +1,6 @@
 import {formatLatex} from "../../utils";
-import {initialMatrix16 as initialMatrix, initialInputColumn12 as initialInputColumn,
-generateGridCallback, createNewColumn, createNewRow, gridTo2DArray, matrixToLatex} from "../../matrix_utils";
+import {initialMatrix15 as initialMatrix, initialInputColumn12 as initialInputColumn,
+generateGridCallback, createNewColumn, createNewRow, gridTo2DArray} from "../../matrix_utils";
 import React, {useState, useEffect} from "react";
 import Header from "../../header/Header";
 import Graph from "../../Graph";
@@ -155,7 +155,6 @@ function EigenDiscs({methodName}) {
     const matrixSize = originalMatrix.length;
     const originalMLMatrix = new MLMatrix(originalMatrix);
     const eigenObject = new MLEigen(originalMLMatrix);
-    //console.log(eigenObject);
     const realEigenValues = eigenObject.realEigenvalues;
     const imaginaryEigenvalues = eigenObject.imaginaryEigenvalues;
     
@@ -169,6 +168,7 @@ function EigenDiscs({methodName}) {
     let radiuses = [];
     
     for (let i = 0; i < matrixSize; i++) {
+        let count = 0;
         let sum = 0;
         latexContent += String.raw`
         \\ \begin{array}{lcl}
@@ -180,7 +180,8 @@ function EigenDiscs({methodName}) {
                 latexContent += String.raw`
                 | ${formatLatex(originalMatrix[i][j])} |
                 `;
-                if (j !== matrixSize - 1) {
+                count += 1;
+                if (count !== matrixSize - 1) {
                     latexContent += String.raw`+`;
                 }
             }
@@ -193,8 +194,8 @@ function EigenDiscs({methodName}) {
     }
     
     latexContent += String.raw`
-    \\ \hline
     \\
+    \\ \hline
     \\ \begin{array}{lcl}
     \\ \text{For reference, the matrix's eigenvalues are:}
     \\

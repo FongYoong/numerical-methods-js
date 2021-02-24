@@ -168,7 +168,7 @@ const categories = [
                 name: "Golden-Section Search",
                 path : "golden_search",
                 component: OptiGoldenSearch,
-                completed: false,
+                completed: true,
             },
             {
                 name: "Parabolic Interpolation",
@@ -177,7 +177,7 @@ const categories = [
                 completed: false,
             },
             {
-                name: "Gradient Methods",
+                name: "Gradient Method",
                 path : "gradient",
                 component: OptiGradient,
                 completed: false,

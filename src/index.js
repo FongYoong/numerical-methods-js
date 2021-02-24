@@ -7,16 +7,6 @@ import { Fade } from "react-awesome-reveal";
 import Puff from './svg/puff.svg';
 const App = lazy(() => import('./App'));
 
-/*
-const suspenseLoader = (
-  <Fade>
-    <div className="suspenseLoader">
-      <Puff width="100" />
-      <p>Wait ahh...</p>
-    </div>
-  </Fade>
-);
-*/
 const suspenseLoader = (
   <Fade>
     <div className="suspenseLoader">

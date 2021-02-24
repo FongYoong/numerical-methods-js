@@ -75,12 +75,6 @@ const TOUR_STEPS: JoyrideStep[] = [
         "Specify the number of iterations to apply the shifted power method.",
     },
     {
-        target: ".step-math",
-        title: "Steps",
-        content:
-        "The steps are shown here.",
-    },
-    {
         target: ".iteration-slider",
         title: "Iteration slider",
         content:
@@ -341,6 +335,7 @@ function EigenShiftedPower({methodName}) {
                                                         error={shiftError}
                                                         label={shiftError?"Error":""}
                                                         defaultValue={shiftConstant.toString()}
+                                                        helperText={shiftErrorText}
                                                         variant="outlined"
                                                     />
                                                 </CardContent>

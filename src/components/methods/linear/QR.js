@@ -46,12 +46,6 @@ const TOUR_STEPS: JoyrideStep[] = [
         "Specify the matrix here.",
     },
     {
-        target: ".step-math",
-        title: "Steps",
-        content:
-            "The steps are shown here.",
-    },
-    {
         target: ".iteration-slider",
         title: "Iteration slider",
         content:
