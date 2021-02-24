@@ -1,1 +1,0 @@
-{"version":3,"sources":["components/methods/differential/Richardson.js"],"names":["DiffRichardson"],"mappings":"qIAAA,uBASeA,UAPf,WACI,OACI","file":"static/js/28.dbc55388.chunk.js","sourcesContent":["import React from \"react\";\r\n\r\nfunction DiffRichardson() {\r\n    return (\r\n        <>\r\n        </>\r\n    );\r\n}\r\n\r\nexport default DiffRichardson;"],"sourceRoot":""}
