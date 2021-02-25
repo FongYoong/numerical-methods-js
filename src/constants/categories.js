@@ -180,7 +180,7 @@ const categories = [
                 name: "Gradient Method",
                 path : "gradient",
                 component: OptiGradient,
-                completed: false,
+                completed: true,
             },
             {
                 name: "Linear Programming",

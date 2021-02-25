@@ -68,9 +68,14 @@ const columnSettings = {
     formatter : WrapperFormatter,
 };
 
-export const createNewColumn = (numberOfColumns) => {
+export const createNewColumn = (numberOfColumns, customName = "") => {
     const newNum = numberOfColumns + 1;
-    return { key: `col_${newNum}`, name: `C${newNum}`, ...columnSettings };
+    if (customName) {
+        return { key: `col_${newNum}`, name: customName, ...columnSettings };
+    }
+    else {
+        return { key: `col_${newNum}`, name: `C${newNum}`, ...columnSettings };
+    }
 }
 
 export const createNewRow = (numberOfColumns) => {
@@ -512,5 +517,14 @@ export const initialMatrix16 = {
     rows: [
         { col_1: 1, col_2: -1},
         { col_1: 2, col_2: -1},
+    ]
+}
+export const initialMatrix17 = {
+    columns: [
+        { key: "col_1", name: "x", ...columnSettings },
+        { key: "col_2", name: "y", ...columnSettings },
+    ],
+    rows: [
+        { col_1: 0, col_2: 0},
     ]
 }

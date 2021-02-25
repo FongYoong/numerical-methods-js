@@ -6,16 +6,16 @@ export function formatMatrixLatex(value) {
   //let v = parse(value);
   //return v.toTex({parenthesis: "keep", implicit: "hide"});
   value = parseFloat(value);
-  return format(value, {notation: 'fixed', precision: 4});
+  return format(value, {precision: 4});
 }
 
 export function formatLatex(value) {
   //let v = parse(value);
   //return v.toTex({parenthesis: "keep", implicit: "hide"});
-  return format(value, {notation: 'fixed', precision: 6});
+  return format(value, {precision: 6});
 }
 export function mathjsToLatex(value) {
-  return value.toTex({parenthesis: "keep"});
+  return value.toTex({precision: 4});
 }
 
 export function generatePath(categoryPath="", methodPath="") {
