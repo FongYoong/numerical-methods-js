@@ -206,9 +206,9 @@ function NonlinearBisection({methodName}) {
             if (rootFound) {
                 break;
             }
-            if (i > 10000) {
+            if (i > 1000) {
                 exceedIterError = true;
-                exceedIterErrorText = "Exceeded 10000 iterations!";
+                exceedIterErrorText = "Exceeded 1000 iterations!";
                 break;
             }
         }
@@ -226,7 +226,7 @@ function NonlinearBisection({methodName}) {
         }
     };
 
-    let params = {functionValue, errorThreshold, iterations, exceedIterError, exceedIterErrorText, results};
+    let params = {functionLatex, errorThreshold, iterations, exceedIterError, exceedIterErrorText, results};
     
     return (
         <>
@@ -459,13 +459,13 @@ function Steps({params}) {
         latexContent += String.raw`\end{array}\end{array}`;
 
         graphCallback = (calculator, currentResult) => {
-            calculator.current.setExpression({ id: 'function', color: Desmos.Colors.BLUE, latex: mathjsToLatex(params.functionValue)});
+            calculator.current.setExpression({ id: 'function', color: Desmos.Colors.BLUE, latex: params.functionLatex});
             calculator.current.setExpression({ id: 'lowerX', color: Desmos.Colors.GREEN, pointStyle: Desmos.Styles.POINT, label: "Lower", showLabel:true, latex:
-                `(${formatLatex(currentResult.oldLowerX)}, ${formatLatex(currentResult.lowerFuncResult)})` });
+                `(${currentResult.oldLowerX}, ${currentResult.lowerFuncResult})` });
             calculator.current.setExpression({ id: 'upperX', color: Desmos.Colors.GREEN, pointStyle: Desmos.Styles.POINT, label: "Upper", showLabel:true, latex:
-                `(${formatLatex(currentResult.oldUpperX)}, ${formatLatex(currentResult.upperFuncResult)})` });
+                `(${currentResult.oldUpperX}, ${currentResult.upperFuncResult})` });
             calculator.current.setExpression({ id: 'root', color: Desmos.Colors.RED, pointStyle: Desmos.Styles.POINT, label: "Root", showLabel:true, latex:
-                `(${formatLatex(currentResult.rootX)}, 0)` });
+                `(${currentResult.rootX}, 0)` });
         }
     }
 

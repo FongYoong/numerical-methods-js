@@ -196,7 +196,7 @@ function NonlinearNewton({methodName}) {
         }
     };
 
-    let params = {functionValue, derivValue, iterations, results};
+    let params = {functionLatex, iterations, results};
     
     return (
         <>
@@ -351,13 +351,13 @@ function Steps({params}) {
         `;
 
         graphCallback = (calculator, currentResult) => {
-            calculator.current.setExpression({ id: 'function', color: Desmos.Colors.BLUE, latex: mathjsToLatex(params.functionValue)});
+            calculator.current.setExpression({ id: 'function', color: Desmos.Colors.BLUE, latex: params.functionLatex});
             calculator.current.setExpression({ id: 'derivative', color: Desmos.Colors.GREEN, lineStyle: Desmos.Styles.DOTTED, latex:
-                `(y-${formatLatex(currentResult.funcResult)})/(x-${formatLatex(currentResult.previousX)})=${formatLatex(currentResult.derivResult)}` });
+                `(y-${currentResult.funcResult})/(x-${currentResult.previousX})=${currentResult.derivResult}` });
             calculator.current.setExpression({ id: 'initialX', color: Desmos.Colors.ORANGE, pointStyle: Desmos.Styles.POINT, label: "initialX", showLabel:true, latex:
-                `(${formatLatex(currentResult.previousX)}, ${formatLatex(currentResult.funcResult)})` });
+                `(${currentResult.previousX}, ${currentResult.funcResult})` });
             calculator.current.setExpression({ id: 'root', color: Desmos.Colors.RED, pointStyle: Desmos.Styles.POINT, label: "Root", showLabel:true, latex:
-                `(${formatLatex(currentResult.newX)}, 0)` });
+                `(${currentResult.newX}, 0)` });
         }
     }
 

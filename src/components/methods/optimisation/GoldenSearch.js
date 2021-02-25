@@ -203,9 +203,9 @@ function OptiGoldenSearch({methodName}) {
                 interval,
             });
             i++;
-            if (i > 10000) {
+            if (i > 1000) {
                 exceedIterError = true;
-                exceedIterErrorText = "Exceeded 10000 iterations!";
+                exceedIterErrorText = "Exceeded 1000 iterations!";
                 break;
             }
             if (interval < intervalThreshold){
@@ -226,7 +226,7 @@ function OptiGoldenSearch({methodName}) {
         }
     };
 
-    let params = {functionValue, intervalThreshold, goldenRatio, iterations, exceedIterError, exceedIterErrorText, results};
+    let params = {functionLatex, intervalThreshold, goldenRatio, iterations, exceedIterError, exceedIterErrorText, results};
     
     return (
         <>
@@ -457,11 +457,11 @@ function Steps({params}) {
         latexContent += String.raw`\end{array}\end{array}`;
 
         graphCallback = (calculator, currentResult) => {
-            calculator.current.setExpression({ id: 'function', color: Desmos.Colors.BLUE, latex: mathjsToLatex(params.functionValue)});
+            calculator.current.setExpression({ id: 'function', color: Desmos.Colors.BLUE, latex: params.functionLatex});
             calculator.current.setExpression({ id: 'x_a', color: Desmos.Colors.GREEN, pointStyle: Desmos.Styles.POINT, label: "x_a", showLabel:true, latex:
-                `(${formatLatex(currentResult.aX)}, ${formatLatex(currentResult.lowerFuncResult)})` });
+                `(${currentResult.aX}, ${currentResult.lowerFuncResult})` });
             calculator.current.setExpression({ id: 'x_b', color: Desmos.Colors.GREEN, pointStyle: Desmos.Styles.POINT, label: "x_b", showLabel:true, latex:
-                `(${formatLatex(currentResult.bX)}, ${formatLatex(currentResult.upperFuncResult)})` });
+                `(${currentResult.bX}, ${currentResult.upperFuncResult})` });
         }
     }
 

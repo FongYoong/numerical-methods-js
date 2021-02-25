@@ -49,13 +49,19 @@ const TOUR_STEPS: JoyrideStep[] = [
         target: ".vector-input",
         title: "Initial Vector",
         content:
-        "Specify the initial values here.",
+        "Specify the initial values of the variables here.",
+    },
+    {
+        target: ".initialRoot-input",
+        title: "Initial Root Guess",
+        content:
+            "Specify the initial root guess when finding the root.",
     },
     {
         target: ".errorThreshold-input",
         title: "Error Threshold",
         content:
-            "Specify the minimum error threshold when finding the roots.",
+            "Specify the minimum error threshold when finding the root.",
     },
     {
         target: ".iteration-input",
@@ -158,11 +164,20 @@ function OptiGradient({methodName}) {
     }
     vectorState = initialVector;
 
+    // Initial Root
+    const [initialRoot, setInitialRoot] = useState(0.1);
+    let initialRootError = false;
+    let initialRootErrorText = "";
+    if (isNaN(initialRoot)) {
+        initialRootError = true;
+        initialRootErrorText = "Initial root guess must be a valid number!";
+    }
+
     // Error threshold
     const [errorThreshold, setErrorThreshold] = useState(0.005);
     let thresholdError = false;
     let thresholdErrorText = "";
-    if (errorThreshold < 0) {
+    if (errorThreshold < 0 || isNaN(errorThreshold)) {
         thresholdError = true;
         thresholdErrorText = "Threshold cannot be negative!";
     }
@@ -176,27 +191,20 @@ function OptiGradient({methodName}) {
         iterErrorText = "Iterations must be a positive integer!";
     }
 
-    let hasError = functionError || iterError;
+    let hasError = functionError || initialRootError || thresholdError || iterError;
 
     // Solve
     let solve = false;
     let derivNodes = {};
     let results = [];
 
+    console.log(functionText);
+
     if (isValidMath(functionNode) && !hasError && variables.length > 0) {
         solve = true;
         for (let v of variables) {
             derivNodes[v] = derivative(functionText, v);
         }
-        /*
-        1. Get derivatives and substitute initial or previous value
-        2. Multiply deriv by a variable, t, and add to the initial or previous value
-        3. Substitute the above into the corresponding variables of the original function
-        4. Differentiate with respect to variable, t, and set equal to zero.
-        5. Find maximum value of t.
-        6. Add to initial value and get new position
-        7. Repeat for the specified iterations and show error too
-        */
         for (let iter = 0; iter < iterations; iter++) {
             const previousVector = (iter === 0) ? gridTo2DArray(vectorState.rows)[0]: results[iter - 1].newVector;
             let derivScope = {};
@@ -222,19 +230,16 @@ function OptiGradient({methodName}) {
             const simplifiedFunction = simplify(transformedFunction);
             const simplifiedFunctionDeriv = derivative(simplifiedFunction, 't');
             const simplifiedFunctionDeriv2 = derivative(simplifiedFunctionDeriv, 't');
-            let rootT = 0;
-            while (simplifiedFunctionDeriv.evaluate({t: rootT}) === 0) {
-                rootT = Math.random();
-            }
+            let rootT = initialRoot;
             let newtonIter = 1;
             while(true) {
                 const oldT = rootT;
                 const funcValue = simplifiedFunctionDeriv.evaluate({t: rootT});
                 const derivValue = simplifiedFunctionDeriv2.evaluate({t: rootT});
-                if (derivResult === 0) {
+                rootT = rootT - funcValue / derivValue;
+                if (!isFinite(rootT)) {
                     break;
                 }
-                rootT = rootT - funcValue / derivValue;
                 let errorX = Math.abs(rootT - oldT);
                 if (errorX < errorThreshold || newtonIter > 50) {
                     break;
@@ -244,6 +249,11 @@ function OptiGradient({methodName}) {
             const newVector = variables.map((element, index) => {
                 return directionNodes[element].evaluate({t: rootT});
             });
+            let functionScope = {};
+            variables.forEach((element, index) => {
+                functionScope[element] = newVector[index];
+            });
+            const newFunctionResult = functionNode.evaluate(functionScope)
             const errorMagnitude = norm(subtract(newVector, previousVector), 2);
             results.push({
                 previousVector,
@@ -255,6 +265,7 @@ function OptiGradient({methodName}) {
                 newtonIter,
                 rootT,
                 newVector,
+                newFunctionResult,
                 errorMagnitude,
             });
         }
@@ -271,7 +282,7 @@ function OptiGradient({methodName}) {
         }
     };
 
-    let params = {functionNode, variables, derivNodes, errorThreshold, iterations, results};
+    let params = {functionNode, variables, derivNodes, initialRoot, errorThreshold, iterations, results};
     
     return (
         <>
@@ -349,11 +360,30 @@ function OptiGradient({methodName}) {
                         </Grid>
                     </Grid>
                     <Grid container spacing={1} direction="row" alignItems="center" justify="center">
+                        <Grid xs item className="initialRoot-input">
+                            <Card className={styleClasses.card}>
+                                <CardContent className={styleClasses.cardContent}>
+                                    <Typography variant="h6">
+                                        Initial root guess, <TeX math={String.raw`t_0`} />:
+                                    </Typography>
+                                    <TextField
+                                        disabled={false}
+                                        type="number"
+                                        onChange={(event)=>setInitialRoot(parseFloat(event.target.value))}
+                                        error={initialRootError}
+                                        label={initialRootError?"Error":""}
+                                        defaultValue={initialRoot.toString()}
+                                        helperText={initialRootErrorText}
+                                        variant="outlined"
+                                    />
+                                </CardContent>
+                            </Card>
+                        </Grid>
                         <Grid xs item className="errorThreshold-input">
                             <Card className={styleClasses.card}>
                                 <CardContent className={styleClasses.cardContent}>
                                     <Typography variant="h6">
-                                        Error threshold:
+                                        Error threshold for root finding:
                                     </Typography>
                                     <TextField
                                         disabled={false}
@@ -372,7 +402,7 @@ function OptiGradient({methodName}) {
                             <Card className={styleClasses.card}>
                                 <CardContent className={styleClasses.cardContent}>
                                     <Typography variant="h6">
-                                        Iterations:
+                                        Iterations of gradient method:
                                     </Typography>
                                     <TextField
                                         disabled={false}
@@ -495,28 +525,48 @@ function Steps({smallScreen, params}) {
         \\
         \\ \hline
         \begin{array}{lcl}
-        \\ \frac{df(X^{(${currentIteration})})}{dt} &=& 0
+        \\ \frac{df(X^{(${currentIteration})})}{dt} = 0
         \\
         \\ ${mathjsToLatex(currentResult.simplifiedFunctionDeriv)} &=& 0
         \\ \end{array}
         \\
-        \\ \text{Using the Newton-Rhapson method with error threshold of ${params.errorThreshold},}
-        \\ \text{the solution to } \frac{df(X^{(${currentIteration})})}{dt} = 0 \text{ after ${currentResult.newtonIter} iterations is:}
-        \\
-        \\ t^* = ${formatLatex(currentResult.rootT)}
-        \\
-        \\ \hline
-        \begin{array}{lcl}
-        \\ X^{(${currentIteration})} &=& X^{(${currentIteration - 1})} + t^* \cdot \nabla f
-        \\
-        \\                           &=& ${matrixToLatex([currentResult.previousVector])} + ${formatLatex(currentResult.rootT)} \cdot ${matrixToLatex([currentResult.derivResult])}
-        \\
-        \\                           &=& ${matrixToLatex([currentResult.newVector])}
-        `;
-        //  ${matrixToLatex([variables.map((v) => currentResult.directionNodes[v])])}
-
+        `
+        if (!isFinite(currentResult.rootT)) {
+            latexContent += String.raw`
+            \\ \text{Given that }\frac{df(X^{(${currentIteration})})}{dt} = 0 \text{ has no roots, the gradient method cannot proceed.}
+            `;
+        }
+        else {    
+            latexContent += String.raw`
+            \\ \text{Using the Newton-Rhapson method}
+            \\ \text{with initial guess } t_0 = ${params.initialRoot}
+            \\ \text{and error threshold of ${params.errorThreshold},}
+            \\ \text{the solution to } \frac{df(X^{(${currentIteration})})}{dt} = 0 \text{ after ${currentResult.newtonIter} iterations is:}
+            \\
+            \\ t^* = ${formatLatex(currentResult.rootT)}
+            \\
+            \\ \hline
+            \begin{array}{lcl}
+            \\ X^{(${currentIteration})} &=& X^{(${currentIteration - 1})} + t^* \cdot \nabla f
+            \\
+            \\                           &=& ${matrixToLatex([currentResult.previousVector])} + ${formatLatex(currentResult.rootT)} \cdot ${matrixToLatex([currentResult.derivResult])}
+            \\
+            \\                           &=& ${matrixToLatex([currentResult.newVector])}
+            \\
+            \\ f(X^{(${currentIteration})}) &=& ${formatLatex(currentResult.newFunctionResult)}
+            \\
+            \end{array}
+            \\
+            \\ \hline
+            \begin{array}{lcl}
+            \\ Error &=& \lVert X^{(${currentIteration})} - X^{(${currentIteration - 1})} \rVert
+            \\       &=& \lVert ${matrixToLatex([currentResult.newVector])} - ${matrixToLatex([currentResult.previousVector])} \rVert
+            \\       &=& ${formatLatex(currentResult.errorMagnitude)}
+            \end{array}
+            `;
+        }
         latexContent += String.raw`
-        \end{array}\end{array}
+        \end{array}
         `
     }
     return (

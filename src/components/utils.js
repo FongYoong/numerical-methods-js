@@ -15,7 +15,7 @@ export function formatLatex(value) {
   return format(value, {precision: 6});
 }
 export function mathjsToLatex(value) {
-  return value.toTex({precision: 4});
+  return value.toTex({precision: 4, implicit: "hide"});
 }
 
 export function generatePath(categoryPath="", methodPath="") {
