@@ -179,7 +179,7 @@ function OptiGradient({methodName}) {
     let thresholdErrorText = "";
     if (errorThreshold < 0 || isNaN(errorThreshold)) {
         thresholdError = true;
-        thresholdErrorText = "Threshold cannot be negative!";
+        thresholdErrorText = "Threshold cannot be negative or zero!";
     }
 
     // Iterations

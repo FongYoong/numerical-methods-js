@@ -116,7 +116,11 @@ export const isDiagonallyDominant = (matrix) => {
 }
 
 // First 15 factorials.
-export const numberFactorials = [1, 2, 6, 24, 120, 720, 5040, 40320, 362880, 3628800, 39916800, 479001600, 6227020800, 87178291200, 1307674368000];
+export const numberFactorials = [1, 1, 2, 6, 24, 120, 720, 5040, 40320, 362880, 3628800, 39916800, 479001600, 6227020800, 87178291200, 1307674368000];
+
+export const getBinomialCoefficient = (n, k) => {
+    return numberFactorials[n] / numberFactorials[k] / numberFactorials[n - k];
+}
 
 export const nextPermutation = (array) => {
     // Mutates array
