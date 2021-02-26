@@ -1,0 +1,1 @@
+{"version":3,"sources":["components/methods/ode/Midpoint.js"],"names":["OdeMidpoint"],"mappings":"qIAAA,uBASeA,UAPf,WACI,OACI","file":"static/js/41.d41894bf.chunk.js","sourcesContent":["import React from \"react\";\r\n\r\nfunction OdeMidpoint() {\r\n    return (\r\n        <>\r\n        </>\r\n    );\r\n}\r\n\r\nexport default OdeMidpoint;"],"sourceRoot":""}
