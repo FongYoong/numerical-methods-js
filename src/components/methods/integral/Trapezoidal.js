@@ -194,7 +194,7 @@ function IntegralTrapezoidal({methodName}) {
         latexContent += String.raw`
         \\ &=& ${formatLatex(width / 2)} [`;
         for (let i = 0; i <= subIntervals; i++) {
-            latexContent += String.raw`f(${formatLatex(lowerX + i * width)}) ${i===subIntervals ? "" : "+"}`;
+            latexContent += String.raw`${i===0 || i===subIntervals? "" : "2"}f(${formatLatex(lowerX + i * width)}) ${i===subIntervals ? "" : "+"}`;
         }
         latexContent += String.raw`
         ]
@@ -222,6 +222,7 @@ function IntegralTrapezoidal({methodName}) {
             calculator.current.setExpression({ id: 'x', color: Desmos.Colors.BLACK, latex: String.raw`x=L\left\{\min\left(0,f\left(L\right)\right)<y<\max\left(0,f\left(L\right)\right)\right\}`});
             calculator.current.setExpression({ id: 'positive', color: Desmos.Colors.GREEN, latex: String.raw`0\le y\le M\left(x-L\right)+f\left(L\right)\left\{L\le x\le R\right\}`});
             calculator.current.setExpression({ id: 'negative', color: Desmos.Colors.RED, latex: String.raw`0\ge y\ge M\left(x-L\right)+f\left(L\right)\left\{L\le x\le R\right\}`});
+            /*
             for (let i = 0; i <= subIntervals; i++) {
                 const x = lowerX + i * width;
                 let v = results[i];
@@ -230,6 +231,7 @@ function IntegralTrapezoidal({methodName}) {
                 }
                 calculator.current.setExpression({ id: i, color: Desmos.Colors.BLACK, pointStyle: Desmos.Styles.POINT, label: i + 1, showLabel: subIntervals < 20, latex: String.raw`(${x}, ${v})`});
             }
+            */
         }
     }
 
@@ -250,6 +252,9 @@ function IntegralTrapezoidal({methodName}) {
             <Paper className={styleClasses.paper}>
                 <Container className={styleClasses.container}>
                 <Zoom duration={500} triggerOnce cascade>
+                    <Typography variant="body1">
+                        
+                    </Typography>
                     <Grid container spacing={1} direction="row" alignItems="center" justify="center">
                         <Grid xs item className="function-input">
                             <Card className={styleClasses.card}>

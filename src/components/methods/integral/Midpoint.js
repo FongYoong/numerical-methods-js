@@ -246,6 +246,9 @@ function IntegralMidpoint({methodName}) {
             <Paper className={styleClasses.paper}>
                 <Container className={styleClasses.container}>
                 <Zoom duration={500} triggerOnce cascade>
+                    <Typography variant="body1">
+                        
+                    </Typography>
                     <Grid container spacing={1} direction="row" alignItems="center" justify="center">
                         <Grid xs item className="function-input">
                             <Card className={styleClasses.card}>

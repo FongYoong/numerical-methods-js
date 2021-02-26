@@ -257,13 +257,13 @@ const categories = [
                 name: "Trapezoidal",
                 path : "trapezoidal",
                 component: IntegralTrapezoidal,
-                completed: false,
+                completed: true,
             },
             {
                 name: "Simpson's Method",
                 path : "simpson",
                 component: IntegralSimpson,
-                completed: false,
+                completed: true,
             },
             {
                 name: "Gauss Quadrature",
