@@ -248,7 +248,7 @@ const categories = [
         path : "integral",
         methods : [
             {
-                name: "Composite Midpoint",
+                name: "Midpoint",
                 path : "midpoint",
                 component: IntegralMidpoint,
                 completed: true,

@@ -1,6 +1,8 @@
 import {isValidMath, mathjsToLatex, formatLatex} from "../../utils";
 import React, {useState, useEffect} from "react";
 import Header from "../../header/Header";
+import Graph from "../../Graph";
+import * as Desmos from 'desmos';
 
 import { addStyles, EditableMathField } from 'react-mathquill';
 import { parse } from 'mathjs';
@@ -22,6 +24,8 @@ import HelpIcon from '@material-ui/icons/Help';
 import Joyride, { Step as JoyrideStep, CallBackProps as JoyrideCallBackProps} from "react-joyride";
 import Collapse from '@material-ui/core/Collapse';
 import { Fade, Zoom, Slide } from "react-awesome-reveal";
+import { useTheme } from '@material-ui/core/styles';
+import useMediaQuery from '@material-ui/core/useMediaQuery';
 import { makeStyles } from '@material-ui/core/styles';
 
 const TOUR_STEPS: JoyrideStep[] = [
@@ -49,6 +53,12 @@ const TOUR_STEPS: JoyrideStep[] = [
         title: "Steps",
         content:
             "The steps for each iteration are shown here.",
+    },
+    {
+        target: ".graph-button",
+        title: "View graph",
+        content:
+            "Click this to visualise the results.",
     },
 ];
 
@@ -90,8 +100,9 @@ function IntegralMidpoint({methodName}) {
     });
 
     const styleClasses = useStyles();
+    const smallScreen = useMediaQuery(useTheme().breakpoints.down('sm'));
 
-    const [functionLatex, setFunctionLatex] = useState(String.raw`3x^2+2x-8`);
+    const [functionLatex, setFunctionLatex] = useState(String.raw`\left(x-3\right)^{3}+2\left(x-3\right)^{2}-1`);
     const [functionText, setFunctionText] = useState('');
 
     let functionValue;
@@ -114,8 +125,8 @@ function IntegralMidpoint({methodName}) {
     }
 
     // Interval
-    const [lowerX, setLowerX] = useState(0);
-    const [upperX, setUpperX] = useState(3);
+    const [lowerX, setLowerX] = useState(1);
+    const [upperX, setUpperX] = useState(4);
     let intervalError = false;
     let lowerXErrorText = "";
     let upperXErrorText = "";
@@ -146,6 +157,7 @@ function IntegralMidpoint({methodName}) {
 
     // Solve
     let latexContent;
+    let graphCallback;
     let solve = false;
     if (isValidMath(functionValue) && !hasError) {
         solve = true;
@@ -195,6 +207,27 @@ function IntegralMidpoint({methodName}) {
         \\ &=& ${formatLatex(integralResult)}
         \end{array}\end{array}
         `;
+
+        graphCallback = (calculator, currentResult) => {
+            calculator.current.setExpression({ id: 'function', color: Desmos.Colors.BLUE, latex: "f(x)="+functionLatex});
+            calculator.current.setExpression({ id: 'a', latex: "a="+lowerX});
+            calculator.current.setExpression({ id: 'b', latex: "b="+upperX});
+            calculator.current.setExpression({ id: 'N', latex: "N="+subIntervals});
+            calculator.current.setExpression({ id: 'L', latex: String.raw`L=\left[a,\ a+\frac{\left(b-a\right)}{N},\ a+\frac{2\left(b-a\right)}{N},...,a+\frac{\left(N-1\right)\left(b-a\right)}{N}\right]`});
+            calculator.current.setExpression({ id: 'R', latex: String.raw`R=\left[a+\frac{\left(b-a\right)}{N},a+\frac{2\left(b-a\right)}{N},\ ...,b\right]`});
+            calculator.current.setExpression({ id: 'M', latex: String.raw`M=\frac{\left(f\left(R\right)-f\left(L\right)\right)}{R-L}`});
+            calculator.current.setExpression({ id: 'm', latex: String.raw`m=\left[a+\frac{.5\left(b-a\right)}{N},a+\frac{3}{2}\cdot\frac{\left(b-a\right)}{N},...,b-\frac{\left(\frac{1}{2}\right)\left(b-a\right)}{N}\right]`});
+            calculator.current.setExpression({ id: 'xPos', color: Desmos.Colors.RED, latex: String.raw`x=R\left\{0\le y\le f\left(m\right)\left\{L\le x\le R\right\}\right\}`});
+            calculator.current.setExpression({ id: 'xNeg', color: Desmos.Colors.GREEN, latex: String.raw`x=R\left\{0>y>f\left(m\right)\left\{L\le x\le R\right\}\right\}`});
+            calculator.current.setExpression({ id: 'positive', color: Desmos.Colors.GREEN, latex: String.raw`0\le y\le f\left(m\right)\left\{L\le x\le R\right\}`});
+            calculator.current.setExpression({ id: 'negative', color: Desmos.Colors.RED, latex: String.raw`0\ge y\ge f\left(m\right)\left\{L\le x\le R\right\}`});
+            for (let i = 0; i < subIntervals; i++) {
+                const x1 = lowerX + i * width;
+                const x2 = x1 + width;
+                const x = (x1 + x2) / 2;
+                calculator.current.setExpression({ id: i, color: Desmos.Colors.BLACK, pointStyle: Desmos.Styles.POINT, label: i + 1, showLabel:true, latex: String.raw`(${x}, ${results[i]})`});
+            }
+        }
     }
 
     // Joyride Tour
@@ -320,6 +353,11 @@ function IntegralMidpoint({methodName}) {
                                                 <TeX math={latexContent} block />
                                             </CardContent>
                                         </Card>
+                                    </Slide>
+                                </Grid>
+                                <Grid xs item className="graph-button">
+                                    <Slide direction="right" triggerOnce>
+                                        <Graph params={{iterations: 0, graphCallback, smallScreen}} />
                                     </Slide>
                                 </Grid>
                             </Grid>
