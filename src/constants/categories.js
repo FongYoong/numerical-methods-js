@@ -31,7 +31,7 @@ const CurveSpline = lazy(() => import('../components/methods/curve/Spline'));
 const FFT = lazy(() => import('../components/methods/fourier/FFT'));
 
 const DiffFinite = lazy(() => import('../components/methods/differential/Finite'));
-const DiffRichardson = lazy(() => import('../components/methods/differential/Richardson'));
+const DiffMultivariable = lazy(() => import('../components/methods/differential/Multivariable'));
 
 const IntegralMidpoint = lazy(() => import('../components/methods/integral/Midpoint'));
 const IntegralTrapezoidal = lazy(() => import('../components/methods/integral/Trapezoidal'));
@@ -234,11 +234,11 @@ const categories = [
                 name: "Finite Difference",
                 path : "finite",
                 component: DiffFinite,
-                completed: false,
+                completed: true,
             },
             {
-                name: "Richardson's Extrapolation",
-                component: DiffRichardson,
+                name: "Multivariable",
+                component: DiffMultivariable,
                 completed: false,
             },
         ]
@@ -248,10 +248,10 @@ const categories = [
         path : "integral",
         methods : [
             {
-                name: "Rectangle & Midpoint",
+                name: "Composite Midpoint",
                 path : "midpoint",
                 component: IntegralMidpoint,
-                completed: false,
+                completed: true,
             },
             {
                 name: "Trapezoidal",

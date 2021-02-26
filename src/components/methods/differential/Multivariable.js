@@ -1,9 +1,10 @@
 import {isValidMath, mathjsToLatex, formatLatex} from "../../utils";
-import React, {useState, useEffect} from "react";
+import {getBinomialCoefficient} from "../../matrix_utils";
+import React, {useState, useEffect, useMemo} from "react";
 import Header from "../../header/Header";
 
 import { addStyles, EditableMathField } from 'react-mathquill';
-import { parse } from 'mathjs';
+import { parse, derivative } from 'mathjs';
 import 'katex/dist/katex.min.css';
 import TeX from '@matejmazur/react-katex';
 
@@ -33,16 +34,22 @@ const TOUR_STEPS: JoyrideStep[] = [
         disableBeacon: true,
     },
     {
-        target: ".subIntervals-input",
-        title: "Order",
+        target: ".x-input",
+        title: "X value",
         content:
-            "Specify the number of subintervals, N.",
+            "Specify the value of x at which to evaluate.",
     },
     {
-        target: ".interval-input",
-        title: "Interval",
+        target: ".order-input",
+        title: "Order",
         content:
-            "Select the lower and upper bounds of x",
+            "Specify the differential order to evaluate.",
+    },
+    {
+        target: ".stepSize-input",
+        title: "Step Size",
+        content:
+            "Specify the step size.",
     },
     {
         target: ".step-math",
@@ -83,7 +90,7 @@ const useStyles = makeStyles((theme) => ({
 
 addStyles(); // inserts the required css to the <head> block for mathquill
 
-function IntegralMidpoint({methodName}) {
+function DiffMultivariable({methodName}) {
     useEffect(() => {
         // Set webpage title
         document.title = methodName;
@@ -91,6 +98,8 @@ function IntegralMidpoint({methodName}) {
 
     const styleClasses = useStyles();
 
+    // Derivative
+    // Another sample would be: `3x^2+2x-8`
     const [functionLatex, setFunctionLatex] = useState(String.raw`3x^2+2x-8`);
     const [functionText, setFunctionText] = useState('');
 
@@ -113,86 +122,172 @@ function IntegralMidpoint({methodName}) {
         functionErrorText = "Only variable x is allowed!";
     }
 
-    // Interval
-    const [lowerX, setLowerX] = useState(0);
-    const [upperX, setUpperX] = useState(3);
-    let intervalError = false;
-    let lowerXErrorText = "";
-    let upperXErrorText = "";
-    if (isNaN(lowerX)) {
-        intervalError = true;
-        lowerXErrorText = "x value cannot be empty!";
-    }
-    if (isNaN(upperX)) {
-        intervalError = true;
-        upperXErrorText = "x value cannot be empty!";
-    }
-    if (lowerX >= upperX) {
-        intervalError = true;
-        lowerXErrorText = "Lower x must be lower than upper x!";
-        upperXErrorText = "Upper x must be higher than lower x!";
+    // x values
+    const [xInput, setXInput] = useState(1.5);
+    let xInputError = false;
+    let xInputErrorText = "";
+    if (isNaN(xInput)) {
+        xInputError = true;
+        xInputErrorText = "x value cannot be empty!";
     }
 
-    // Subintervals
-    const [subIntervals, setSubIntervals] = useState(10);
-    let subIntervalsError = false;
-    let subIntervalsErrorText = "";
-    if (isNaN(subIntervals) || !Number.isInteger(subIntervals) || subIntervals <= 0) {
-        subIntervalsError = true;
-        subIntervalsErrorText = "Subintervals must be a positive integer!";
+    // Order
+    const [order, setOrder] = useState(4);
+    let orderError = false;
+    let orderErrorText = "";
+    if (isNaN(order) || !Number.isInteger(order) || order <= 0) {
+        orderError = true;
+        orderErrorText = "Order must be a positive integer!";
+    }
+    else if (order > 14) {
+        orderError = true;
+        orderErrorText = "Order too high! Due to the factorial nature of the finite difference, the browser will lag or crash if it attempts to compute this.";
     }
 
-    let hasError = functionError || intervalError || subIntervalsError;
+    // Step Size
+    const [stepSize, setStepSize] = useState(0.01);
+    let stepSizeError = false;
+    let stepSizeErrorText = "";
+    if (isNaN(stepSize) || stepSize <= 0) {
+        stepSizeError = true;
+        stepSizeErrorText = "Step size cannot be negative or zero!";
+    }
+
+    let hasError = functionError || xInputError || orderError || stepSizeError;
+
+    const derivValue = useMemo(() => {
+        let d = derivative(functionValue, 'x');
+        [...Array(order - 1).keys()].forEach((v, i) => {
+            d = derivative(d, 'x');
+        });
+        return d;
+    }, [functionValue, order]);
 
     // Solve
     let latexContent;
     let solve = false;
     if (isValidMath(functionValue) && !hasError) {
         solve = true;
-        const width = (upperX - lowerX) / subIntervals;
-        let results = [];
-        let integralResult = 0;
-        for (let i = 0; i < subIntervals; i++) {
-            const x1 = lowerX + i * width;
-            const x2 = x1 + width;
-            const x = (x1 + x2) / 2;
-            let f = functionValue.evaluate({x : x})
-            integralResult += f;
-            results.push(f);
+
+        const evaluateFunction = (forward, offset) => {
+            const step = offset * stepSize ;
+            return forward ? functionValue.evaluate({x : xInput + step}) : functionValue.evaluate({x : xInput - step});
         }
-        integralResult *= width; 
+
+        const denominator = Math.pow(stepSize, order);
+        let forwardDiff = 0;
+        for (let i = 0; i <= order; i++) {
+            forwardDiff += Math.pow(-1, order - i) * getBinomialCoefficient(order, i) * evaluateFunction(true, i) / denominator;
+        }
+        let backwardDiff = 0;
+        for (let i = 0; i <= order; i++) {
+            backwardDiff += Math.pow(-1, i) * getBinomialCoefficient(order, i) * evaluateFunction(false, i) / denominator;
+        }
+        let centralDiff = 0;
+        if (order > 1) {
+            for (let i = 0; i <= order; i++) {
+                centralDiff += Math.pow(-1, i) * getBinomialCoefficient(order, i) * evaluateFunction(true, order/2 - i) / denominator;
+            }
+        }
+        else {
+            // To adhere to lecturer's annoying convention
+            centralDiff = (evaluateFunction(true, 1) - evaluateFunction(false, 1)) / (2 * stepSize);
+        }
+
+        const correctDerivative = derivValue.evaluate({x : xInput});
+
+        const forwardError = Math.abs(correctDerivative - forwardDiff);
+        const backwardError = Math.abs(correctDerivative - backwardDiff);
+        const centralError = Math.abs(correctDerivative - centralDiff);
         
         latexContent = String.raw`
         \displaystyle
         \begin{array}{l}
         \begin{array}{lcl}
-        \\ h &=& \frac{ x_{upper} - x_{lower} }{N}
-        \\   &=& ${formatLatex(width)}
+        \\ f^{${order}}(x) &=& ${mathjsToLatex(derivValue)}
+        \\                 &=& ${formatLatex(correctDerivative)}
         \end{array}
-        \\
-        \\ x_i = x_{lower} + i \cdot h
-        \\ x_{i+1} = x_i + h
         \\
         \\ \hline
         \begin{array}{lcl}
-        \\ \int_{${lowerX}}^{${upperX}} f(x) dx &=& h \sum_{i=1}^{${subIntervals}} \left[ f(\frac{x_i + x_{i+1}}{2}) \right]
-        \\`;
-        latexContent += String.raw`
-        \\ &=& ${formatLatex(width)} [`;
-        for (let i = 0; i < subIntervals; i++) {
-            latexContent += String.raw`f(\frac{${formatLatex(lowerX + i * width)} + ${formatLatex(lowerX + (i+1) * width)}}{2}) ${i===subIntervals - 1 ? "" : "+"}`;
+        \\ \text{Forward difference} &=& \frac{1}{${order === 1 ? "h" : `h^{${order}}`}} \sum_{i=0}^${order} \left[ (-1)^{${order}-i} \dbinom{${order}}{i} f(x+ih) \right]
+        \\
+        \\ &=& \frac{1}{${order === 1 ? formatLatex(stepSize) : `${formatLatex(stepSize)}^{${order}}`}} [
+        `;
+        for (let i = 0; i <= order; i++) {
+            //forwardDiff += Math.pow(-1, order - i) * getBinomialCoefficient(order, i) * evaluateFunction(true, i) / denominator;
+            latexContent += String.raw`
+            (${Math.pow(-1, order - i)})(${getBinomialCoefficient(order, i)})(${formatLatex(evaluateFunction(true, i))}) ${i===order? '':'+'}
+            `;
         }
         latexContent += String.raw`
         ]
         \\
-        \\ &=& ${formatLatex(width)} [`;
-        for (let i = 0; i < subIntervals; i++) {
-            latexContent += String.raw`${formatLatex(results[i])} ${i===subIntervals - 1 ? "" : "+"}`;
+        \\ &=& ${formatLatex(forwardDiff)}
+        \end{array}
+        `;
+        latexContent += String.raw`
+        \\
+        \begin{array}{lcl}
+        \\ \text{Backward difference} &=& \frac{1}{${order === 1 ? "h" : `h^{${order}}`}} \sum_{i=0}^${order} \left[ (-1)^{i} \dbinom{${order}}{i} f(x-ih) \right]
+        \\
+        \\ &=& \frac{1}{${order === 1 ? formatLatex(stepSize) : `${formatLatex(stepSize)}^{${order}}`}} [
+        `;
+        for (let i = 0; i <= order; i++) {
+            // backwardDiff += Math.pow(-1, i) * getBinomialCoefficient(order, i) * evaluateFunction(false, i) / denominator;
+            latexContent += String.raw`
+            (${Math.pow(-1, i)})(${getBinomialCoefficient(order, i)})(${formatLatex(evaluateFunction(false, i))}) ${i===order? '':'+'}
+            `;
         }
         latexContent += String.raw`
         ]
         \\
-        \\ &=& ${formatLatex(integralResult)}
+        \\ &=& ${formatLatex(backwardDiff)}
+        \end{array}
+        `;
+
+        if (order === 1) {
+            latexContent += String.raw`
+            \\
+            \begin{array}{lcl}
+            \\ \text{Central difference} &=& \frac{1}{2h} [f(x+h) - f(x-h)]
+            \\
+            \\ &=& \frac{1}{${formatLatex(2*stepSize)}} [${formatLatex(evaluateFunction(true, 1))} - ${formatLatex(evaluateFunction(false, 1))} ]
+            \\
+            \\ &=& ${formatLatex(centralDiff)}
+            \end{array}
+            `;
+        }
+        else {
+            latexContent += String.raw`
+            \\
+            \begin{array}{lcl}
+            \\ \text{Central difference} &=& \frac{1}{h^{${order}}} \sum_{i=0}^${order} \left[ (-1)^{i} \dbinom{${order}}{i} f(x+(\frac{n}{2}-i)h) \right]
+            \\
+            \\ &=& \frac{1}{${formatLatex(stepSize)}^{${order}}} [
+            `;
+            for (let i = 0; i <= order; i++) {
+                latexContent += String.raw`
+                (${Math.pow(-1, i)})(${getBinomialCoefficient(order, i)})(${formatLatex(evaluateFunction(true, order/2 - i))}) ${i===order? '':'+'}
+                `;
+            }
+            latexContent += String.raw`
+            ]
+            \\
+            \\ &=& ${formatLatex(backwardDiff)}
+            \end{array}
+            `;
+        }
+
+        latexContent += String.raw`
+        \\
+        \\ \hline
+        \begin{array}{lcl}
+        \\ \text{Percentage Error} &=& |Actual - Estimate|
+        \\
+        \\ E_{Forward} &=& ${formatLatex(forwardError)}
+        \\ E_{Backward} &=& ${formatLatex(backwardError)}
+        \\ E_{Central} &=& ${formatLatex(centralError)}
         \end{array}\end{array}
         `;
     }
@@ -240,20 +335,20 @@ function IntegralMidpoint({methodName}) {
                                 </CardContent>
                             </Card>
                         </Grid>
-                        <Grid xs item className="subIntervals-input">
+                        <Grid xs item className="x-input">
                             <Card className={styleClasses.card}>
                                 <CardContent className={styleClasses.cardContent}>
                                     <Typography variant="h6">
-                                        Subintervals, N:
+                                        x:
                                     </Typography>
                                     <TextField
                                         disabled={false}
                                         type="number"
-                                        onChange={(event)=>setSubIntervals(parseInt(event.target.value))}
-                                        error={subIntervalsError}
-                                        label={subIntervalsError?"Error":""}
-                                        defaultValue={subIntervals.toString()}
-                                        helperText={subIntervalsErrorText}
+                                        onChange={(event)=>setXInput(parseFloat(event.target.value))}
+                                        error={xInputError}
+                                        label={xInputError?"Error":""}
+                                        defaultValue={xInput.toString()}
+                                        helperText={xInputErrorText}
                                         variant="outlined"
                                     />
                                 </CardContent>
@@ -261,40 +356,40 @@ function IntegralMidpoint({methodName}) {
                         </Grid>
                     </Grid>
 
-                    <Grid className="interval-input" container spacing={1} direction="row" alignItems="center" justify="center">
-                        <Grid xs item>
+                    <Grid container spacing={1} direction="row" alignItems="center" justify="center">
+                        <Grid xs item className="order-input">
                             <Card className={styleClasses.card}>
                                 <CardContent className={styleClasses.cardContent}>
                                     <Typography variant="h6">
-                                        Lower x value:
+                                        Order:
                                     </Typography>
                                     <TextField
                                         disabled={false}
                                         type="number"
-                                        onChange={(event)=>setLowerX(parseFloat(event.target.value))}
-                                        error={intervalError}
-                                        label={intervalError?"Error":""}
-                                        defaultValue={lowerX.toString()}
-                                        helperText={lowerXErrorText}
+                                        onChange={(event)=>setOrder(parseInt(event.target.value))}
+                                        error={orderError}
+                                        label={orderError?"Error":""}
+                                        defaultValue={order.toString()}
+                                        helperText={orderErrorText}
                                         variant="outlined"
                                     />
                                 </CardContent>
                             </Card>
                         </Grid>
-                        <Grid xs item>
+                        <Grid xs item className="stepSize-input">
                             <Card className={styleClasses.card}>
                                 <CardContent className={styleClasses.cardContent}>
                                     <Typography variant="h6">
-                                        Upper x value:
+                                        Step size, h:
                                     </Typography>
                                     <TextField
                                         disabled={false}
                                         type="number"
-                                        onChange={(event)=>setUpperX(parseFloat(event.target.value))}
-                                        error={intervalError}
-                                        label={intervalError?"Error":""}
-                                        defaultValue={upperX.toString()}
-                                        helperText={upperXErrorText}
+                                        onChange={(event)=>setStepSize(parseFloat(event.target.value))}
+                                        error={stepSizeError}
+                                        label={stepSizeError?"Error":""}
+                                        defaultValue={stepSize.toString()}
+                                        helperText={stepSizeErrorText}
                                         variant="outlined"
                                     />
                                 </CardContent>
@@ -348,4 +443,4 @@ function IntegralMidpoint({methodName}) {
     );
 }
 
-export default IntegralMidpoint;
+export default DiffMultivariable;

@@ -34,6 +34,12 @@ const TOUR_STEPS: JoyrideStep[] = [
         disableBeacon: true,
     },
     {
+        target: ".x-input",
+        title: "X value",
+        content:
+            "Specify the value of x at which to evaluate.",
+    },
+    {
         target: ".order-input",
         title: "Order",
         content:
@@ -92,9 +98,7 @@ function DiffFinite({methodName}) {
 
     const styleClasses = useStyles();
 
-    // Derivative
-    // Another sample would be: `3x^2+2x-8`
-    const [functionLatex, setFunctionLatex] = useState(String.raw`3x^2+2x-8`);
+    const [functionLatex, setFunctionLatex] = useState(String.raw`3x^5+2x^3-8`);
     const [functionText, setFunctionText] = useState('');
 
     let functionValue;
@@ -151,9 +155,9 @@ function DiffFinite({methodName}) {
 
     const derivValue = useMemo(() => {
         let d = derivative(functionValue, 'x');
-        [...Array(order - 1).keys()].forEach((v, i) => {
+        for (let i = 0; i < order - 1; i++) {
             d = derivative(d, 'x');
-        });
+        }
         return d;
     }, [functionValue, order]);
 
@@ -204,7 +208,7 @@ function DiffFinite({methodName}) {
         \\
         \\ \hline
         \begin{array}{lcl}
-        \\ \text{Forward difference} &=& \frac{1}{${order === 1 ? "h" : `h^{${order}}`}} \sum_{i=0}^${order} \left[ (-1)^{${order}-i} \dbinom{${order}}{i} f(x+ih) \right]
+        \\ \text{Forward difference} &=& \frac{1}{${order === 1 ? "h" : `h^{${order}}`}} \sum_{i=0}^{${order}} \left[ (-1)^{${order}-i} \dbinom{${order}}{i} f(x+ih) \right]
         \\
         \\ &=& \frac{1}{${order === 1 ? formatLatex(stepSize) : `${formatLatex(stepSize)}^{${order}}`}} [
         `;
@@ -223,7 +227,7 @@ function DiffFinite({methodName}) {
         latexContent += String.raw`
         \\
         \begin{array}{lcl}
-        \\ \text{Backward difference} &=& \frac{1}{${order === 1 ? "h" : `h^{${order}}`}} \sum_{i=0}^${order} \left[ (-1)^{i} \dbinom{${order}}{i} f(x-ih) \right]
+        \\ \text{Backward difference} &=& \frac{1}{${order === 1 ? "h" : `h^{${order}}`}} \sum_{i=0}^{${order}} \left[ (-1)^{i} \dbinom{${order}}{i} f(x-ih) \right]
         \\
         \\ &=& \frac{1}{${order === 1 ? formatLatex(stepSize) : `${formatLatex(stepSize)}^{${order}}`}} [
         `;
@@ -256,7 +260,7 @@ function DiffFinite({methodName}) {
             latexContent += String.raw`
             \\
             \begin{array}{lcl}
-            \\ \text{Central difference} &=& \frac{1}{h^{${order}}} \sum_{i=0}^${order} \left[ (-1)^{i} \dbinom{${order}}{i} f(x+(\frac{n}{2}-i)h) \right]
+            \\ \text{Central difference} &=& \frac{1}{h^{${order}}} \sum_{i=0}^{${order}} \left[ (-1)^{i} \dbinom{${order}}{i} f(x+(\frac{n}{2}-i)h) \right]
             \\
             \\ &=& \frac{1}{${formatLatex(stepSize)}^{${order}}} [
             `;
@@ -268,7 +272,7 @@ function DiffFinite({methodName}) {
             latexContent += String.raw`
             ]
             \\
-            \\ &=& ${formatLatex(backwardDiff)}
+            \\ &=& ${formatLatex(centralDiff)}
             \end{array}
             `;
         }
