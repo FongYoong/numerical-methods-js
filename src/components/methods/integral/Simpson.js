@@ -1,4 +1,4 @@
-import {isValidMath, mathjsToLatex, formatLatex} from "../../utils";
+import {isValidMath, formatLatex} from "../../utils";
 import React, {useState, useEffect} from "react";
 import Header from "../../header/Header";
 import Graph from "../../Graph";
@@ -102,7 +102,7 @@ function IntegralSimpson({methodName}) {
     const styleClasses = useStyles();
     const smallScreen = useMediaQuery(useTheme().breakpoints.down('sm'));
 
-    const [functionLatex, setFunctionLatex] = useState(String.raw`xe^{-x^{2}}`);
+    const [functionLatex, setFunctionLatex] = useState(String.raw`\left(x-3\right)^{3}+2\left(x-3\right)^{2}-1`);
     const [functionText, setFunctionText] = useState('');
 
     let functionValue;
@@ -125,8 +125,8 @@ function IntegralSimpson({methodName}) {
     }
 
     // Interval
-    const [lowerX, setLowerX] = useState(-5);
-    const [upperX, setUpperX] = useState(6);
+    const [lowerX, setLowerX] = useState(1);
+    const [upperX, setUpperX] = useState(4);
     let intervalError = false;
     let lowerXErrorText = "";
     let upperXErrorText = "";
@@ -185,8 +185,7 @@ function IntegralSimpson({methodName}) {
                 }
             }
         }
-        const denominator = 3 * subIntervals;
-        integralResult *= width / denominator;
+        integralResult *= width / 3;
         
         latexContent = String.raw`
         \displaystyle
@@ -203,10 +202,10 @@ function IntegralSimpson({methodName}) {
         \\ \int_{${lowerX}}^{${upperX}} f(x) dx &=& \frac{h}{3} [f(x_0) + 4 \sum_{i=1, odd}^{${subIntervals - 1}} f(x_i) + 2 \sum_{j=2, even}^{${subIntervals - 2}} f(x_j) + f(x_{${subIntervals}})]
         \\`;
         latexContent += String.raw`
-        \\ &=& ${formatLatex(width / denominator)} [`;
+        \\ &=& ${formatLatex(width / 3)} [`;
         for (let i = 0; i <= subIntervals; i++) {
             let coefficient = "";
-            if (i > 0 || i < subIntervals){
+            if (i > 0 && i < subIntervals){
                 if (i % 2 === 0){
                     coefficient = "2";
                 }
@@ -219,7 +218,7 @@ function IntegralSimpson({methodName}) {
         latexContent += String.raw`
         ]
         \\
-        \\ &=& ${formatLatex(width / denominator)} [`;
+        \\ &=& ${formatLatex(width / 3)} [`;
         for (let i = 0; i <= subIntervals; i++) {
             latexContent += String.raw`${formatLatex(results[i])} ${i===subIntervals ? "" : "+"}`;
         }
@@ -380,7 +379,7 @@ function IntegralSimpson({methodName}) {
                                 </Grid>
                                 <Grid xs item className="graph-button">
                                     <Slide direction="right" triggerOnce>
-                                        <Graph params={{iterations: 0, graphCallback, smallScreen}} />
+                                        <Graph params={{iterations: 0, functionLatex, graphCallback, smallScreen}} />
                                     </Slide>
                                 </Grid>
                             </Grid>

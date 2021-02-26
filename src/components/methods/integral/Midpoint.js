@@ -1,4 +1,4 @@
-import {isValidMath, mathjsToLatex, formatLatex} from "../../utils";
+import {isValidMath, formatLatex} from "../../utils";
 import React, {useState, useEffect} from "react";
 import Header from "../../header/Header";
 import Graph from "../../Graph";
@@ -359,7 +359,7 @@ function IntegralMidpoint({methodName}) {
                                 </Grid>
                                 <Grid xs item className="graph-button">
                                     <Slide direction="right" triggerOnce>
-                                        <Graph params={{iterations: 0, graphCallback, smallScreen}} />
+                                        <Graph params={{iterations: 0, functionLatex, graphCallback, smallScreen}} />
                                     </Slide>
                                 </Grid>
                             </Grid>

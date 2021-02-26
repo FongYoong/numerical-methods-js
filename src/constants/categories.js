@@ -269,7 +269,7 @@ const categories = [
                 name: "Gauss Quadrature",
                 path : "quadrature",
                 component: IntegralQuadrature,
-                completed: false,
+                completed: true,
             },
             {
                 name: "Monte Carlo Integration",

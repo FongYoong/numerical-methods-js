@@ -1,4 +1,4 @@
-import {isValidMath, mathjsToLatex, formatLatex} from "../../utils";
+import {isValidMath, mathjsToLatex, formatLatex, mathjsKeywords} from "../../utils";
 import {initialMatrix17, generateGridCallback, createNewColumn, gridTo2DArray, matrixToLatex} from "../../matrix_utils";
 import React, {useState, useEffect} from "react";
 import Header from "../../header/Header";
@@ -124,12 +124,11 @@ function OptiGradient({methodName}) {
     let functionNode;
     let functionError = false;
     let functionErrorText = "";
-    const keywords = ["cos", "sin", "e"];
     let variables = new Set(); // Unique set of variables
     try {
         functionNode = parse(functionText);
         functionNode.traverse(function (node, path, parent) {
-            if (node.type === 'SymbolNode' && !keywords.includes(node.name)) {
+            if (node.type === 'SymbolNode' && !mathjsKeywords.includes(node.name)) {
                 if (node.name.length > 1) {
                     throw "variableName";
                 }
@@ -220,7 +219,7 @@ function OptiGradient({methodName}) {
                 directionNodes[element] = simplify(parse(String.raw`${previousVector[index]} + t*(${derivResult[index]})`));
             });
             const transformedFunction = functionNode.transform(function (node, path, parent) {
-                if (node.isSymbolNode && !keywords.includes(node.name)) {
+                if (node.isSymbolNode && !mathjsKeywords.includes(node.name)) {
                     return directionNodes[node.name];
                 }
                 else {

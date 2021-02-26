@@ -1,4 +1,3 @@
-import {mathjsToLatex} from "./utils";
 import {React, useState, useRef, useEffect, useCallback } from "react";
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
@@ -80,8 +79,8 @@ const DialogContent =  withStyles((theme) => ({
     return (
         
         <Grid container direction="column" alignItems="center" justify="center">
-            {params.functionValue && <Box component="div" overflow="visible">
-                    <TeX math={`${mathjsToLatex(params.functionValue)}`} block />
+            {params.functionLatex && <Box component="div" overflow="visible">
+                    <TeX math={`${params.functionLatex}`} block />
                 </Box>
             }
             <Typography variant="h6">
