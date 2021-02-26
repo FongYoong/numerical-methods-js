@@ -1,2 +1,0 @@
-(this["webpackJsonpnumerical-methods-js"]=this["webpackJsonpnumerical-methods-js"]||[]).push([[43],{325:function(s,t,e){"use strict";e.r(t);e(0);var n=e(6);t.default=function(){return Object(n.jsx)(n.Fragment,{})}}}]);
-//# sourceMappingURL=43.8c225589.chunk.js.map

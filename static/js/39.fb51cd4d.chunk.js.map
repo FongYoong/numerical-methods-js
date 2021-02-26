@@ -1,0 +1,1 @@
+{"version":3,"sources":["components/methods/fourier/FFT.js"],"names":["FFT"],"mappings":"qIAAA,uBASeA,UAPf,WACI,OACI","file":"static/js/39.fb51cd4d.chunk.js","sourcesContent":["import React from \"react\";\r\n\r\nfunction FFT() {\r\n    return (\r\n        <>\r\n        </>\r\n    );\r\n}\r\n\r\nexport default FFT;"],"sourceRoot":""}
