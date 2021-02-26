@@ -275,7 +275,7 @@ const categories = [
                 name: "Monte Carlo Integration",
                 path : "monte_carlo",
                 component: IntegralMonteCarlo,
-                completed: false,
+                completed: true,
             },
         ]
     },

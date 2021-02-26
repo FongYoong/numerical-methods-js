@@ -52,7 +52,7 @@ const TOUR_STEPS: JoyrideStep[] = [
         target: ".step-math",
         title: "Steps",
         content:
-            "The steps for each iteration are shown here.",
+            "The steps are shown here.",
     },
     {
         target: ".graph-button",

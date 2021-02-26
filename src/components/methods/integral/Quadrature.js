@@ -61,7 +61,7 @@ const TOUR_STEPS: JoyrideStep[] = [
         target: ".step-math",
         title: "Steps",
         content:
-            "The steps for each iteration are shown here.",
+            "The steps are shown here.",
     },
 ];
 
@@ -260,7 +260,7 @@ function IntegralQuadrature({methodName}) {
                             <Card className={styleClasses.card}>
                                 <CardContent className={styleClasses.cardContent}>
                                     <Typography variant="h6">
-                                        Gauss Points, N = {points}
+                                        Gauss Points = {points}
                                     </Typography>
                                     <Box id="points-slider">
                                         <Slider

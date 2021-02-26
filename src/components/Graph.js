@@ -79,6 +79,12 @@ const DialogContent =  withStyles((theme) => ({
     return (
         
         <Grid container direction="column" alignItems="center" justify="center">
+            {params.description && <Box component="div" overflow="visible">
+                    <Typography variant="h6">
+                        {params.description}
+                    </Typography>
+                </Box>
+            }
             {params.functionLatex && <Box component="div" overflow="visible">
                     <TeX math={`${params.functionLatex}`} block />
                 </Box>
