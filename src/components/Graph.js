@@ -56,6 +56,7 @@ const DialogContent =  withStyles((theme) => ({
 
     const updateGraph = useCallback(() => {
         if (calculator.current){
+            calculator.current.updateSettings({ xAxisArrowMode: Desmos.AxisArrowModes.POSITIVE, yAxisArrowMode: Desmos.AxisArrowModes.POSITIVE });
             params.graphCallback(calculator, currentResult);
         }
     }, [calculator, currentResult, params]);

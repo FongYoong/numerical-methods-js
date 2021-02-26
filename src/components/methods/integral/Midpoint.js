@@ -156,8 +156,7 @@ function IntegralMidpoint({methodName}) {
     let hasError = functionError || intervalError || subIntervalsError;
 
     // Solve
-    let latexContent;
-    let graphCallback;
+    let latexContent, graphCallback;
     let solve = false;
     if (isValidMath(functionValue) && !hasError) {
         solve = true;
@@ -168,7 +167,7 @@ function IntegralMidpoint({methodName}) {
             const x1 = lowerX + i * width;
             const x2 = x1 + width;
             const x = (x1 + x2) / 2;
-            let f = functionValue.evaluate({x : x})
+            let f = functionValue.evaluate({x : x});
             integralResult += f;
             results.push(f);
         }
@@ -225,7 +224,7 @@ function IntegralMidpoint({methodName}) {
                 const x1 = lowerX + i * width;
                 const x2 = x1 + width;
                 const x = (x1 + x2) / 2;
-                calculator.current.setExpression({ id: i, color: Desmos.Colors.BLACK, pointStyle: Desmos.Styles.POINT, label: i + 1, showLabel:true, latex: String.raw`(${x}, ${results[i]})`});
+                calculator.current.setExpression({ id: i, color: Desmos.Colors.BLACK, pointStyle: Desmos.Styles.POINT, label: i + 1, showLabel: subIntervals < 20, latex: String.raw`(${x}, ${results[i]})`});
             }
         }
     }

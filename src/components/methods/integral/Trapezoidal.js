@@ -1,6 +1,8 @@
 import {isValidMath, mathjsToLatex, formatLatex} from "../../utils";
 import React, {useState, useEffect} from "react";
 import Header from "../../header/Header";
+import Graph from "../../Graph";
+import * as Desmos from 'desmos';
 
 import { addStyles, EditableMathField } from 'react-mathquill';
 import { parse } from 'mathjs';
@@ -22,6 +24,8 @@ import HelpIcon from '@material-ui/icons/Help';
 import Joyride, { Step as JoyrideStep, CallBackProps as JoyrideCallBackProps} from "react-joyride";
 import Collapse from '@material-ui/core/Collapse';
 import { Fade, Zoom, Slide } from "react-awesome-reveal";
+import { useTheme } from '@material-ui/core/styles';
+import useMediaQuery from '@material-ui/core/useMediaQuery';
 import { makeStyles } from '@material-ui/core/styles';
 
 const TOUR_STEPS: JoyrideStep[] = [
@@ -49,6 +53,12 @@ const TOUR_STEPS: JoyrideStep[] = [
         title: "Steps",
         content:
             "The steps for each iteration are shown here.",
+    },
+    {
+        target: ".graph-button",
+        title: "View graph",
+        content:
+            "Click this to visualise the results.",
     },
 ];
 
@@ -90,8 +100,9 @@ function IntegralTrapezoidal({methodName}) {
     });
 
     const styleClasses = useStyles();
+    const smallScreen = useMediaQuery(useTheme().breakpoints.down('sm'));
 
-    const [functionLatex, setFunctionLatex] = useState(String.raw`3x^2+2x-8`);
+    const [functionLatex, setFunctionLatex] = useState(String.raw`\left(x-3\right)^{3}+2\left(x-3\right)^{2}-1`);
     const [functionText, setFunctionText] = useState('');
 
     let functionValue;
@@ -114,8 +125,8 @@ function IntegralTrapezoidal({methodName}) {
     }
 
     // Interval
-    const [lowerX, setLowerX] = useState(0);
-    const [upperX, setUpperX] = useState(3);
+    const [lowerX, setLowerX] = useState(1);
+    const [upperX, setUpperX] = useState(4);
     let intervalError = false;
     let lowerXErrorText = "";
     let upperXErrorText = "";
@@ -145,22 +156,26 @@ function IntegralTrapezoidal({methodName}) {
     let hasError = functionError || intervalError || subIntervalsError;
 
     // Solve
-    let latexContent;
+    let latexContent, graphCallback;
     let solve = false;
     if (isValidMath(functionValue) && !hasError) {
         solve = true;
         const width = (upperX - lowerX) / subIntervals;
-        let results = [];
         let integralResult = 0;
-        for (let i = 0; i < subIntervals; i++) {
-            const x1 = lowerX + i * width;
-            const x2 = x1 + width;
-            const x = (x1 + x2) / 2;
-            let f = functionValue.evaluate({x : x})
-            integralResult += f;
-            results.push(f);
+        let results = [];
+        for (let i = 0; i <= subIntervals; i++) {
+            const x = lowerX + i * width;
+            let f = functionValue.evaluate({x : x});
+            if (i === 0 || i === subIntervals){
+                integralResult += f;
+                results.push(f);
+            }
+            else {
+                integralResult += 2 * f;
+                results.push(2 * f);
+            }
         }
-        integralResult *= width; 
+        integralResult *= width / 2;
         
         latexContent = String.raw`
         \displaystyle
@@ -171,23 +186,22 @@ function IntegralTrapezoidal({methodName}) {
         \end{array}
         \\
         \\ x_i = x_{lower} + i \cdot h
-        \\ x_{i+1} = x_i + h
         \\
         \\ \hline
         \begin{array}{lcl}
-        \\ \int_{${lowerX}}^{${upperX}} f(x) dx &=& h \sum_{i=1}^{${subIntervals}} \left[ f(\frac{x_i + x_{i+1}}{2}) \right]
+        \\ \int_{${lowerX}}^{${upperX}} f(x) dx &=& \frac{h}{2} [f(x_0) + 2 \sum_{i=1}^{${subIntervals - 1}} f(x_i) + f(x_{${subIntervals}})]
         \\`;
         latexContent += String.raw`
-        \\ &=& ${formatLatex(width)} [`;
-        for (let i = 0; i < subIntervals; i++) {
-            latexContent += String.raw`f(\frac{${formatLatex(lowerX + i * width)} + ${formatLatex(lowerX + (i+1) * width)}}{2}) ${i===subIntervals - 1 ? "" : "+"}`;
+        \\ &=& ${formatLatex(width / 2)} [`;
+        for (let i = 0; i <= subIntervals; i++) {
+            latexContent += String.raw`f(${formatLatex(lowerX + i * width)}) ${i===subIntervals ? "" : "+"}`;
         }
         latexContent += String.raw`
         ]
         \\
-        \\ &=& ${formatLatex(width)} [`;
-        for (let i = 0; i < subIntervals; i++) {
-            latexContent += String.raw`${formatLatex(results[i])} ${i===subIntervals - 1 ? "" : "+"}`;
+        \\ &=& ${formatLatex(width / 2)} [`;
+        for (let i = 0; i <= subIntervals; i++) {
+            latexContent += String.raw`${formatLatex(results[i])} ${i===subIntervals ? "" : "+"}`;
         }
         latexContent += String.raw`
         ]
@@ -195,6 +209,28 @@ function IntegralTrapezoidal({methodName}) {
         \\ &=& ${formatLatex(integralResult)}
         \end{array}\end{array}
         `;
+
+        graphCallback = (calculator, currentResult) => {
+            calculator.current.setExpression({ id: 'function', color: Desmos.Colors.BLUE, latex: "f(x)="+functionLatex});
+            calculator.current.setExpression({ id: 'a', latex: "a="+lowerX});
+            calculator.current.setExpression({ id: 'b', latex: "b="+upperX});
+            calculator.current.setExpression({ id: 'N', latex: "N="+subIntervals});
+            calculator.current.setExpression({ id: 'L', latex: String.raw`L=\left[a,\ a+\frac{\left(b-a\right)}{N},\ a+\frac{2\left(b-a\right)}{N},...,a+\frac{\left(N-1\right)\left(b-a\right)}{N}\right]`});
+            calculator.current.setExpression({ id: 'R', latex: String.raw`R=\left[a+\frac{\left(b-a\right)}{N},a+\frac{2\left(b-a\right)}{N},\ ...,b\right]`});
+            calculator.current.setExpression({ id: 'M', latex: String.raw`M=\frac{\left(f\left(R\right)-f\left(L\right)\right)}{R-L}`});
+            calculator.current.setExpression({ id: 'm', latex: String.raw`m=\left[a+\frac{.5\left(b-a\right)}{N},a+\frac{3}{2}\cdot\frac{\left(b-a\right)}{N},...,b-\frac{\left(\frac{1}{2}\right)\left(b-a\right)}{N}\right]`});
+            calculator.current.setExpression({ id: 'x', color: Desmos.Colors.BLACK, latex: String.raw`x=L\left\{\min\left(0,f\left(L\right)\right)<y<\max\left(0,f\left(L\right)\right)\right\}`});
+            calculator.current.setExpression({ id: 'positive', color: Desmos.Colors.GREEN, latex: String.raw`0\le y\le M\left(x-L\right)+f\left(L\right)\left\{L\le x\le R\right\}`});
+            calculator.current.setExpression({ id: 'negative', color: Desmos.Colors.RED, latex: String.raw`0\ge y\ge M\left(x-L\right)+f\left(L\right)\left\{L\le x\le R\right\}`});
+            for (let i = 0; i <= subIntervals; i++) {
+                const x = lowerX + i * width;
+                let v = results[i];
+                if (i > 0 && i < subIntervals) {
+                    v /= 2;
+                }
+                calculator.current.setExpression({ id: i, color: Desmos.Colors.BLACK, pointStyle: Desmos.Styles.POINT, label: i + 1, showLabel: subIntervals < 20, latex: String.raw`(${x}, ${v})`});
+            }
+        }
     }
 
     // Joyride Tour
@@ -320,6 +356,11 @@ function IntegralTrapezoidal({methodName}) {
                                                 <TeX math={latexContent} block />
                                             </CardContent>
                                         </Card>
+                                    </Slide>
+                                </Grid>
+                                <Grid xs item className="graph-button">
+                                    <Slide direction="right" triggerOnce>
+                                        <Graph params={{iterations: 0, graphCallback, smallScreen}} />
                                     </Slide>
                                 </Grid>
                             </Grid>
