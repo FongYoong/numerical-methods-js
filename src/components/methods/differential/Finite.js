@@ -1,9 +1,7 @@
 import {isValidMath, mathjsToLatex, formatLatex} from "../../utils";
 import {getBinomialCoefficient} from "../../matrix_utils";
-import React, {useState, useEffect} from "react";
+import React, {useState, useEffect, useMemo} from "react";
 import Header from "../../header/Header";
-import Graph from "../../Graph";
-import * as Desmos from 'desmos';
 
 import { addStyles, EditableMathField } from 'react-mathquill';
 import { parse, derivative } from 'mathjs';
@@ -25,8 +23,6 @@ import HelpIcon from '@material-ui/icons/Help';
 import Joyride, { Step as JoyrideStep, CallBackProps as JoyrideCallBackProps} from "react-joyride";
 import Collapse from '@material-ui/core/Collapse';
 import { Fade, Zoom, Slide } from "react-awesome-reveal";
-import { useTheme } from '@material-ui/core/styles';
-import useMediaQuery from '@material-ui/core/useMediaQuery';
 import { makeStyles } from '@material-ui/core/styles';
 
 const TOUR_STEPS: JoyrideStep[] = [
@@ -54,12 +50,6 @@ const TOUR_STEPS: JoyrideStep[] = [
         title: "Steps",
         content:
             "The steps for each iteration are shown here.",
-    },
-    {
-        target: ".graph-button",
-        title: "View graph",
-        content:
-            "Click this to visualise the results.",
     },
 ];
 
@@ -101,14 +91,13 @@ function DiffFinite({methodName}) {
     });
 
     const styleClasses = useStyles();
-    const smallScreen = useMediaQuery(useTheme().breakpoints.down('sm'));
 
     // Derivative
     // Another sample would be: `3x^2+2x-8`
-    const [functionLatex, setFunctionLatex] = useState(String.raw`x^4-\cos\left( x\right)`);
+    const [functionLatex, setFunctionLatex] = useState(String.raw`3x^2+2x-8`);
     const [functionText, setFunctionText] = useState('');
 
-    let functionValue, derivValue;
+    let functionValue;
     let functionError = false;
     let functionErrorText = "";
     try {
@@ -160,16 +149,19 @@ function DiffFinite({methodName}) {
 
     let hasError = functionError || xInputError || orderError || stepSizeError;
 
+    const derivValue = useMemo(() => {
+        let d = derivative(functionValue, 'x');
+        [...Array(order - 1).keys()].forEach((v, i) => {
+            d = derivative(d, 'x');
+        });
+        return d;
+    }, [functionValue, order]);
+
     // Solve
     let latexContent;
     let solve = false;
     if (isValidMath(functionValue) && !hasError) {
         solve = true;
-        derivValue = derivative(functionValue, 'x');
-        [...Array(order - 1).keys()].forEach((v, i) => {
-            derivValue = derivative(derivValue, 'x');
-        });
-        const correctDerivative = derivValue.evaluate({x : xInput});
 
         const evaluateFunction = (forward, offset) => {
             const step = offset * stepSize ;
@@ -196,14 +188,7 @@ function DiffFinite({methodName}) {
             centralDiff = (evaluateFunction(true, 1) - evaluateFunction(false, 1)) / (2 * stepSize);
         }
 
-        /*
-        const forward = evaluateFunction(true, 1);
-        const origin = evaluateFunction(true, 0);
-        const backward = evaluateFunction(false, 1);
-        const forwardDiff = (forward - origin) / stepSize;
-        const backwardDiff = (origin - backward) / stepSize;
-        const centralDiff = (forward - backward) / (2 *stepSize);
-        */
+        const correctDerivative = derivValue.evaluate({x : xInput});
 
         const forwardError = Math.abs(correctDerivative - forwardDiff);
         const backwardError = Math.abs(correctDerivative - backwardDiff);
@@ -300,11 +285,6 @@ function DiffFinite({methodName}) {
         \end{array}\end{array}
         `;
     }
-
-    let graphCallback = (calculator, currentResult) => {
-
-    }
-
 
     // Joyride Tour
     const [runTour, setRunTour] = useState(false);
@@ -429,11 +409,6 @@ function DiffFinite({methodName}) {
                                                 <TeX math={latexContent} block />
                                             </CardContent>
                                         </Card>
-                                    </Slide>
-                                </Grid>
-                                <Grid xs item className="graph-button">
-                                    <Slide direction="right" triggerOnce>
-                                        <Graph params={{Iterations: 0, graphCallback, smallScreen}} />
                                     </Slide>
                                 </Grid>
                             </Grid>
