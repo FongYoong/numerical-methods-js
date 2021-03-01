@@ -189,18 +189,6 @@ function OdeTaylor({methodName}) {
 
     let hasError = functionError || orderError || stepSizeError || iterError;
 
-
-
-/*
-    const derivValue = useMemo(() => {
-        let d = derivative(functionNode, 'x');
-        for (let i = 0; i < order - 1; i++) {
-            d = derivative(d, 'x');
-        }
-        return d;
-    }, [functionNode, order]);
-    */
-
     // Solve
     let solve = false;
     let derivNodes = [functionNode];
@@ -457,7 +445,6 @@ function Steps({params}) {
         \\                         &=& ${formatLatex(currentResult.currentY)} + ${valuesLatex}
         \\
         \\                         &=& ${formatLatex(currentResult.newY)}
-
         \end{array}\end{array}
         `;
 
@@ -478,8 +465,8 @@ function Steps({params}) {
                 calculator.current.setExpression({ id: i, color: Desmos.Colors.BLUE, pointStyle: Desmos.Styles.POINT, latex:
                 `(${r.newX}, ${r.newY})` });
             }
-            calculator.current.setExpression({ id: 'line', color: Desmos.Colors.GREEN, lineStyle: Desmos.Styles.DOTTED, latex:
-            `(y-${currentResult.newY})/(x-${currentResult.newX})=${(currentResult.newY - currentResult.currentY)/(currentResult.newX - currentResult.currentX)}` });
+            calculator.current.setExpression({ id: 'line', color: Desmos.Colors.GREEN, latex:
+            String.raw`(y-${currentResult.newY})/(x-${currentResult.newX})=${(currentResult.newY - currentResult.currentY)/(currentResult.newX - currentResult.currentX)} \left\{${currentResult.currentX}<x<${currentResult.newX}\right\} \left\{${currentResult.currentY}<y<${currentResult.newY}\right\}` });
             calculator.current.setExpression({ id: "initial", color: Desmos.Colors.ORANGE, pointStyle: Desmos.Styles.POINT, label: "Initial", showLabel:true, latex:
                 `(${currentResult.currentX}, ${currentResult.currentY})` });
             calculator.current.setExpression({ id: "final", color: Desmos.Colors.RED, pointStyle: Desmos.Styles.POINT, label: "Final", showLabel:true, latex:

@@ -424,9 +424,7 @@ function Steps({params}) {
             `;
         }
 
-        latexContent += String.raw`
-        \end{array}
-        `
+        latexContent += String.raw`\end{array}`;
         graphCallback = (calculator, currentResult) => {
             for (let i = 0; i < params.iterations; i++){
                 const r = params.results[i];
@@ -437,8 +435,8 @@ function Steps({params}) {
                 calculator.current.setExpression({ id: i, color: Desmos.Colors.BLUE, pointStyle: Desmos.Styles.POINT, latex:
                 `(${r.newX}, ${r.newY})` });
             }
-            calculator.current.setExpression({ id: 'line', color: Desmos.Colors.GREEN, lineStyle: Desmos.Styles.DOTTED, latex:
-            `(y-${currentResult.newY})/(x-${currentResult.newX})=${(currentResult.newY - currentResult.currentY)/(currentResult.newX - currentResult.currentX)}` });
+            calculator.current.setExpression({ id: 'line', color: Desmos.Colors.GREEN, latex:
+            String.raw`(y-${currentResult.newY})/(x-${currentResult.newX})=${(currentResult.newY - currentResult.currentY)/(currentResult.newX - currentResult.currentX)} \left\{${currentResult.currentX}<x<${currentResult.newX}\right\} \left\{${currentResult.currentY}<y<${currentResult.newY}\right\}` });
             calculator.current.setExpression({ id: "initial", color: Desmos.Colors.ORANGE, pointStyle: Desmos.Styles.POINT, label: "Initial", showLabel:true, latex:
                 `(${currentResult.currentX}, ${currentResult.currentY})` });
             calculator.current.setExpression({ id: "final", color: Desmos.Colors.RED, pointStyle: Desmos.Styles.POINT, label: "Final", showLabel:true, latex:

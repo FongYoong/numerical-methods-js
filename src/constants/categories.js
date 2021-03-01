@@ -293,13 +293,13 @@ const categories = [
                 name: "Taylor Series Method",
                 path : "taylor",
                 component: OdeTaylor,
-                completed: false,
+                completed: true,
             },
             {
-                name: "Runge-Kutta",
+                name: "4th Order Runge-Kutta",
                 path : "runge",
                 component: OdeRunge,
-                completed: false,
+                completed: true,
             },
             {
                 name: "Multistep",
