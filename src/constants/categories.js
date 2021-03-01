@@ -284,10 +284,10 @@ const categories = [
         path : "ode",
         methods : [
             {
-                name: "Euler",
+                name: "Euler's Method",
                 path : "euler",
                 component: OdeEuler,
-                completed: false,
+                completed: true,
             },
             {
                 name: "Midpoint",

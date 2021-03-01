@@ -146,7 +146,7 @@ function OptiGradient({methodName}) {
     const columnWidth = smallScreen ? 45 : 60;
     const rowHeight = smallScreen ? 35 : 35;
     const widthPadding = smallScreen ? 10 : 100;
-    const heightPadding = smallScreen ? 5 : 20;    
+    const heightPadding = smallScreen ? 5 : 20;
     
     let [vectorState, setVectorState] = useState(initialMatrix17);
 
@@ -332,7 +332,6 @@ function OptiGradient({methodName}) {
                             </Card>
                         </Grid>
                     </Grid>
-
 
                     <Grid container spacing={1} direction="row" alignItems="center" justify="center">
                         <Grid xs item className="vector-input" container spacing={1} direction="column" alignItems="center" justify="center">
