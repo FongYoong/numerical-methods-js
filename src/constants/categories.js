@@ -40,7 +40,7 @@ const IntegralQuadrature = lazy(() => import('../components/methods/integral/Qua
 const IntegralMonteCarlo = lazy(() => import('../components/methods/integral/MonteCarlo'));
 
 const OdeEuler = lazy(() => import('../components/methods/ode/Euler'));
-const OdeMidpoint = lazy(() => import('../components/methods/ode/Midpoint'));
+const OdeTaylor = lazy(() => import('../components/methods/ode/Taylor'));
 const OdeRunge = lazy(() => import('../components/methods/ode/Runge'));
 const OdeMultistep = lazy(() => import('../components/methods/ode/Multistep'));
 const OdePredictor = lazy(() => import('../components/methods/ode/Predictor'));
@@ -290,9 +290,9 @@ const categories = [
                 completed: true,
             },
             {
-                name: "Midpoint",
-                path : "midpoint",
-                component: OdeMidpoint,
+                name: "Taylor Series Method",
+                path : "taylor",
+                component: OdeTaylor,
                 completed: false,
             },
             {

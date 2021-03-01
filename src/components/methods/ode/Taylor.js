@@ -1,12 +1,12 @@
-import {isValidMath, formatLatex, mathjsKeywords} from "../../utils";
-import {initialMatrix18 as initialMatrix, generateGridCallback, gridTo2DArray} from "../../matrix_utils";
+import {isValidMath, formatLatex, mathjsToLatex, mathjsKeywords} from "../../utils";
+import {initialMatrix19 as initialMatrix, generateGridCallback, gridTo2DArray, numberFactorials} from "../../matrix_utils";
 import React, {useState, useEffect} from "react";
 import Header from "../../header/Header";
 import Graph from "../../Graph";
 import * as Desmos from 'desmos';
 
 import { addStyles, EditableMathField } from 'react-mathquill';
-import { parse } from 'mathjs';
+import { parse, derivative } from 'mathjs';
 import 'katex/dist/katex.min.css';
 import TeX from '@matejmazur/react-katex';
 
@@ -21,8 +21,6 @@ import TextField from '@material-ui/core/TextField';
 import { Alert } from '@material-ui/lab';
 import Box from '@material-ui/core/Box';
 import Slider from '@material-ui/core/Slider';
-import Checkbox from '@material-ui/core/Checkbox';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Tooltip from '@material-ui/core/Tooltip';
 import Fab from '@material-ui/core/Fab';
 import HelpIcon from '@material-ui/icons/Help';
@@ -37,17 +35,17 @@ import ReactDataGrid from 'react-data-grid';
 
 const TOUR_STEPS: JoyrideStep[] = [
     {
-        target: ".heun-input",
-        title: "Heun's method",
-        content:
-        "If checked, Heun's method will be used instead of the default Euler's method.",
-        disableBeacon: true,
-    },
-    {
         target: ".function-input",
         title: "Function",
         content:
         "Type a math function which only has the variables x and/or y. cos, sin and e are supported.",
+        disableBeacon: true,
+    },
+    {
+        target: ".order-input",
+        title: "Order",
+        content:
+            "Specify the maximum differential order.",
     },
     {
         target: ".initialVector-input",
@@ -65,7 +63,7 @@ const TOUR_STEPS: JoyrideStep[] = [
         target: ".iteration-input",
         title: "Iterations",
         content:
-            "Specify the number of iterations to apply Euler's method.",
+            "Specify the number of iterations to apply this method.",
     },
     {
         target: ".iteration-slider",
@@ -112,7 +110,7 @@ const useStyles = makeStyles((theme) => ({
 
 addStyles(); // inserts the required css to the <head> block for mathquill
 
-function OdeEuler({methodName}) {
+function OdeTaylor({methodName}) {
     useEffect(() => {
         // Set webpage title
         document.title = methodName;
@@ -121,11 +119,8 @@ function OdeEuler({methodName}) {
     const styleClasses = useStyles();
     const smallScreen = useMediaQuery(useTheme().breakpoints.down('sm'));
 
-    // Scaling mode
-    const [heunMode, setHeunMode] = useState(true);
-
     // Function
-    const [functionLatex, setFunctionLatex] = useState(String.raw`x+y`);
+    const [functionLatex, setFunctionLatex] = useState(String.raw`2xy`);
     const [functionText, setFunctionText] = useState('');
 
     let functionNode;
@@ -147,6 +142,19 @@ function OdeEuler({methodName}) {
     catch(e) {
         functionError = true;
         functionErrorText = e === "variableName" ? "Only x and y variables are allowed." :  "Invalid equation!";
+    }
+
+    // Order
+    const [order, setOrder] = useState(4);
+    let orderError = false;
+    let orderErrorText = "";
+    if (isNaN(order) || !Number.isInteger(order) || order <= 0) {
+        orderError = true;
+        orderErrorText = "Order must be a positive integer!";
+    }
+    else if (order > 10) {
+        orderError = true;
+        orderErrorText = "Order too high! It is limited to 10! for performance reasons.";
     }
 
     // Grid/Vector
@@ -179,33 +187,53 @@ function OdeEuler({methodName}) {
         iterErrorText = "Iterations must be a positive integer!";
     }
 
-    let hasError = functionError || stepSizeError || iterError;
+    let hasError = functionError || orderError || stepSizeError || iterError;
+
+
+
+/*
+    const derivValue = useMemo(() => {
+        let d = derivative(functionNode, 'x');
+        for (let i = 0; i < order - 1; i++) {
+            d = derivative(d, 'x');
+        }
+        return d;
+    }, [functionNode, order]);
+    */
 
     // Solve
     let solve = false;
+    let derivNodes = [functionNode];
+    let derivLatex = String.raw`\displaystyle
+    \begin{array}{l}
+    \\ y^{'} = ${functionLatex}
+    `;
     let results = [];
     if (isValidMath(functionNode) && !hasError) {
         solve = true;
+        for (let i = 1; i < order; i++) {
+            derivNodes.push(derivative(derivNodes[i - 1], 'x'));
+            derivLatex += String.raw`
+            \\ y^{${`'`.repeat(i + 1)}} = ${mathjsToLatex(derivNodes[i])}`;
+        }
+        derivLatex += String.raw`\end{array}`;
         for (let iter = 0; iter < iterations; iter++) {
             const currentX = (iter === 0) ? initialVector[0] : results[iter - 1].newX;
             const newX = currentX + stepSize;
             const currentY = (iter === 0) ? initialVector[1] : results[iter - 1].newY;
-            const functionResult = functionNode.evaluate({x: currentX, y: currentY});
-            let functionResultHeun, tempY;
-            let newY = currentY + stepSize * functionResult;
-            if (heunMode) {
-                functionResultHeun = functionNode.evaluate({x: newX, y: newY});
-                tempY = newY;
-                newY = currentY + stepSize / 2 * (functionResult + functionResultHeun);
+            let newY = currentY;
+            let derivResults = [];
+            for (let i = 1; i <= order; i++) {
+                const result = derivNodes[i - 1].evaluate({x: currentX, y: currentY});
+                derivResults.push(result);
+                newY += Math.pow(stepSize, i) * result / numberFactorials[i];
             }
             results.push({
                 currentX,
                 currentY,
                 newX,
                 newY,
-                tempY,
-                functionResult,
-                functionResultHeun
+                derivResults,
             });
         }
     }
@@ -221,7 +249,7 @@ function OdeEuler({methodName}) {
         }
     };
 
-    let params = {functionLatex, heunMode, initialVector, stepSize, iterations, results, smallScreen};
+    let params = {functionLatex, order, initialVector, stepSize, iterations, derivNodes, results, smallScreen};
     
     return (
         <>
@@ -251,23 +279,44 @@ function OdeEuler({methodName}) {
                                             setFunctionText(mathField.text())
                                         }}
                                     />
-                                    <Collapse in={functionError}>
-                                        <Alert severity="error">
-                                            {functionErrorText}
-                                        </Alert>
-                                    </Collapse>
                                 </CardContent>
                             </Card>
                         </Grid>
-                        <Grid xs item className="heun-input" container spacing={1} direction="row" alignItems="center" justify="center">
-                            <FormControlLabel
-                                control={<Checkbox checked={heunMode} onChange={(event) => setHeunMode(event.target.checked)} name="heunMode" />}
-                                label="Use Heun's Method"
-                            />
+                        <Grid xs item className="derivative-display">
+                            <Box border={1} borderRadius={5} boxShadow={2}>
+                                <Collapse in={functionError}>
+                                    <Alert severity="error">
+                                        {functionErrorText}
+                                    </Alert>
+                                </Collapse>
+                                <Collapse in={!functionError}>
+                                    {!functionError && <Fade triggerOnce>
+                                    <TeX math={derivLatex} block />
+                                    </Fade>}
+                                </Collapse>
+                            </Box>
                         </Grid>
                     </Grid>
-
                     <Grid container spacing={1} direction="row" alignItems="center" justify="center">
+                        <Grid xs item className="order-input">
+                            <Card className={styleClasses.card}>
+                                <CardContent className={styleClasses.cardContent}>
+                                    <Typography variant="h6">
+                                        Order:
+                                    </Typography>
+                                    <TextField
+                                        disabled={false}
+                                        type="number"
+                                        onChange={(event)=>setOrder(parseInt(event.target.value))}
+                                        error={orderError}
+                                        label={orderError?"Error":""}
+                                        defaultValue={order.toString()}
+                                        helperText={orderErrorText}
+                                        variant="outlined"
+                                    />
+                                </CardContent>
+                            </Card>
+                        </Grid>
                         <Grid xs item className="initialVector-input" container spacing={1} direction="column" alignItems="center" justify="center">
                             <Grid xs item>
                                 <Typography variant="h6">
@@ -290,6 +339,10 @@ function OdeEuler({methodName}) {
                                 </Grid>
                             </Grid>
                         </Grid>
+                    </Grid>
+
+                    <Grid container spacing={1} direction="row" alignItems="center" justify="center">
+
                         <Grid xs item className="stepSize-input">
                             <Card className={styleClasses.card}>
                                 <CardContent className={styleClasses.cardContent}>
@@ -379,11 +432,18 @@ function Steps({params}) {
         setCurrentIteration(params.iterations);
     }
     else {
+
+        let formulaLatex = String.raw`h y_{${currentIteration - 1}}^{'}`;
+        let valuesLatex = String.raw`${params.stepSize} (${formatLatex(currentResult.derivResults[0])})`;
+        for (let i = 2; i <= params.order; i++) {
+            //derivLatex += String.raw`\\ y^{${`'`.repeat(i + 1)}} = ${mathjsToLatex(params.derivNodes[i])}`;
+            formulaLatex += String.raw`+ \frac{h^{${i}}}{${i}!} y_{${currentIteration - 1}}^{${`'`.repeat(i)}}`;
+            valuesLatex += String.raw`+ \frac{${params.stepSize}^{${i}}}{${numberFactorials[i]}} ( ${formatLatex(currentResult.derivResults[i - 1])} )`;
+        }
         latexContent =
         String.raw`
         \displaystyle
         \begin{array}{l}
-        \\ \frac{dy}{dx} = ${params.functionLatex}
         \\
         \begin{array}{lcl}
         \\ x_{${currentIteration}} &=& x_{${currentIteration - 1}} + h
@@ -391,41 +451,22 @@ function Steps({params}) {
         \\                         &=& ${formatLatex(currentResult.newX)}
         \end{array}
         \\
+        \begin{array}{lcl}
+        \\ y_{${currentIteration}} &=& y_{${currentIteration - 1}} + ${formulaLatex}
+        \\
+        \\                         &=& ${formatLatex(currentResult.currentY)} + ${valuesLatex}
+        \\
+        \\                         &=& ${formatLatex(currentResult.newY)}
+
+        \end{array}\end{array}
         `;
 
-        if (params.heunMode) {
-            latexContent += String.raw`
-            \begin{array}{lcl}
-            \\ y_{${currentIteration}}^{*} &=& y_{${currentIteration - 1}} + h \cdot f(x_{${currentIteration - 1}}, y_{${currentIteration - 1}})
-            \\
-            \\                         &=& ${formatLatex(currentResult.currentY)} + ${formatLatex(params.stepSize)} \cdot ${formatLatex(currentResult.functionResult)}
-            \\
-            \\                         &=& ${formatLatex(currentResult.tempY)}
-            \end{array}
-            \\
-            \begin{array}{lcl}
-            \\ y_{${currentIteration}} &=& y_{${currentIteration - 1}} + \frac{h}{2} ( f(x_{${currentIteration - 1}}, y_{${currentIteration - 1}}) + f(x_{${currentIteration}}, y_{${currentIteration}}^{*}) )
-            \\
-            \\                         &=& ${formatLatex(currentResult.currentY)} + \frac{${formatLatex(params.stepSize)}}{2} ( ${formatLatex(currentResult.functionResult)} + ${formatLatex(currentResult.functionResultHeun)} )
-            \\
-            \\                         &=& ${formatLatex(currentResult.newY)}
-            \end{array}
-            `;
-        }
-        else {
-            latexContent += String.raw`
-            \begin{array}{lcl}
-            \\ y_{${currentIteration}} &=& y_{${currentIteration - 1}} + h \cdot f(x_{${currentIteration - 1}}, y_{${currentIteration - 1}})
-            \\
-            \\                         &=& ${formatLatex(currentResult.currentY)} + ${formatLatex(params.stepSize)} \cdot ${formatLatex(currentResult.functionResult)}
-            \\
-            \\                         &=& ${formatLatex(currentResult.newY)}
-            \end{array}
-            `;
-        }
-
         latexContent += String.raw`
-        \end{array}
+
+
+        `;
+        latexContent += String.raw`
+    
         `
         graphCallback = (calculator, currentResult) => {
             for (let i = 0; i < params.iterations; i++){
@@ -502,4 +543,4 @@ function Steps({params}) {
     )
 }
 
-export default OdeEuler;
+export default OdeTaylor;
