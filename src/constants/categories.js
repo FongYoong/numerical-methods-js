@@ -302,10 +302,10 @@ const categories = [
                 completed: true,
             },
             {
-                name: "Multistep",
+                name: "Adams-Moulton",
                 path : "multistep",
                 component: OdeMultistep,
-                completed: false,
+                completed: true,
             },
             {
                 name: "Predictor-Corrector",

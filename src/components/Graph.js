@@ -68,7 +68,7 @@ const DialogContent =  withStyles((theme) => ({
             desmosDiv.current.style.height = smallScreen?'90vh':'60vh';
             const desmosOptions = {
                 keypad: false,
-                expressions: false,
+                expressions: true,
                 expressionsTopbar: false,
             };
             calculator.current = Desmos.GraphingCalculator(desmosDiv.current, desmosOptions);

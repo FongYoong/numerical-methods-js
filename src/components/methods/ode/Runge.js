@@ -175,17 +175,16 @@ function OdeRunge({methodName}) {
     let results = [];
     if (isValidMath(functionNode) && !hasError) {
         solve = true;
+        const stepHalf = stepSize / 2;
         for (let iter = 0; iter < iterations; iter++) {
             const currentX = (iter === 0) ? initialVector[0] : results[iter - 1].newX;
             const newX = currentX + stepSize;
             const currentY = (iter === 0) ? initialVector[1] : results[iter - 1].newY;
-            //const functionResult = functionNode.evaluate({x: currentX, y: currentY});
-            const stepHalf = stepSize / 2;
             const k1 = functionNode.evaluate({x: currentX, y: currentY});
             const k2 = functionNode.evaluate({x: currentX + stepHalf, y: currentY + k1 * stepHalf});
             const k3 = functionNode.evaluate({x: currentX + stepHalf, y: currentY + k2 * stepHalf});
             const k4 = functionNode.evaluate({x: currentX + stepSize, y: currentY + k3 * stepSize});
-            let newY = currentY + stepSize / 6 * (k1 + 2 * k2 + 2 * k3 + k4);
+            const newY = currentY + stepSize / 6 * (k1 + 2 * k2 + 2 * k3 + k4);
             results.push({
                 currentX,
                 currentY,
@@ -227,7 +226,7 @@ function OdeRunge({methodName}) {
                             <Card className={styleClasses.card}>
                                 <CardContent className={styleClasses.cardContent}>
                                     <Typography variant="h6">
-                                        Function, <TeX math={String.raw`f(x)`} />:
+                                        Function, <TeX math={String.raw`f(x, y)`} />:
                                     </Typography>
                                     <EditableMathField
                                         disabled={false}

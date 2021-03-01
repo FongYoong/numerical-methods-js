@@ -254,7 +254,7 @@ function OdeTaylor({methodName}) {
                             <Card className={styleClasses.card}>
                                 <CardContent className={styleClasses.cardContent}>
                                     <Typography variant="h6">
-                                        Function, <TeX math={String.raw`f(x)`} />:
+                                        Function, <TeX math={String.raw`f(x, y)`} />:
                                     </Typography>
                                     <EditableMathField
                                         disabled={false}
@@ -432,7 +432,6 @@ function Steps({params}) {
         String.raw`
         \displaystyle
         \begin{array}{l}
-        \\
         \begin{array}{lcl}
         \\ x_{${currentIteration}} &=& x_{${currentIteration - 1}} + h
         \\                         &=& ${formatLatex(currentResult.currentX)} + ${formatLatex(params.stepSize)}

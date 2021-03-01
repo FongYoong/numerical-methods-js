@@ -238,7 +238,7 @@ function OdeEuler({methodName}) {
                             <Card className={styleClasses.card}>
                                 <CardContent className={styleClasses.cardContent}>
                                     <Typography variant="h6">
-                                        Function, <TeX math={String.raw`f(x)`} />:
+                                        Function, <TeX math={String.raw`f(x, y)`} />:
                                     </Typography>
                                     <EditableMathField
                                         disabled={false}
