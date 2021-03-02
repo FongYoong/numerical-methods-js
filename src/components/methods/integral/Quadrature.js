@@ -111,18 +111,17 @@ function IntegralQuadrature({methodName}) {
     let functionErrorText = "";
     try {
         functionNode = parse(functionText);
+        functionNode.traverse(function (node, path, parent) {
+            if (node.type === 'SymbolNode' && !mathjsKeywords.includes(node.name)) {
+                if (node.name !== 'x') {
+                    throw "variableName";
+                }
+            }
+        });
     }
-    catch {
+    catch (e) {
         functionError = true;
-        functionErrorText = "Invalid equation!";
-    }
-    try {
-        // Check variables
-        functionNode.evaluate({x : 0});
-    }
-    catch {
-        functionError = true;
-        functionErrorText = "Only variable x is allowed!";
+        functionErrorText = e === "variableName" ? "Only x variable is allowed." :  "Invalid equation!";
     }
 
     // Interval

@@ -1,4 +1,4 @@
-import {isValidMath, formatLatex} from "../../utils";
+import {isValidMath, mathjsKeywords, formatLatex} from "../../utils";
 import React, {useState, useEffect} from "react";
 import Header from "../../header/Header";
 import Graph from "../../Graph";
@@ -110,7 +110,7 @@ function IntegralMonteCarlo({methodName}) {
     const styleClasses = useStyles();
     const smallScreen = useMediaQuery(useTheme().breakpoints.down('sm'));
 
-    // 
+    // Function
     const [functionLatex, setFunctionLatex] = useState(String.raw`\left(x-3\right)^{3}+2\left(x-3\right)^{2}-1`);
     const [functionText, setFunctionText] = useState('');
 
@@ -119,18 +119,17 @@ function IntegralMonteCarlo({methodName}) {
     let functionErrorText = "";
     try {
         functionNode = parse(functionText);
+        functionNode.traverse(function (node, path, parent) {
+            if (node.type === 'SymbolNode' && !mathjsKeywords.includes(node.name)) {
+                if (node.name !== 'x') {
+                    throw "variableName";
+                }
+            }
+        });
     }
-    catch {
+    catch(e) {
         functionError = true;
-        functionErrorText = "Invalid equation!";
-    }
-    try {
-        // Check variables
-        functionNode.evaluate({x : 0});
-    }
-    catch {
-        functionError = true;
-        functionErrorText = "Only variable x is allowed!";
+        functionErrorText = e === "variableName" ? "Only x variable is allowed." :  "Invalid equation!";
     }
 
     // Interval

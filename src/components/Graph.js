@@ -55,10 +55,10 @@ const DialogContent =  withStyles((theme) => ({
 
     const updateGraph = useCallback(() => {
         if (calculator.current){
-            calculator.current.updateSettings({ xAxisArrowMode: Desmos.AxisArrowModes.POSITIVE, yAxisArrowMode: Desmos.AxisArrowModes.POSITIVE });
-            params.graphCallback(calculator, currentResult);
+            calculator.current.updateSettings({xAxisLabel: 'x', yAxisLabel: 'y',  xAxisArrowMode: Desmos.AxisArrowModes.POSITIVE, yAxisArrowMode: Desmos.AxisArrowModes.POSITIVE });
+            params.graphCallback(calculator, currentResult, currentIteration);
         }
-    }, [calculator, currentResult, params]);
+    }, [calculator, currentResult, params, currentIteration]);
     updateGraph();
 
     useEffect(() => {
@@ -68,7 +68,7 @@ const DialogContent =  withStyles((theme) => ({
             desmosDiv.current.style.height = smallScreen?'90vh':'60vh';
             const desmosOptions = {
                 keypad: false,
-                expressions: true,
+                expressions: false,
                 expressionsTopbar: false,
             };
             calculator.current = Desmos.GraphingCalculator(desmosDiv.current, desmosOptions);

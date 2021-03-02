@@ -38,6 +38,12 @@ export function isValidMath(value) {
   else if (value.hasOwnProperty("implicit")) {
     return true;
   }
+  else if (value.hasOwnProperty("args") && value.args.length > 0) {
+    return true;
+  }
+  else if (value.hasOwnProperty("name")) {
+    return true;
+  }
   return false;
 }
 

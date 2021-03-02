@@ -20,13 +20,7 @@ const EigenShiftedPower = lazy(() => import('../components/methods/eigen/Shifted
 const EigenDiscs = lazy(() => import('../components/methods/eigen/Discs'));
 
 const OptiGoldenSearch = lazy(() => import('../components/methods/optimisation/GoldenSearch'));
-const OptiParabolic = lazy(() => import('../components/methods/optimisation/Parabolic'));
 const OptiGradient = lazy(() => import('../components/methods/optimisation/Gradient'));
-const OptiLinearProg = lazy(() => import('../components/methods/optimisation/LinearProg'));
-
-const CurveLinear = lazy(() => import('../components/methods/curve/Linear'));
-const CurvePoly = lazy(() => import('../components/methods/curve/Polynomial'));
-const CurveSpline = lazy(() => import('../components/methods/curve/Spline'));
 
 const FFT = lazy(() => import('../components/methods/fourier/FFT'));
 
@@ -43,7 +37,8 @@ const OdeEuler = lazy(() => import('../components/methods/ode/Euler'));
 const OdeTaylor = lazy(() => import('../components/methods/ode/Taylor'));
 const OdeRunge = lazy(() => import('../components/methods/ode/Runge'));
 const OdeMultistep = lazy(() => import('../components/methods/ode/Multistep'));
-const OdePredictor = lazy(() => import('../components/methods/ode/Predictor'));
+const OdeSystem = lazy(() => import('../components/methods/ode/System'));
+
 
 const categories = [
     {
@@ -105,16 +100,16 @@ const categories = [
                 completed: true,
             },
             {
-                name: "Singular Value Decomposition",
-                path : "svd",
-                component: LinearSVD,
-                completed: false,
-            },
-            {
                 name: "QR Decomposition",
                 path : "qr",
                 component: LinearQR,
                 completed: true,
+            },
+            {
+                name: "Singular Value Decomposition",
+                path : "svd",
+                component: LinearSVD,
+                completed: false,
             },
             {
                 name: "Inverse Matrix",
@@ -171,58 +166,10 @@ const categories = [
                 completed: true,
             },
             {
-                name: "Parabolic Interpolation",
-                path : "parabolic",
-                component: OptiParabolic,
-                completed: false,
-            },
-            {
                 name: "Gradient Method",
                 path : "gradient",
                 component: OptiGradient,
                 completed: true,
-            },
-            {
-                name: "Linear Programming",
-                path : "linear_prog",
-                component: OptiLinearProg,
-                completed: false,
-            },
-        ]
-    },
-    {
-        name : "Curve Fitting",
-        path : "curve",
-        methods : [
-            {
-                name: "Linear",
-                path : "linear",
-                component: CurveLinear,
-                completed: false,
-            },
-            {
-                name: "Polynomial Regression",
-                path : "poly",
-                component: CurvePoly,
-                completed: false,
-            },
-            {
-                name: "Spline Interpolation",
-                path : "spline",
-                component: CurveSpline,
-                completed: false,
-            }
-        ]
-    },
-    {
-        name : "Fourier Methods",
-        path : "fourier",
-        methods : [
-            {
-                name: "Fast Fourier Transform",
-                path : "fft",
-                component: FFT,
-                completed: false,
             },
         ]
     },
@@ -308,9 +255,21 @@ const categories = [
                 completed: true,
             },
             {
-                name: "Predictor-Corrector",
-                path : "predictor",
-                component: OdePredictor,
+                name: "1st Order Systems of Equations",
+                path : "system",
+                component: OdeSystem,
+                completed: true,
+            },
+        ]
+    },
+    {
+        name : "Fourier Methods",
+        path : "fourier",
+        methods : [
+            {
+                name: "Fast Fourier Transform",
+                path : "fft",
+                component: FFT,
                 completed: false,
             },
         ]

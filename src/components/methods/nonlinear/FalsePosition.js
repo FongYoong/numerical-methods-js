@@ -1,4 +1,4 @@
-import {isValidMath, mathjsToLatex, formatLatex} from "../../utils";
+import {isValidMath, mathjsKeywords, formatLatex} from "../../utils";
 import React, {useState, useEffect} from "react";
 import Header from "../../header/Header";
 import Graph from "../../Graph";
@@ -112,10 +112,17 @@ function NonlinearFalsePosition({methodName}) {
     let functionErrorText = "";
     try {
         functionValue = parse(functionText);
+        functionValue.traverse(function (node, path, parent) {
+            if (node.type === 'SymbolNode' && !mathjsKeywords.includes(node.name)) {
+                if (node.name !== 'x') {
+                    throw "variableName";
+                }
+            }
+        });
     }
-    catch {
+    catch(e) {
         functionError = true;
-        functionErrorText = "Invalid equation!";
+        functionErrorText = e === "variableName" ? "Only x variable is allowed." :  "Invalid equation!";
     }
 
     // Interval
@@ -511,7 +518,7 @@ function Steps({params}) {
                                 <Box id="iteration-slider" height={smallScreen?null:"20rem"} width={smallScreen?"70vw":null}>
                                     <Slider
                                         orientation={smallScreen?"horizontal":"vertical"}
-                                        onChangeCommitted={(event, value) => setCurrentIteration(value)}
+                                        onChange={(event, value) => setCurrentIteration(value)}
                                         defaultValue={1}
                                         aria-labelledby="discrete-slider-small-steps"
                                         step={1}

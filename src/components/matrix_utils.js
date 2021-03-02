@@ -550,3 +550,13 @@ export const initialMatrix19 = {
         { col_1: 1, col_2: 1},
     ]
 }
+export const initialMatrix20 = {
+    columns: [
+        { key: "col_1", name: "x", ...columnSettings },
+        { key: "col_2", name: "y", ...columnSettings },
+        { key: "col_3", name: "u", ...columnSettings },
+    ],
+    rows: [
+        { col_1: 0, col_2: 1, col_3: 2},
+    ]
+}

@@ -1,4 +1,4 @@
-import {isValidMath, mathjsToLatex, formatLatex} from "../../utils";
+import {isValidMath, mathjsToLatex, mathjsKeywords, formatLatex} from "../../utils";
 import React, {useState, useEffect} from "react";
 import Header from "../../header/Header";
 import Graph from "../../Graph";
@@ -133,10 +133,17 @@ function NonlinearNewton({methodName}) {
         functionValue = parse(functionText);
         derivValue = derivative(functionText, 'x');
         derivLatex = mathjsToLatex(derivValue);
+        functionValue.traverse(function (node, path, parent) {
+            if (node.type === 'SymbolNode' && !mathjsKeywords.includes(node.name)) {
+                if (node.name !== 'x') {
+                    throw "variableName";
+                }
+            }
+        });
     }
-    catch {
+    catch(e) {
         functionError = true;
-        functionErrorText = "Invalid equation!";
+        functionErrorText = e === "variableName" ? "Only x variable is allowed." :  "Invalid equation!";
     }
 
     // Iterations

@@ -150,7 +150,7 @@ function OptiGradient({methodName}) {
     
     let [vectorState, setVectorState] = useState(initialMatrix17);
 
-    let initialVector = {   columns:[], rows:[{}]    };
+    let initialVector = { columns:[], rows:[{}] };
     const addVariableToVector = (variableName, variableValue) => {
         const columns = initialVector.columns;
         const rows = initialVector.rows;

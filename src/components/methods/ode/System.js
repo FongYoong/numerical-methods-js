@@ -1,6 +1,6 @@
 import {isValidMath, formatLatex, mathjsKeywords} from "../../utils";
-import {initialMatrix18 as initialMatrix, generateGridCallback, gridTo2DArray} from "../../matrix_utils";
-import React, {useState, useEffect} from "react";
+import {initialMatrix20 as initialMatrix, createNewColumn, generateGridCallback, gridTo2DArray, cloneArray} from "../../matrix_utils";
+import React, {useState, useEffect, useRef} from "react";
 import Header from "../../header/Header";
 import Graph from "../../Graph";
 import * as Desmos from 'desmos';
@@ -21,8 +21,6 @@ import TextField from '@material-ui/core/TextField';
 import { Alert } from '@material-ui/lab';
 import Box from '@material-ui/core/Box';
 import Slider from '@material-ui/core/Slider';
-import Checkbox from '@material-ui/core/Checkbox';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Tooltip from '@material-ui/core/Tooltip';
 import Fab from '@material-ui/core/Fab';
 import HelpIcon from '@material-ui/icons/Help';
@@ -35,25 +33,29 @@ import { makeStyles } from '@material-ui/core/styles';
 
 import ReactDataGrid from 'react-data-grid';
 
+const ORDER_NAMES = ['x', 'y', 'u', 'v', 'w', 'z', 'p', 'q', 'r', 's', 't'];
+const ORDER_FUNCTIONS = [String.raw`u`, '-x u-y'];
+const ORDER_FUNCTIONS_TEXT = [String.raw`u`, '-x u-y'];
+
 const TOUR_STEPS: JoyrideStep[] = [
     {
-        target: ".heun-input",
-        title: "Heun's method",
+        target: ".order-input",
+        title: "Order/Number of equations",
         content:
-        "If checked, Heun's method will be used instead of the default Euler's method.",
+        "Specify the number of 1st order differential equations.",
         disableBeacon: true,
     },
     {
         target: ".function-input",
         title: "Function",
         content:
-        "Type a math function which only has the variables x and/or y. cos, sin and e are supported.",
+        "Type each function containing the relevant variables. cos, sin and e are supported.",
     },
     {
         target: ".initialVector-input",
-        title: "Initial x and y value",
+        title: "Initial values",
         content:
-            "Specify the initial/starting value of x and y.",
+            "Specify the initial/starting values of each variable.",
     },
     {
         target: ".stepSize-input",
@@ -112,7 +114,7 @@ const useStyles = makeStyles((theme) => ({
 
 addStyles(); // inserts the required css to the <head> block for mathquill
 
-function OdeEuler({methodName}) {
+function OdeSystem({methodName}) {
     useEffect(() => {
         // Set webpage title
         document.title = methodName;
@@ -121,41 +123,95 @@ function OdeEuler({methodName}) {
     const styleClasses = useStyles();
     const smallScreen = useMediaQuery(useTheme().breakpoints.down('sm'));
 
-    // Heun mode
-    const [heunMode, setHeunMode] = useState(true);
+    // Solver mode: Euler or Runge
+    const [rungeMode, setRungeMode] = useState(true);
 
-    // Function
-    const [functionLatex, setFunctionLatex] = useState(String.raw`x+y`);
-    const [functionText, setFunctionText] = useState('');
+    // Order/ Number of equations
+    const [order, setOrder] = useState(2);
+    const orderArray = [...Array(order).keys()];
+    const validVariables = ORDER_NAMES.slice(0, order + 1);
+    let orderError = false;
+    let orderErrorText = "";
+    if (isNaN(order) || !Number.isInteger(order) || order <= 0) {
+        orderError = true;
+        orderErrorText = "Order must be a positive integer!";
+    }
+    else if (order < 2) {
+        orderError = true;
+        orderErrorText = "Order must be 2 or higher.";
+    }
+    else if (order > 9) {
+        orderError = true;
+        orderErrorText = "Order too high! A maximum of 9 is allowed for performance reasons.";
+    }
 
-    let functionNode;
-    let functionError = false;
-    let functionErrorText = "";
-    let variables = new Set(); // Unique set of variables
-    try {
-        functionNode = parse(functionText);
-        functionNode.traverse(function (node, path, parent) {
-            if (node.type === 'SymbolNode' && !mathjsKeywords.includes(node.name)) {
-                if (node.name !== 'x' && node.name !== 'y') {
-                    throw "variableName";
+    // Functions
+    const [functionLatexs, setFunctionLatexs] = useState(ORDER_FUNCTIONS.slice());
+    const [functionTexts, setFunctionTexts] = useState(ORDER_FUNCTIONS_TEXT.slice());
+
+    const functionLatexsRef= useRef();
+    functionLatexsRef.current = functionLatexs;
+    const functionTextsRef= useRef();
+    functionTextsRef.current = functionTexts;
+
+    const setSpecificFunctionLatex = (i, value) => {
+        let modified = functionLatexsRef.current.slice();
+        modified[i] = value;
+        setFunctionLatexs(modified);
+    }
+
+    const setSpecificFunctionText = (i, value) => {
+        let modified = functionTextsRef.current.slice();
+        modified[i] = value;
+        setFunctionTexts(modified);
+    }
+
+    let functionNodes = [];
+    let functionErrors = orderArray.slice().fill(false);
+    let functionErrorTexts = orderArray.slice().fill("");
+
+    for (let i = 0; i < order; i++){
+        //let variables = new Set(); // Unique set of variables
+        let funcNode;
+        try {
+            funcNode = parse(functionTexts[i]);
+            funcNode.traverse(function (node, path, parent) {
+                if (node.type === 'SymbolNode' && !mathjsKeywords.includes(node.name)) {
+                    if (!validVariables.includes(node.name)) {
+                        throw "variableName";
+                    }
                 }
-                variables.add(node.name);
-            }
-        });
-        variables = [...variables].sort(); // Alphabetical order
-    }
-    catch(e) {
-        functionError = true;
-        functionErrorText = e === "variableName" ? "Only x and y variables are allowed." :  "Invalid equation!";
+            });
+        }
+        catch(e) {
+            functionErrors[i] = true;
+            functionErrorTexts[i] = e === "variableName" ? `Only ${validVariables.join(',')} variables are allowed.` :  "Invalid equation!";
+        }
+        functionNodes.push(funcNode);
     }
 
-    // Grid/Vector
+    // Grid/Initial values
     const columnWidth = smallScreen ? 45 : 60;
     const rowHeight = smallScreen ? 35 : 35;
     const widthPadding = smallScreen ? 10 : 100;
     const heightPadding = smallScreen ? 5 : 20;
+
     let [vectorState, setVectorState] = useState(initialMatrix);
-    const initialVector = gridTo2DArray(vectorState.rows)[0];
+    let initialVector = { columns:[], rows:[{}] };
+    const addVariableToVector = (variableName, variableValue) => {
+        const columns = initialVector.columns;
+        const rows = initialVector.rows;
+        columns.push(createNewColumn(columns.length, variableName));
+        let colName = `col_${columns.length}`;
+        rows[0][colName] = vectorState.rows[0].hasOwnProperty(colName) ?  vectorState.rows[0][colName] : variableValue;
+    }
+    for (let i = 0; i <= order; i++) {
+        if (i <= 9){
+            addVariableToVector(ORDER_NAMES[i], 0);
+        }
+    }
+    vectorState = initialVector;
+    initialVector = gridTo2DArray(vectorState.rows)[0];
 
     // Step size
     const [stepSize, setStepSize] = useState(0.1);
@@ -179,34 +235,41 @@ function OdeEuler({methodName}) {
         iterErrorText = "Iterations must be a positive integer!";
     }
 
-    let hasError = functionError || stepSizeError || iterError;
-
+    let hasError = !functionErrors.every((e) => e === false) || stepSizeError || iterError;
     // Solve
     let solve = false;
-    let results = [];
-    if (isValidMath(functionNode) && !hasError) {
+    let results = {x: [], y: []};
+    orderArray.forEach((i) => {
+        if (i !== 0) {
+            results[ORDER_NAMES[i + 1]] = [];
+        }
+    });
+    if (functionNodes.every((n) => isValidMath(n)) && !hasError) {
         solve = true;
         for (let iter = 0; iter < iterations; iter++) {
-            const currentX = (iter === 0) ? initialVector[0] : results[iter - 1].newX;
-            const newX = currentX + stepSize;
-            const currentY = (iter === 0) ? initialVector[1] : results[iter - 1].newY;
-            const functionResult = functionNode.evaluate({x: currentX, y: currentY});
-            let functionResultHeun, tempY;
-            let newY = currentY + stepSize * functionResult;
-            if (heunMode) {
-                functionResultHeun = functionNode.evaluate({x: newX, y: newY});
-                tempY = newY;
-                newY = currentY + stepSize / 2 * (functionResult + functionResultHeun);
+            const currentX = (iter === 0) ? initialVector[0] : results.x[iter - 1];
+            // Get current values
+            for (let k = 0; k < order; k++) {
+                const varName = ORDER_NAMES[k + 1];
+                const currentValue = (iter === 0) ? initialVector[k + 1] : results[varName][iter - 1].newValue;
+                results[varName].push({
+                    currentValue,
+                });
             }
-            results.push({
-                currentX,
-                currentY,
-                newX,
-                newY,
-                tempY,
-                functionResult,
-                functionResultHeun
-            });
+            // Find new values
+            for (let k = 0; k < order; k++) {
+                const varName = ORDER_NAMES[k + 1];
+                const currentValue = results[varName][iter].currentValue;
+                const scope = {x: currentX, [varName]: currentValue};
+                validVariables.filter((value, index) => index !== 0 && index !== k + 1 ).forEach((value, index) => {
+                    scope[value] = results[value][iter].currentValue;
+                });
+                const functionResult = functionNodes[k].evaluate(scope);
+                const newValue = currentValue + stepSize * functionResult;
+                results[varName][iter] = {...results[varName][iter], newValue, functionResult};
+            }
+            const newX = currentX + stepSize;
+            results.x.push(newX);
         }
     }
 
@@ -221,8 +284,7 @@ function OdeEuler({methodName}) {
         }
     };
 
-    let params = {functionLatex, heunMode, initialVector, stepSize, iterations, results, smallScreen};
-    
+    let params = {functionLatexs, order, validVariables, initialVector, stepSize, iterations, results, smallScreen};
     return (
         <>
             <Header methodName = {methodName} />
@@ -230,52 +292,64 @@ function OdeEuler({methodName}) {
                 <Container className={styleClasses.container}>
                 <Zoom duration={500} triggerOnce cascade>
                     <Typography variant="body1">
-                        This method is applied in the form of &nbsp;
+                        This method is applied to 1st order differential equations of the form &nbsp;
                         <TeX math={String.raw`\frac{dy}{dx}=f(x)`} />.
                     </Typography>
-                    <Grid container spacing={1} direction="row" alignItems="center" justify="center">
-                        <Grid xs item className="function-input">
+                    <Grid className="order-input" container spacing={0} direction="row" alignItems="center" justify="center">
+                        <Card className={styleClasses.card}>
+                            <CardContent className={styleClasses.cardContent}>
+                                <Typography variant="h6">
+                                    Order / Number of equations:
+                                </Typography>
+                                <TextField
+                                    disabled={false}
+                                    type="number"
+                                    onChange={(event)=>setOrder(parseInt(event.target.value))}
+                                    error={orderError}
+                                    label={orderError?"Error":""}
+                                    defaultValue={order.toString()}
+                                    helperText={orderErrorText}
+                                    variant="outlined"
+                                />
+                            </CardContent>
+                        </Card>
+                    </Grid>
+                    <Grid className="function-input" container spacing={1} direction="row" alignItems="center" justify="center">
+                        {orderArray.map((i) =>
+                            <Grid key={"function" + i} xs item>
+                                <Card className={styleClasses.card}>
+                                    <CardContent className={styleClasses.cardContent}>
+                                        <Typography variant="h6">
+                                            <TeX math={i===0 ? String.raw`y^{'}, \frac{dy}{dx}` : String.raw`${ORDER_NAMES[i + 1]}^{'}, \frac{d${ORDER_NAMES[i + 1]}}{dx}`} />
+                                        </Typography>
+                                        <EditableMathField
+                                            disabled={false}
+                                            latex={ORDER_FUNCTIONS[i]}
+                                            onChange={(mathField) => {
+                                                setSpecificFunctionText(i, mathField.text());
+                                                setSpecificFunctionLatex(i, mathField.latex());
+                                            }}
+                                            mathquillDidMount={(mathField) => {
+                                            }}
+                                        />
+                                        <Collapse in={functionErrors[i]}>
+                                            <Alert severity="error">
+                                                {functionErrorTexts[i]}
+                                            </Alert>
+                                        </Collapse>
+                                    </CardContent>
+                                </Card>
+                            </Grid>
+                        )}
+                    </Grid>
+
+                    <Grid className="initialVector-input" container spacing={0} direction="row" alignItems="center" justify="center">
+                        <Grid item>
                             <Card className={styleClasses.card}>
                                 <CardContent className={styleClasses.cardContent}>
                                     <Typography variant="h6">
-                                        Function, <TeX math={String.raw`f(x, y)`} />:
+                                        Initial Values:
                                     </Typography>
-                                    <EditableMathField
-                                        disabled={false}
-                                        latex={functionLatex}
-                                        onChange={(mathField) => {
-                                            setFunctionText(mathField.text());
-                                            setFunctionLatex(mathField.latex());
-                                        }}
-                                        mathquillDidMount={(mathField) => {
-                                            setFunctionText(mathField.text())
-                                        }}
-                                    />
-                                    <Collapse in={functionError}>
-                                        <Alert severity="error">
-                                            {functionErrorText}
-                                        </Alert>
-                                    </Collapse>
-                                </CardContent>
-                            </Card>
-                        </Grid>
-                        <Grid xs item className="heun-input" container spacing={1} direction="row" alignItems="center" justify="center">
-                            <FormControlLabel
-                                control={<Checkbox checked={heunMode} onChange={(event) => setHeunMode(event.target.checked)} name="heunMode" />}
-                                label="Use Heun's Method"
-                            />
-                        </Grid>
-                    </Grid>
-
-                    <Grid container spacing={1} direction="row" alignItems="center" justify="center">
-                        <Grid xs item className="initialVector-input" container spacing={1} direction="column" alignItems="center" justify="center">
-                            <Grid xs item>
-                                <Typography variant="h6">
-                                    Initial Values:
-                                </Typography>
-                            </Grid>
-                            <Grid xs item container spacing={0} direction="row" alignItems="center" justify="center">
-                                <Grid key={1} item className={styleClasses.overflow}>
                                     <ReactDataGrid
                                         columns={vectorState.columns}
                                         rowGetter={i => vectorState.rows[i]}
@@ -287,9 +361,12 @@ function OdeEuler({methodName}) {
                                         rowHeight={rowHeight}
                                         minHeight={rowHeight * (vectorState.rows.length + 1) + heightPadding}
                                     />
-                                </Grid>
-                            </Grid>
+                                </CardContent>
+                            </Card>
                         </Grid>
+                    </Grid>
+
+                    <Grid container spacing={1} direction="row" alignItems="center" justify="center">
                         <Grid xs item className="stepSize-input">
                             <Card className={styleClasses.card}>
                                 <CardContent className={styleClasses.cardContent}>
@@ -370,77 +447,67 @@ function Steps({params}) {
 
     let hasError = false;
     let errorText = "";
-
-    let currentResult = params.results[currentIteration - 1];
-
     let latexContent, graphCallback;
 
     if (currentIteration > params.iterations) {
         setCurrentIteration(params.iterations);
     }
     else {
+        const results = params.results;
+        const currentX = (currentIteration === 1) ? params.initialVector[0] : results.x[currentIteration - 2];
+        const newX = results.x[currentIteration - 1];
+
         latexContent =
         String.raw`
         \displaystyle
         \begin{array}{l}
-        \\ \frac{dy}{dx} = ${params.functionLatex}
-        \\
         \begin{array}{lcl}
         \\ x_{${currentIteration}} &=& x_{${currentIteration - 1}} + h
-        \\                         &=& ${formatLatex(currentResult.currentX)} + ${formatLatex(params.stepSize)}
-        \\                         &=& ${formatLatex(currentResult.newX)}
+        \\                         &=& ${formatLatex(currentX)} + ${formatLatex(params.stepSize)}
+        \\                         &=& ${formatLatex(newX)}
         \end{array}
-        \\
         `;
-
-        if (params.heunMode) {
+        for (let k = 0; k < params.order; k++) {
+            const varName = ORDER_NAMES[k + 1];
+            const currentResult = results[varName][currentIteration - 1];
+            const argumentsLatex = params.validVariables.map((value, index) => {
+                return String.raw`${value}_{${currentIteration - 1}}`;
+            }).join(',');
             latexContent += String.raw`
-            \begin{array}{lcl}
-            \\ y_{${currentIteration}}^{*} &=& y_{${currentIteration - 1}} + h \cdot f(x_{${currentIteration - 1}}, y_{${currentIteration - 1}})
             \\
-            \\                         &=& ${formatLatex(currentResult.currentY)} + ${formatLatex(params.stepSize)} ( ${formatLatex(currentResult.functionResult)} )
-            \\
-            \\                         &=& ${formatLatex(currentResult.tempY)}
-            \end{array}
+            \\ \hline
+            \\ ${varName}^{'} = \frac{d${varName}}{dx} = ${params.functionLatexs[k]}
             \\
             \begin{array}{lcl}
-            \\ y_{${currentIteration}} &=& y_{${currentIteration - 1}} + \frac{h}{2} ( f(x_{${currentIteration - 1}}, y_{${currentIteration - 1}}) + f(x_{${currentIteration}}, y_{${currentIteration}}^{*}) )
+            \\ ${varName}_{${currentIteration}} &=& ${varName}_{${currentIteration - 1}} + h \cdot ${varName}^{'} ( ${argumentsLatex} )
             \\
-            \\                         &=& ${formatLatex(currentResult.currentY)} + \frac{${formatLatex(params.stepSize)}}{2} ( ${formatLatex(currentResult.functionResult)} + ${formatLatex(currentResult.functionResultHeun)} )
+            \\                         &=& ${formatLatex(currentResult.currentValue)} + ${formatLatex(params.stepSize)} ( ${formatLatex(currentResult.functionResult)} )
             \\
-            \\                         &=& ${formatLatex(currentResult.newY)}
-            \end{array}
-            `;
-        }
-        else {
-            latexContent += String.raw`
-            \begin{array}{lcl}
-            \\ y_{${currentIteration}} &=& y_{${currentIteration - 1}} + h \cdot f(x_{${currentIteration - 1}}, y_{${currentIteration - 1}})
-            \\
-            \\                         &=& ${formatLatex(currentResult.currentY)} + ${formatLatex(params.stepSize)} ( ${formatLatex(currentResult.functionResult)} )
-            \\
-            \\                         &=& ${formatLatex(currentResult.newY)}
+            \\                         &=& ${formatLatex(currentResult.newValue)}
             \end{array}
             `;
         }
 
         latexContent += String.raw`\end{array}`;
-        graphCallback = (calculator, currentResult) => {
+
+        graphCallback = (calculator, currentResult, currentIteration) => {
             for (let i = 0; i < params.iterations; i++){
-                const r = params.results[i];
+                const r = params.results['y'][i];
                 if (i === 0) {
                     calculator.current.setExpression({ id: "starting", color: Desmos.Colors.BLUE, pointStyle: Desmos.Styles.POINT, latex:
-                    `(${r.currentX}, ${r.currentY})` });
+                    `(${params.initialVector[0]}, ${r.currentValue})` });
                 }
                 calculator.current.setExpression({ id: i, color: Desmos.Colors.BLUE, pointStyle: Desmos.Styles.POINT, latex:
-                `(${r.newX}, ${r.newY})` });
+                `(${results.x[i]}, ${r.newValue})` });
             }
+            const currentX = (currentIteration === 1) ? params.initialVector[0] : results.x[currentIteration - 2];
+            const newX = results.x[currentIteration - 1];
             calculator.current.setExpression({ id: 'line', color: Desmos.Colors.GREEN, latex:
-            String.raw`(y-${currentResult.newY})/(x-${currentResult.newX})=${(currentResult.newY - currentResult.currentY)/(currentResult.newX - currentResult.currentX)} \left\{${currentResult.currentX}<x<${currentResult.newX}\right\} \left\{${currentResult.currentY}<y<${currentResult.newY}\right\}` });
+            String.raw`(y-${currentResult.newValue})/(x-${newX})=${(currentResult.newValue - currentResult.currentValue)/(newX - currentX)} \left\{${currentX}<x<${newX}\right\} \left\{${currentResult.currentValue}<y<${currentResult.newValue}\right\}` });
             calculator.current.setExpression({ id: "initial", color: Desmos.Colors.ORANGE, pointStyle: Desmos.Styles.POINT, label: "Initial", showLabel:true, latex:
-                `(${currentResult.currentX}, ${currentResult.currentY})` });
+                `(${currentX}, ${currentResult.currentValue})` });
             calculator.current.setExpression({ id: "final", color: Desmos.Colors.RED, pointStyle: Desmos.Styles.POINT, label: "Final", showLabel:true, latex:
-                `(${currentResult.newX}, ${currentResult.newY})` });
+                `(${newX}, ${currentResult.newValue})` });
         }
     }
 
@@ -489,7 +556,7 @@ function Steps({params}) {
                     </Grid>
                     <Grid xs item className="graph-button">
                         <Slide direction="right" triggerOnce>
-                            <Graph params={{currentIteration, graphCallback, smallScreen, ...params}} />
+                            <Graph params={{currentIteration, graphCallback, smallScreen, ...params, results: params.results['y']}} />
                         </Slide>
                     </Grid>
                 </Grid>
@@ -500,4 +567,4 @@ function Steps({params}) {
     )
 }
 
-export default OdeEuler;
+export default OdeSystem;
