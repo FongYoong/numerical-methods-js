@@ -21,6 +21,9 @@ import TextField from '@material-ui/core/TextField';
 import { Alert } from '@material-ui/lab';
 import Box from '@material-ui/core/Box';
 import Slider from '@material-ui/core/Slider';
+import Radio from '@material-ui/core/Radio';
+import RadioGroup from '@material-ui/core/RadioGroup';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Tooltip from '@material-ui/core/Tooltip';
 import Fab from '@material-ui/core/Fab';
 import HelpIcon from '@material-ui/icons/Help';
@@ -46,8 +49,14 @@ const TOUR_STEPS: JoyrideStep[] = [
         disableBeacon: true,
     },
     {
+        target: ".solver-type-input",
+        title: "Solver Type",
+        content:
+        "Choose either Euler or Runge-Kutta.",
+    },
+    {
         target: ".function-input",
-        title: "Function",
+        title: "Functions",
         content:
         "Type each function containing the relevant variables. cos, sin and e are supported.",
     },
@@ -67,7 +76,7 @@ const TOUR_STEPS: JoyrideStep[] = [
         target: ".iteration-input",
         title: "Iterations",
         content:
-            "Specify the number of iterations to apply Euler's method.",
+            "Specify the number of iterations to apply the selected method.",
     },
     {
         target: ".iteration-slider",
@@ -124,7 +133,7 @@ function OdeSystem({methodName}) {
     const smallScreen = useMediaQuery(useTheme().breakpoints.down('sm'));
 
     // Solver mode: Euler or Runge
-    const [rungeMode, setRungeMode] = useState(true);
+    const [solverType, setSolverType] = useState('runge');
 
     // Order/ Number of equations
     const [order, setOrder] = useState(2);
@@ -235,7 +244,8 @@ function OdeSystem({methodName}) {
         iterErrorText = "Iterations must be a positive integer!";
     }
 
-    let hasError = !functionErrors.every((e) => e === false) || stepSizeError || iterError;
+    let hasError = !functionErrors.every((e) => e === false) || orderError || stepSizeError || iterError;
+
     // Solve
     let solve = false;
     let results = {x: [], y: []};
@@ -246,6 +256,7 @@ function OdeSystem({methodName}) {
     });
     if (functionNodes.every((n) => isValidMath(n)) && !hasError) {
         solve = true;
+        const stepHalf = stepSize / 2;
         for (let iter = 0; iter < iterations; iter++) {
             const currentX = (iter === 0) ? initialVector[0] : results.x[iter - 1];
             // Get current values
@@ -257,16 +268,86 @@ function OdeSystem({methodName}) {
                 });
             }
             // Find new values
-            for (let k = 0; k < order; k++) {
-                const varName = ORDER_NAMES[k + 1];
-                const currentValue = results[varName][iter].currentValue;
-                const scope = {x: currentX, [varName]: currentValue};
-                validVariables.filter((value, index) => index !== 0 && index !== k + 1 ).forEach((value, index) => {
-                    scope[value] = results[value][iter].currentValue;
+            if (solverType === 'runge') {
+                // k1
+                const originalScope = {x: currentX};
+                validVariables.filter((value, index) => index !== 0).forEach((value, index) => {
+                    originalScope[value] = results[value][iter].currentValue;
                 });
-                const functionResult = functionNodes[k].evaluate(scope);
-                const newValue = currentValue + stepSize * functionResult;
-                results[varName][iter] = {...results[varName][iter], newValue, functionResult};
+                for (let k = 0; k < order; k++) {
+                    const varName = ORDER_NAMES[k + 1];
+                    const k1 = functionNodes[k].evaluate(originalScope);
+                    results[varName][iter]['k1'] = k1;
+                }
+                // k2
+                const k2Scope = cloneArray(originalScope);
+                validVariables.forEach((value, index) => {
+                    if (index === 0) {
+                        k2Scope[value] = k2Scope[value] + stepHalf;
+                    }
+                    else {
+                        k2Scope[value] = k2Scope[value] + stepHalf * results[value][iter].k1;
+                    }
+                });
+                for (let k = 0; k < order; k++) {
+                    const varName = ORDER_NAMES[k + 1];
+                    const k2 = functionNodes[k].evaluate(k2Scope);
+                    results[varName][iter]['k2'] = k2;
+                }
+                // k3
+                const k3Scope = cloneArray(originalScope);
+                validVariables.forEach((value, index) => {
+                    if (index === 0) {
+                        k3Scope[value] = k3Scope[value] + stepHalf;
+                    }
+                    else {
+                        k3Scope[value] = k3Scope[value] + stepHalf * results[value][iter].k2;
+                    }
+                });
+                for (let k = 0; k < order; k++) {
+                    const varName = ORDER_NAMES[k + 1];
+                    const k3 = functionNodes[k].evaluate(k3Scope);
+                    results[varName][iter]['k3'] = k3;
+                }
+                // k4
+                const k4Scope = cloneArray(originalScope);
+                validVariables.forEach((value, index) => {
+                    if (index === 0) {
+                        k4Scope[value] = k4Scope[value] + stepSize;
+                    }
+                    else {
+                        k4Scope[value] = k4Scope[value] + stepSize * results[value][iter].k3;
+                    }
+                });
+                for (let k = 0; k < order; k++) {
+                    const varName = ORDER_NAMES[k + 1];
+                    const k4 = functionNodes[k].evaluate(k4Scope);
+                    results[varName][iter]['k4'] = k4;
+                }
+
+                // Find new values
+                for (let k = 0; k < order; k++) {
+                    const varName = ORDER_NAMES[k + 1];
+                    const currentValue = results[varName][iter].currentValue;
+                    const newValue = currentValue + stepSize / 6 * (results[varName][iter]['k1']
+                                                                    + 2 * results[varName][iter]['k2']
+                                                                    + 2 * results[varName][iter]['k3']
+                                                                    + results[varName][iter]['k4']);
+                    results[varName][iter] = {...results[varName][iter], newValue};
+                }
+            }
+            else {
+                for (let k = 0; k < order; k++) {
+                    const varName = ORDER_NAMES[k + 1];
+                    const currentValue = results[varName][iter].currentValue;
+                    const scope = {x: currentX, [varName]: currentValue};
+                    validVariables.filter((value, index) => index !== 0 && index !== k + 1 ).forEach((value, index) => {
+                        scope[value] = results[value][iter].currentValue;
+                    });
+                    const functionResult = functionNodes[k].evaluate(scope);
+                    const newValue = currentValue + stepSize * functionResult;
+                    results[varName][iter] = {...results[varName][iter], newValue, functionResult};
+                }
             }
             const newX = currentX + stepSize;
             results.x.push(newX);
@@ -284,7 +365,7 @@ function OdeSystem({methodName}) {
         }
     };
 
-    let params = {functionLatexs, order, validVariables, initialVector, stepSize, iterations, results, smallScreen};
+    let params = {functionLatexs, solverType, order, validVariables, initialVector, stepSize, iterations, results, smallScreen};
     return (
         <>
             <Header methodName = {methodName} />
@@ -295,24 +376,35 @@ function OdeSystem({methodName}) {
                         This method is applied to 1st order differential equations of the form &nbsp;
                         <TeX math={String.raw`\frac{dy}{dx}=f(x)`} />.
                     </Typography>
-                    <Grid className="order-input" container spacing={0} direction="row" alignItems="center" justify="center">
-                        <Card className={styleClasses.card}>
-                            <CardContent className={styleClasses.cardContent}>
-                                <Typography variant="h6">
-                                    Order / Number of equations:
-                                </Typography>
-                                <TextField
-                                    disabled={false}
-                                    type="number"
-                                    onChange={(event)=>setOrder(parseInt(event.target.value))}
-                                    error={orderError}
-                                    label={orderError?"Error":""}
-                                    defaultValue={order.toString()}
-                                    helperText={orderErrorText}
-                                    variant="outlined"
-                                />
-                            </CardContent>
-                        </Card>
+                    <Grid container spacing={0} direction="row" alignItems="center" justify="center">
+                        <Grid xs item className="order-input">
+                            <Card className={styleClasses.card}>
+                                <CardContent className={styleClasses.cardContent}>
+                                    <Typography variant="h6">
+                                        Order / Number of equations:
+                                    </Typography>
+                                    <TextField
+                                        disabled={false}
+                                        type="number"
+                                        onChange={(event)=>setOrder(parseInt(event.target.value))}
+                                        error={orderError}
+                                        label={orderError?"Error":""}
+                                        defaultValue={order.toString()}
+                                        helperText={orderErrorText}
+                                        variant="outlined"
+                                    />
+                                </CardContent>
+                            </Card>
+                        </Grid>
+                        <Grid xs item className="solver-type-input" container spacing={1} direction="row" alignItems="center" justify="center">
+                            <Typography variant="h6">
+                                Solver Type:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            </Typography>
+                            <RadioGroup aria-label="solverType" name="solverType" value={solverType} onChange={(event)=>setSolverType(event.target.value)}>
+                                <FormControlLabel value="euler" control={<Radio />} label="Euler" />
+                                <FormControlLabel value="runge" control={<Radio />} label="Runge-Kutta" />
+                            </RadioGroup>
+                        </Grid>
                     </Grid>
                     <Grid className="function-input" container spacing={1} direction="row" alignItems="center" justify="center">
                         {orderArray.map((i) =>
@@ -467,27 +559,120 @@ function Steps({params}) {
         \\                         &=& ${formatLatex(newX)}
         \end{array}
         `;
-        for (let k = 0; k < params.order; k++) {
-            const varName = ORDER_NAMES[k + 1];
-            const currentResult = results[varName][currentIteration - 1];
-            const argumentsLatex = params.validVariables.map((value, index) => {
-                return String.raw`${value}_{${currentIteration - 1}}`;
-            }).join(',');
+        if (params.solverType === 'runge') {
+            // k1
             latexContent += String.raw`
             \\
-            \\ \hline
-            \\ ${varName}^{'} = \frac{d${varName}}{dx} = ${params.functionLatexs[k]}
-            \\
-            \begin{array}{lcl}
-            \\ ${varName}_{${currentIteration}} &=& ${varName}_{${currentIteration - 1}} + h \cdot ${varName}^{'} ( ${argumentsLatex} )
-            \\
-            \\                         &=& ${formatLatex(currentResult.currentValue)} + ${formatLatex(params.stepSize)} ( ${formatLatex(currentResult.functionResult)} )
-            \\
-            \\                         &=& ${formatLatex(currentResult.newValue)}
-            \end{array}
-            `;
-        }
+            \\ \hline`;
+            for (let k = 0; k < params.order; k++) {
+                const varName = ORDER_NAMES[k + 1];
+                const currentResult = results[varName][currentIteration - 1];
+                const argumentsLatex = params.validVariables.map((value, index) => {
+                    return String.raw`${value}_{${currentIteration - 1}}`;
+                }).join(',');
+                latexContent += String.raw`
+                \\ \begin{array}{lcl}
+                \\ k_{1${varName}} &=& h ${varName}^{'} ( ${argumentsLatex} )
+                \\                 &=& ${formatLatex(currentResult.k1)}
+                \end{array}
+                `;
+            }
 
+            // k2
+            latexContent += String.raw`
+            \\
+            \\ \hline`;
+            for (let k = 0; k < params.order; k++) {
+                const varName = ORDER_NAMES[k + 1];
+                const currentResult = results[varName][currentIteration - 1];
+                const argumentsLatex = params.validVariables.map((value, index) => {
+                    return String.raw`${value}_{${currentIteration - 1}} + ${index === 0 ? '' : `k_{1${value}}`} (\frac{h}{2})`;
+                }).join(',');
+                latexContent += String.raw`
+                \\ \begin{array}{lcl}
+                \\ k_{2${varName}} &=& h ${varName}^{'} ( ${argumentsLatex} )
+                \\                 &=& ${formatLatex(currentResult.k2)}
+                \end{array}
+                `;
+            }
+
+            // k3
+            latexContent += String.raw`
+            \\
+            \\ \hline`;
+            for (let k = 0; k < params.order; k++) {
+                const varName = ORDER_NAMES[k + 1];
+                const currentResult = results[varName][currentIteration - 1];
+                const argumentsLatex = params.validVariables.map((value, index) => {
+                    return String.raw`${value}_{${currentIteration - 1}} + ${index === 0 ? '' : `k_{2${value}}`} (\frac{h}{2})`;
+                }).join(',');
+                latexContent += String.raw`
+                \\ \begin{array}{lcl}
+                \\ k_{3${varName}} &=& h ${varName}^{'} ( ${argumentsLatex} )
+                \\                 &=& ${formatLatex(currentResult.k3)}
+                \end{array}
+                `;
+            }
+
+            // k4
+            latexContent += String.raw`
+            \\
+            \\ \hline`;
+            for (let k = 0; k < params.order; k++) {
+                const varName = ORDER_NAMES[k + 1];
+                const currentResult = results[varName][currentIteration - 1];
+                const argumentsLatex = params.validVariables.map((value, index) => {
+                    return String.raw`${value}_{${currentIteration - 1}} + ${index === 0 ? '' : `k_{3${value}}`} (h)`;
+                }).join(',');
+                latexContent += String.raw`
+                \\ \begin{array}{lcl}
+                \\ k_{4${varName}} &=& h ${varName}^{'} ( ${argumentsLatex} )
+                \\                 &=& ${formatLatex(currentResult.k4)}
+                \end{array}
+                `;
+            }
+
+            // Find new values
+            for (let k = 0; k < params.order; k++) {
+                const varName = ORDER_NAMES[k + 1];
+                const currentResult = results[varName][currentIteration - 1];
+                latexContent += String.raw`
+                \\
+                \\ \hline
+                \\ ${varName}^{'} = \frac{d${varName}}{dx} = ${params.functionLatexs[k]}
+                \\
+                \begin{array}{lcl}
+                \\ ${varName}_{${currentIteration}} &=& ${varName}_{${currentIteration - 1}} + \frac{h}{6} ( k_{1${varName}} + 2 k_{2${varName}} + 2 k_{3${varName}} + k_{4${varName}} )
+                \\
+                \\                         &=& ${formatLatex(currentResult.currentValue)} + \frac{${params.stepSize}}{6} ( ${formatLatex(currentResult.k1)} + 2 (${formatLatex(currentResult.k2)}) + 2 (${formatLatex(currentResult.k3)}) + ${formatLatex(currentResult.k4)} )
+                \\
+                \\                         &=& ${formatLatex(currentResult.newValue)}
+                \end{array}
+                `;
+            }
+        }
+        else {
+            for (let k = 0; k < params.order; k++) {
+                const varName = ORDER_NAMES[k + 1];
+                const currentResult = results[varName][currentIteration - 1];
+                const argumentsLatex = params.validVariables.map((value, index) => {
+                    return String.raw`${value}_{${currentIteration - 1}}`;
+                }).join(',');
+                latexContent += String.raw`
+                \\
+                \\ \hline
+                \\ ${varName}^{'} = \frac{d${varName}}{dx} = ${params.functionLatexs[k]}
+                \\
+                \begin{array}{lcl}
+                \\ ${varName}_{${currentIteration}} &=& ${varName}_{${currentIteration - 1}} + h \cdot ${varName}^{'} ( ${argumentsLatex} )
+                \\
+                \\                         &=& ${formatLatex(currentResult.currentValue)} + ${formatLatex(params.stepSize)} ( ${formatLatex(currentResult.functionResult)} )
+                \\
+                \\                         &=& ${formatLatex(currentResult.newValue)}
+                \end{array}
+                `;
+            }
+        }
         latexContent += String.raw`\end{array}`;
 
         graphCallback = (calculator, currentResult, currentIteration) => {

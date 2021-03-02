@@ -419,7 +419,11 @@ function Steps({params}) {
                 \\
                 \\              &=& ${formatLatex(currentRungeResult.newY)}`;
             }
-            latexContent += String.raw`\end{array}`;
+            latexContent += String.raw`
+            \end{array}
+            \\
+            \\ \hline
+            \\ \text{Now, we can initiate the Adams-Moulton method.}`;
         }
 
         latexContent += String.raw`
