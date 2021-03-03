@@ -131,7 +131,6 @@ function OdeEuler({methodName}) {
     let functionNode;
     let functionError = false;
     let functionErrorText = "";
-    let variables = new Set(); // Unique set of variables
     try {
         functionNode = parse(functionText);
         functionNode.traverse(function (node, path, parent) {
@@ -139,10 +138,8 @@ function OdeEuler({methodName}) {
                 if (node.name !== 'x' && node.name !== 'y') {
                     throw "variableName";
                 }
-                variables.add(node.name);
             }
         });
-        variables = [...variables].sort(); // Alphabetical order
     }
     catch(e) {
         functionError = true;

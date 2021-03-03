@@ -37,8 +37,8 @@ import { makeStyles } from '@material-ui/core/styles';
 import ReactDataGrid from 'react-data-grid';
 
 const ORDER_NAMES = ['x', 'y', 'u', 'v', 'w', 'z', 'p', 'q', 'r', 's', 't'];
-const ORDER_FUNCTIONS = [String.raw`u`, '-x u-y'];
-const ORDER_FUNCTIONS_TEXT = [String.raw`u`, '-x u-y'];
+const ORDER_FUNCTIONS = ['u', '-x u-y'];
+const ORDER_FUNCTIONS_TEXT = ['u', '-x u-y'];
 
 const TOUR_STEPS: JoyrideStep[] = [
     {
@@ -180,7 +180,6 @@ function OdeSystem({methodName}) {
     let functionErrorTexts = orderArray.slice().fill("");
 
     for (let i = 0; i < order; i++){
-        //let variables = new Set(); // Unique set of variables
         let funcNode;
         try {
             funcNode = parse(functionTexts[i]);
@@ -407,7 +406,7 @@ function OdeSystem({methodName}) {
                         </Grid>
                     </Grid>
                     <Grid className="function-input" container spacing={1} direction="row" alignItems="center" justify="center">
-                        {orderArray.map((i) =>
+                        {order < 10 && orderArray.map((i) =>
                             <Grid key={"function" + i} xs item>
                                 <Card className={styleClasses.card}>
                                     <CardContent className={styleClasses.cardContent}>
@@ -572,7 +571,7 @@ function Steps({params}) {
                 }).join(',');
                 latexContent += String.raw`
                 \\ \begin{array}{lcl}
-                \\ k_{1${varName}} &=& h ${varName}^{'} ( ${argumentsLatex} )
+                \\ k_{1${varName}} &=& ${varName}^{'} ( ${argumentsLatex} )
                 \\                 &=& ${formatLatex(currentResult.k1)}
                 \end{array}
                 `;
@@ -590,7 +589,7 @@ function Steps({params}) {
                 }).join(',');
                 latexContent += String.raw`
                 \\ \begin{array}{lcl}
-                \\ k_{2${varName}} &=& h ${varName}^{'} ( ${argumentsLatex} )
+                \\ k_{2${varName}} &=& ${varName}^{'} ( ${argumentsLatex} )
                 \\                 &=& ${formatLatex(currentResult.k2)}
                 \end{array}
                 `;
@@ -608,7 +607,7 @@ function Steps({params}) {
                 }).join(',');
                 latexContent += String.raw`
                 \\ \begin{array}{lcl}
-                \\ k_{3${varName}} &=& h ${varName}^{'} ( ${argumentsLatex} )
+                \\ k_{3${varName}} &=& ${varName}^{'} ( ${argumentsLatex} )
                 \\                 &=& ${formatLatex(currentResult.k3)}
                 \end{array}
                 `;
@@ -626,7 +625,7 @@ function Steps({params}) {
                 }).join(',');
                 latexContent += String.raw`
                 \\ \begin{array}{lcl}
-                \\ k_{4${varName}} &=& h ${varName}^{'} ( ${argumentsLatex} )
+                \\ k_{4${varName}} &=& ${varName}^{'} ( ${argumentsLatex} )
                 \\                 &=& ${formatLatex(currentResult.k4)}
                 \end{array}
                 `;

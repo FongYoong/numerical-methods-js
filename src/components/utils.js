@@ -30,7 +30,7 @@ export function isValidMath(value) {
     return false;
   }
   else if (value.hasOwnProperty("value")) {
-    if (value.value) {
+    if (value.value !== undefined) {
       return true;
     }
     return false;
@@ -41,7 +41,7 @@ export function isValidMath(value) {
   else if (value.hasOwnProperty("args") && value.args.length > 0) {
     return true;
   }
-  else if (value.hasOwnProperty("name")) {
+  else if (value.hasOwnProperty("name") && !mathjsKeywords.includes(value.name)) {
     return true;
   }
   return false;

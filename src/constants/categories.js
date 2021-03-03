@@ -38,7 +38,7 @@ const OdeTaylor = lazy(() => import('../components/methods/ode/Taylor'));
 const OdeRunge = lazy(() => import('../components/methods/ode/Runge'));
 const OdeMultistep = lazy(() => import('../components/methods/ode/Multistep'));
 const OdeSystem = lazy(() => import('../components/methods/ode/System'));
-
+const OdeShooting = lazy(() => import('../components/methods/ode/Shooting'));
 
 const categories = [
     {
@@ -258,6 +258,12 @@ const categories = [
                 name: "1st Order Systems of Equations",
                 path : "system",
                 component: OdeSystem,
+                completed: true,
+            },
+            {
+                name: "2nd Order Shooting Method",
+                path : "shooting",
+                component: OdeShooting,
                 completed: true,
             },
         ]
