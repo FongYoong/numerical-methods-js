@@ -151,6 +151,10 @@ function OptiGoldenSearch({methodName}) {
     const [intervalThreshold, setIntervalThreshold] = useState(0.25);
     let thresholdError = false;
     let thresholdErrorText = "";
+    if (isNaN(intervalThreshold)) {
+        thresholdError = true;
+        thresholdErrorText = "Threshold must be a number!";
+    }
     if (intervalThreshold < 0) {
         thresholdError = true;
         thresholdErrorText = "Threshold cannot be negative!";
@@ -465,7 +469,7 @@ function Steps({params}) {
 
         graphCallback = (calculator, currentResult) => {
             calculator.current.setExpression({ id: 'function', color: Desmos.Colors.BLUE, latex: params.functionLatex});
-            calculator.current.setExpression({ id: 'x_a', color: Desmos.Colors.GREEN, pointStyle: Desmos.Styles.POINT, label: "x_a", showLabel:true, latex:
+            calculator.current.setExpression({ id: 'x_a', color: Desmos.Colors.RED, pointStyle: Desmos.Styles.POINT, label: "x_a", showLabel:true, latex:
                 `(${currentResult.aX}, ${currentResult.lowerFuncResult})` });
             calculator.current.setExpression({ id: 'x_b', color: Desmos.Colors.GREEN, pointStyle: Desmos.Styles.POINT, label: "x_b", showLabel:true, latex:
                 `(${currentResult.bX}, ${currentResult.upperFuncResult})` });

@@ -155,10 +155,16 @@ function NonlinearNewton({methodName}) {
         iterErrorText = "Iterations must be a positive integer!";
     }
 
-    let hasError = functionError || iterError;
-
     // Initial x
     const [initialX, setInitialX] = useState(0.0);
+    let initialXError = false;
+    let initialXErrorText = "";
+    if (isNaN(initialX)) {
+        initialXError = true;
+        initialXErrorText = "Initial x must be a number!";
+    }
+
+    let hasError = functionError || iterError || initialXError;
 
     // Solve
     let solve = false;
@@ -282,8 +288,10 @@ function NonlinearNewton({methodName}) {
                                         disabled={false}
                                         type="number"
                                         onChange={(event)=>setInitialX(parseFloat(event.target.value))}
-                                        label={""}
+                                        error={initialXError}
+                                        label={initialXError?"Error":""}
                                         defaultValue={initialX.toString()}
+                                        helperText={initialXErrorText}
                                         variant="outlined"
                                     />
                                 </CardContent>

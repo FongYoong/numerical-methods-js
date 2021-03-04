@@ -376,7 +376,7 @@ export const initialMatrix6 = {
         { key: "col_3", name: "C3", ...columnSettings },
     ],
     rows: [
-        { col_1: 3, col_2: 2, col_3: 2 },
+        { col_1: 3, col_2: 5, col_3: 2 },
         { col_1: 2, col_2: 3, col_3: -2 },
     ]
 }

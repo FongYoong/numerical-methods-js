@@ -1,5 +1,12 @@
 import { lazy } from 'react';
 
+// Markdown
+import NonlinearBisectionMarkdown from '../components/methods/nonlinear/markdown/bisection.md';
+import NonlinearFalsePositionMarkdown from '../components/methods/nonlinear/markdown/falsePosition.md';
+import NonlinearFixedPointMarkdown from '../components/methods/nonlinear/markdown/fixedPoint.md';
+
+
+// JSX Components
 const NonlinearBisection = lazy(() => import('../components/methods/nonlinear/Bisection'));
 const NonlinearFalsePosition = lazy(() => import('../components/methods/nonlinear/FalsePosition'));
 const NonlinearNewton = lazy(() => import('../components/methods/nonlinear/Newton'));
@@ -51,18 +58,21 @@ const categories = [
                 path : "bisection",
                 component: NonlinearBisection,
                 completed: true,
+                markdown: NonlinearBisectionMarkdown,
             },
             {
                 name: "False-Position",
                 path : "false_position",
                 component: NonlinearFalsePosition,
                 completed: true,
+                markdown: NonlinearFalsePositionMarkdown,
             },
             {
                 name: "Fixed-Point",
                 path : "fixed_point",
                 component: NonlinearFixedPoint,
                 completed: true,
+                markdown: NonlinearFixedPointMarkdown,
             },
             {
                 name: "Newton-Rhapson",
@@ -110,7 +120,7 @@ const categories = [
                 name: "Singular Value Decomposition",
                 path : "svd",
                 component: LinearSVD,
-                completed: false,
+                completed: true,
             },
             {
                 name: "Inverse Matrix",
@@ -122,7 +132,7 @@ const categories = [
                 name: "Moore-Penrose Inverse",
                 path : "penrose_inverse",
                 component: LinearPenrose,
-                completed: false,
+                completed: true,
             },
         ]
     },
@@ -186,6 +196,7 @@ const categories = [
             },
             {
                 name: "Multivariable",
+                path : "multivariable",
                 component: DiffMultivariable,
                 completed: false,
             },

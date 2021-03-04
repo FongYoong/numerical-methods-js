@@ -107,7 +107,7 @@ const useStyles = makeStyles((theme) => ({
 
 addStyles(); // inserts the required css to the <head> block for mathquill
 
-function NonlinearFixedPoint({methodName}) {
+function NonlinearFixedPoint({methodName, markdown}) {
     useEffect(() => {
         // Set webpage title
         document.title = methodName;
@@ -146,10 +146,16 @@ function NonlinearFixedPoint({methodName}) {
         iterErrorText = "Iterations must be a positive integer!";
     }
 
-    let hasError = functionError || iterError;
-
     // Initial x
     const [initialX, setInitialX] = useState(1.5);
+    let initialXError = false;
+    let initialXErrorText = "";
+    if (isNaN(initialX)) {
+        initialXError = true;
+        initialXErrorText = "Initial x must be a number!";
+    }
+
+    let hasError = functionError || iterError || initialXError;
 
     // Solve
     let solve = false;
@@ -196,7 +202,7 @@ function NonlinearFixedPoint({methodName}) {
     
     return (
         <>
-            <Header methodName = {methodName} />
+            <Header methodName={methodName} markdown={markdown} />
             <Paper className={styleClasses.paper}>
                 <Container className={styleClasses.container}>
                 <Zoom duration={500} triggerOnce cascade>
@@ -263,8 +269,10 @@ function NonlinearFixedPoint({methodName}) {
                                         disabled={false}
                                         type="number"
                                         onChange={(event)=>setInitialX(parseFloat(event.target.value))}
-                                        label={""}
+                                        error={initialXError}
+                                        label={initialXError?"Error":""}
                                         defaultValue={initialX.toString()}
+                                        helperText={initialXErrorText}
                                         variant="outlined"
                                     />
                                 </CardContent>

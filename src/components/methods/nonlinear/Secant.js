@@ -161,10 +161,16 @@ function NonlinearSecant({methodName}) {
         iterErrorText = "Iterations must be a positive integer!";
     }
 
-    let hasError = functionError || perturbationError || iterError;
-
     // Initial x
     const [initialX, setInitialX] = useState(3.5);
+    let initialXError = false;
+    let initialXErrorText = "";
+    if (isNaN(initialX)) {
+        initialXError = true;
+        initialXErrorText = "Initial x must be a number!";
+    }
+
+    let hasError = functionError || perturbationError || iterError || initialXError;
 
     // Solve
     let solve = false;
@@ -297,8 +303,10 @@ function NonlinearSecant({methodName}) {
                                         disabled={false}
                                         type="number"
                                         onChange={(event)=>setInitialX(parseFloat(event.target.value))}
-                                        label={""}
+                                        error={initialXError}
+                                        label={initialXError?"Error":""}
                                         defaultValue={initialX.toString()}
+                                        helperText={initialXErrorText}
                                         variant="outlined"
                                     />
                                 </CardContent>

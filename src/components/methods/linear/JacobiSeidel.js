@@ -199,7 +199,11 @@ function LinearJacobiSeidel({methodName}) {
     const [errorThreshold, setErrorThreshold] = useState(0.0002);
     let thresholdError = false;
     let thresholdErrorText = "";
-    if (errorThreshold < 0) {
+    if (isNaN(errorThreshold)) {
+        thresholdError = true;
+        thresholdErrorText = "Threshold must be a number!";
+    }
+    else if (errorThreshold < 0) {
         thresholdError = true;
         thresholdErrorText = "Threshold cannot be negative!";
     }

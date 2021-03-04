@@ -3,7 +3,8 @@ import {initialMatrix6 as initialMatrix, generateGridCallback, createNewColumn, 
 import React, {useState, useEffect} from "react";
 import Header from "../../header/Header";
 
-import { transpose, multiply, eigs } from 'mathjs';
+import { transpose, multiply, identity } from 'mathjs';
+import {Matrix as MLMatrix, EigenvalueDecomposition as MLEigen} from 'ml-matrix';
 import 'katex/dist/katex.min.css';
 import TeX from '@matejmazur/react-katex';
 
@@ -118,7 +119,7 @@ function LinearPenrose({methodName}) {
                 }
             }
             else {
-                if (columns.length === 2 || columns.length - 1 === rows.length) {
+                if (columns.length === 2) {
                     return;
                 }
                 for (let i = 0; i < rows.length; i++) {
@@ -133,9 +134,6 @@ function LinearPenrose({methodName}) {
         return () => {
             const rows = gridState.rows.slice();
             if (add) {
-                if (rows.length + 1 === gridState.columns.length) {
-                    return;
-                }
                 rows.push(createNewRow(gridState.columns.length));
             }
             else {
@@ -153,6 +151,7 @@ function LinearPenrose({methodName}) {
     const rowLength = gridState.rows.length; // row dimension
     const colLength = gridState.columns.length; // column dimension
 
+    /*
     const multiplyTranspose = multiply(transpose(originalMatrix), originalMatrix); // AT*A
     const multiplyTransposeEigen = eigs(multiplyTranspose);
     const multiplyTransposeSingularValues = multiplyTransposeEigen.values.slice().reverse().map((v) => Math.sqrt(v));
@@ -164,6 +163,23 @@ function LinearPenrose({methodName}) {
     let rightUnitary = transpose(rightUnitaryT);
 
     let leftUnitaryT = transpose(transposeMultiplyEigen.vectors).reverse();
+    let leftUnitary = transpose(leftUnitaryT);
+    */
+
+    const multiplyTranspose = multiply(originalMatrix, transpose(originalMatrix)); // A*AT
+    const multiplyTransposeEigen = new MLEigen(new MLMatrix(multiplyTranspose));
+    const multiplyTransposeEigenMatrix = Array.from(multiplyTransposeEigen.eigenvectorMatrix.data.map((v) => Array.from(v)));
+    const multiplyTransposeSingularValues = multiplyTransposeEigen.realEigenvalues.slice().reverse().map((v) => Math.sqrt(v));
+
+    const transposeMultiply = multiply(transpose(originalMatrix), originalMatrix); // AT*A
+    const transposeMultiplyEigen = new MLEigen(new MLMatrix(transposeMultiply));
+    const transposeMultiplyEigenMatrix = Array.from(transposeMultiplyEigen.eigenvectorMatrix.data.map((v) => Array.from(v)));
+    const transposeMultiplyEigenValues = transposeMultiplyEigen.realEigenvalues.slice().reverse();
+    const transposeMultiplySingularValues = transposeMultiplyEigen.realEigenvalues.slice().reverse().map((v) => Math.sqrt(v));
+
+    let rightUnitaryT = transpose(transposeMultiplyEigenMatrix).reverse();
+    let rightUnitary = transpose(rightUnitaryT);
+    let leftUnitaryT = transpose(multiplyTransposeEigenMatrix).reverse();
     let leftUnitary = transpose(leftUnitaryT);
 
     let diagonal = [];
@@ -183,16 +199,18 @@ function LinearPenrose({methodName}) {
             }
         }
     }
+    console.log("Ori", diagonal);
     let diagonalInverse = cloneArray(diagonal);
     for (let i = 0; i < rowLength; i++) {
-        if (diagonalInverse[i][i] !== 0) {
+        if (i < colLength && diagonalInverse[i][i] !== 0) {
             diagonalInverse[i][i] = 1 / diagonalInverse[i][i];
         }
     }
     diagonalInverse = transpose(diagonalInverse);
-    let pseudoInverse = multiply(rightUnitary, multiply(diagonalInverse, leftUnitaryT));
-    let productInverseRight = multiply(originalMatrix, pseudoInverse); // Right inverse
-    let productInverseLeft = multiply(pseudoInverse, originalMatrix); // Right inverse
+    const pseudoInverse = multiply(rightUnitary, multiply(diagonalInverse, leftUnitaryT));
+    const productInverseRight = multiply(originalMatrix, pseudoInverse); // Right inverse
+    const productInverseLeft = multiply(pseudoInverse, originalMatrix); // Right inverse
+
     let latexContent = String.raw`
     \displaystyle
     \begin{array}{l}
@@ -203,31 +221,35 @@ function LinearPenrose({methodName}) {
     \\
     \\ \bf{U} = \left[\begin{matrix}`;
 
-    for (let i = 0 ; i < transposeMultiplyEigen.vectors.length; i++) {
-        latexContent += String.raw` v_{${i + 1}}\cr `;
+    for (let i = 0 ; i < multiplyTransposeEigenMatrix.length; i++) {
+        latexContent += String.raw` v_{${i + 1}} ${i === multiplyTransposeEigenMatrix.length - 1 ? '': '&'} `;
     }
 
     latexContent += String.raw`
-    \end{matrix}\right]^{T} = ${matrixToLatex(leftUnitary)}
+    \end{matrix}\right] = ${matrixToLatex(leftUnitary)}
     \\ 
     \\ \hline
     \\
-    \\ A^{T}A = ${matrixToLatex(multiplyTranspose)}
+    \\ A^{T}A = ${matrixToLatex(transposeMultiply)}
     \\
     \\
     \\ \text{The eigenvectors of } A^{T}A:
     \\
     \\ \bf{V^{T}} = \left[\begin{matrix}`;
 
-    for (let i = 0 ; i < multiplyTransposeEigen.vectors.length; i++) {
+    for (let i = 0 ; i < transposeMultiplyEigenMatrix.length; i++) {
         latexContent += String.raw` v_{${i + 1}}\cr `;
     }
 
     latexContent += String.raw`
     \end{matrix}\right] = ${matrixToLatex(rightUnitaryT)}
     \\ 
-    \\ \text{The eigenvalues of } A^{T}A \text{ or singular values,} \ \sigma
-    \\ = ${multiplyTransposeSingularValues.map((v) => formatMatrixLatex(v))}
+    \begin{array}{lcl}
+    \\ \text{The eigenvalues of } A^{T}A &=& ${transposeMultiplyEigenValues.filter((v) => !isNaN(v)).map((v) => formatMatrixLatex(v))}
+    \\
+    \\ \text{The singular values,} \ \sigma &=& \sqrt{\text{Eigenvalues}}
+    \\          &=& ${transposeMultiplySingularValues.filter((v) => !isNaN(v)).map((v) => formatMatrixLatex(v))}
+    \end{array}
     \\
     \\ \bf{D} = \left[\begin{matrix}`;
     for (let i = 0; i < rowLength; i++) {
@@ -267,6 +289,7 @@ function LinearPenrose({methodName}) {
     \\   &=& ${matrixToLatex(pseudoInverse)}
     \\ \end{array}
     \\
+    \\ \hline
     \\ \text{To verify the pseudoinverse,}
     \\ \begin{array}{lcl}
     \\ AA^{-1} &=& ${matrixToLatex(originalMatrix)} ${matrixToLatex(pseudoInverse)}
@@ -278,16 +301,14 @@ function LinearPenrose({methodName}) {
     \\         &=& ${matrixToLatex(productInverseLeft)}
     \\ \end{array}
     \\
-    \\ 
+    \\ \hline
+    \\ \text{In some cases, } AA^{-1} \ne I \text{  or  } A^{-1}A \ne I \text{  or even both!}
+    \\ \text{The error could be very small due to rounding error. }
+    \\ \text{Otherwise, if the error is really huge or if the signs are reversed, this is because the my naive SVD algorithm sometimes}
+    \\ \text{fails to properly realign the eigenvector matrices.}
+    \\ \text{I'm too lazy to rectify this, sorry!}
+    \end{array}\end{array}
     `;
-    if (rowLength > colLength) {
-        latexContent += String.raw`
-        \\ \text{We find that } U D V^{T} \ne A.
-        \\ \text{This is because the my naive SVD algorithm does not work when rows are greater than columns.}
-        \\ \text{I'm too lazy to rectify this, sorry!}
-        `  
-    }
-    latexContent += String.raw`\end{array}\end{array}`;
 
     // Joyride Tour
     const [runTour, setRunTour] = useState(false);

@@ -95,7 +95,7 @@ const useStyles = makeStyles((theme) => ({
 
 addStyles(); // inserts the required css to the <head> block for mathquill
 
-function NonlinearBisection({methodName}) {
+function NonlinearBisection({methodName, markdown}) {
     useEffect(() => {
         // Set webpage title
         document.title = methodName;
@@ -131,6 +131,14 @@ function NonlinearBisection({methodName}) {
     let intervalError = false;
     let lowerXErrorText = "";
     let upperXErrorText = "";
+    if (isNaN(lowerX)) {
+        intervalError = true;
+        lowerXErrorText = "Lower x must be a number!";
+    }
+    if (isNaN(upperX)) {
+        intervalError = true;
+        upperXErrorText = "Upper x must be a number!";
+    }
     if (lowerX >= upperX) {
         intervalError = true;
         lowerXErrorText = "Lower x must be lower than upper x!";
@@ -141,7 +149,11 @@ function NonlinearBisection({methodName}) {
     const [errorThreshold, setErrorThreshold] = useState(0.0005);
     let thresholdError = false;
     let thresholdErrorText = "";
-    if (errorThreshold < 0) {
+    if (isNaN(errorThreshold)) {
+        thresholdError = true;
+        thresholdErrorText = "Threshold must be a number!";
+    }
+    else if (errorThreshold < 0) {
         thresholdError = true;
         thresholdErrorText = "Threshold cannot be negative!";
     }
@@ -237,7 +249,7 @@ function NonlinearBisection({methodName}) {
     
     return (
         <>
-            <Header methodName = {methodName} />
+            <Header methodName={methodName} markdown={markdown}  />
             <Paper className={styleClasses.paper}>
                 <Container className={styleClasses.container}>
                 <Zoom duration={500} triggerOnce cascade>
@@ -246,7 +258,7 @@ function NonlinearBisection({methodName}) {
                             <Card className={styleClasses.card}>
                                 <CardContent className={styleClasses.cardContent}>
                                     <Typography variant="h6">
-                                        Function:
+                                        Function, f(x):
                                     </Typography>
                                     <EditableMathField
                                         disabled={false}

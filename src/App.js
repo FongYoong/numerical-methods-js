@@ -49,7 +49,7 @@ function App() {
                 category.methods.map((method, j) => (
                   <Route key={i + j} exact path={generatePath(category.path, method.path)}
                   component={
-                    () => <method.component methodName={method.name} />
+                    () => <method.component methodName={method.name} markdown={method.markdown} />
                   } />
                 ))
               )).reduce((previous, next) => previous.concat(next), [])

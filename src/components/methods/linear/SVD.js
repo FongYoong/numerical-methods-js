@@ -3,7 +3,8 @@ import {initialMatrix6 as initialMatrix, generateGridCallback, createNewColumn, 
 import React, {useState, useEffect} from "react";
 import Header from "../../header/Header";
 
-import { transpose, multiply, eigs } from 'mathjs';
+import { transpose, multiply } from 'mathjs';
+import {Matrix as MLMatrix, EigenvalueDecomposition as MLEigen} from 'ml-matrix';
 import 'katex/dist/katex.min.css';
 import TeX from '@matejmazur/react-katex';
 
@@ -149,7 +150,8 @@ function LinearSVD({methodName}) {
     const originalMatrix = gridTo2DArray(gridState.rows);
     const rowLength = gridState.rows.length; // row dimension
     const colLength = gridState.columns.length; // column dimension
-
+    
+/*
     const multiplyTranspose = multiply(transpose(originalMatrix), originalMatrix); // AT*A
     const multiplyTransposeEigen = eigs(multiplyTranspose);
     const multiplyTransposeSingularValues = multiplyTransposeEigen.values.slice().reverse().map((v) => Math.sqrt(v));
@@ -158,8 +160,22 @@ function LinearSVD({methodName}) {
     const transposeMultiplySingularValues = transposeMultiplyEigen.values.slice().reverse().map((v) => Math.sqrt(v));
 
     let rightUnitaryT = transpose(multiplyTransposeEigen.vectors).reverse();
-
     let leftUnitaryT = transpose(transposeMultiplyEigen.vectors).reverse();
+    let leftUnitary = transpose(leftUnitaryT);
+*/
+    const multiplyTranspose = multiply(originalMatrix, transpose(originalMatrix)); // A*AT
+    const multiplyTransposeEigen = new MLEigen(new MLMatrix(multiplyTranspose));
+    const multiplyTransposeEigenMatrix = Array.from(multiplyTransposeEigen.eigenvectorMatrix.data.map((v) => Array.from(v)));
+    const multiplyTransposeSingularValues = multiplyTransposeEigen.realEigenvalues.slice().reverse().map((v) => Math.sqrt(v));
+
+    const transposeMultiply = multiply(transpose(originalMatrix), originalMatrix); // AT*A
+    const transposeMultiplyEigen = new MLEigen(new MLMatrix(transposeMultiply));
+    const transposeMultiplyEigenMatrix = Array.from(transposeMultiplyEigen.eigenvectorMatrix.data.map((v) => Array.from(v)));
+    const transposeMultiplyEigenValues = transposeMultiplyEigen.realEigenvalues.slice().reverse();
+    const transposeMultiplySingularValues = transposeMultiplyEigen.realEigenvalues.slice().reverse().map((v) => Math.sqrt(v));
+
+    let rightUnitaryT = transpose(transposeMultiplyEigenMatrix).reverse();
+    let leftUnitaryT = transpose(multiplyTransposeEigenMatrix).reverse();
     let leftUnitary = transpose(leftUnitaryT);
 
     let diagonal = [];
@@ -179,44 +195,47 @@ function LinearSVD({methodName}) {
             }
         }
     }
-    let product = multiply(leftUnitary, multiply(diagonal, rightUnitaryT));
+    const product = multiply(leftUnitary, multiply(diagonal, rightUnitaryT));
 
     let latexContent = String.raw`
     \displaystyle
     \begin{array}{l}
     \begin{array}{lcl}
     \\ AA^{T} = ${matrixToLatex(multiplyTranspose)}
-    \\ 
     \\
     \\ \text{The eigenvectors of } AA^{T}:
     \\
     \\ \bf{U} = \left[\begin{matrix}`;
 
-    for (let i = 0 ; i < transposeMultiplyEigen.vectors.length; i++) {
-        latexContent += String.raw` v_{${i + 1}}\cr `;
+    for (let i = 0 ; i < multiplyTransposeEigenMatrix.length; i++) {
+        latexContent += String.raw` v_{${i + 1}} ${i === multiplyTransposeEigenMatrix.length - 1 ? '': '&'} `;
     }
 
     latexContent += String.raw`
-    \end{matrix}\right]^{T} = ${matrixToLatex(leftUnitary)}
+    \end{matrix}\right] = ${matrixToLatex(leftUnitary)}
     \\ 
     \\ \hline
     \\
-    \\ A^{T}A = ${matrixToLatex(multiplyTranspose)}
+    \\ A^{T}A = ${matrixToLatex(transposeMultiply)}
     \\
     \\
     \\ \text{The eigenvectors of } A^{T}A:
     \\
     \\ \bf{V^{T}} = \left[\begin{matrix}`;
 
-    for (let i = 0 ; i < multiplyTransposeEigen.vectors.length; i++) {
+    for (let i = 0 ; i < transposeMultiplyEigenMatrix.length; i++) {
         latexContent += String.raw` v_{${i + 1}}\cr `;
     }
 
     latexContent += String.raw`
     \end{matrix}\right] = ${matrixToLatex(rightUnitaryT)}
-    \\ 
-    \\ \text{The eigenvalues of } A^{T}A \text{ or singular values,} \ \sigma
-    \\ = ${multiplyTransposeSingularValues.map((v) => formatMatrixLatex(v))}
+    \\
+    \begin{array}{lcl}
+    \\ \text{The eigenvalues of } A^{T}A &=& ${transposeMultiplyEigenValues.filter((v) => !isNaN(v)).map((v) => formatMatrixLatex(v))}
+    \\
+    \\ \text{The singular values,} \ \sigma &=& \sqrt{\text{Eigenvalues}}
+    \\          &=& ${transposeMultiplySingularValues.filter((v) => !isNaN(v)).map((v) => formatMatrixLatex(v))}
+    \end{array}
     \\
     \\ \bf{D} = \left[\begin{matrix}`;
     for (let i = 0; i < rowLength; i++) {
@@ -254,15 +273,14 @@ function LinearSVD({methodName}) {
     \\   &=& ${matrixToLatex(product)}
     \\ \end{array}
     \\
+    \\ \hline
+    \\ \text{In some cases, } U D V^{T} \ne A
+    \\ \text{The error could be very small due to rounding error. }
+    \\ \text{Otherwise, if the error is really huge or if the signs are reversed, this is because the my naive SVD algorithm sometimes}
+    \\ \text{fails to properly realign the eigenvector matrices.}
+    \\ \text{I'm too lazy to rectify this, sorry!}
+    \end{array}\end{array}
     `;
-    if (rowLength > colLength) {
-        latexContent += String.raw`
-        \\ \text{We find that } U D V^{T} \ne A.
-        \\ \text{This is because the my naive SVD algorithm does not work when rows are greater than columns.}
-        \\ \text{I'm too lazy to rectify this, sorry!}
-        `  
-    }
-    latexContent += String.raw`\end{array}\end{array}`;
 
     // Joyride Tour
     const [runTour, setRunTour] = useState(false);

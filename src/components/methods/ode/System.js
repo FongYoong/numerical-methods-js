@@ -137,8 +137,6 @@ function OdeSystem({methodName}) {
 
     // Order/ Number of equations
     const [order, setOrder] = useState(2);
-    const orderArray = [...Array(order).keys()];
-    const validVariables = ORDER_NAMES.slice(0, order + 1);
     let orderError = false;
     let orderErrorText = "";
     if (isNaN(order) || !Number.isInteger(order) || order <= 0) {
@@ -153,6 +151,8 @@ function OdeSystem({methodName}) {
         orderError = true;
         orderErrorText = "Order too high! A maximum of 9 is allowed for performance reasons.";
     }
+    const orderArray = [...Array(orderError ? 1 : order).keys()];
+    const validVariables = ORDER_NAMES.slice(0, order + 1);
 
     // Functions
     const [functionLatexs, setFunctionLatexs] = useState(ORDER_FUNCTIONS.slice());
@@ -180,6 +180,9 @@ function OdeSystem({methodName}) {
     let functionErrorTexts = orderArray.slice().fill("");
 
     for (let i = 0; i < order; i++){
+        if (orderError) {
+            break;
+        }
         let funcNode;
         try {
             funcNode = parse(functionTexts[i]);
@@ -206,20 +209,23 @@ function OdeSystem({methodName}) {
 
     let [vectorState, setVectorState] = useState(initialMatrix);
     let initialVector = { columns:[], rows:[{}] };
-    const addVariableToVector = (variableName, variableValue) => {
-        const columns = initialVector.columns;
-        const rows = initialVector.rows;
-        columns.push(createNewColumn(columns.length, variableName));
-        let colName = `col_${columns.length}`;
-        rows[0][colName] = vectorState.rows[0].hasOwnProperty(colName) ?  vectorState.rows[0][colName] : variableValue;
-    }
-    for (let i = 0; i <= order; i++) {
-        if (i <= 9){
-            addVariableToVector(ORDER_NAMES[i], 0);
+
+    if (!orderError) {
+        const addVariableToVector = (variableName, variableValue) => {
+            const columns = initialVector.columns;
+            const rows = initialVector.rows;
+            columns.push(createNewColumn(columns.length, variableName));
+            let colName = `col_${columns.length}`;
+            rows[0][colName] = vectorState.rows[0].hasOwnProperty(colName) ?  vectorState.rows[0][colName] : variableValue;
         }
+        for (let i = 0; i <= order; i++) {
+            if (i <= 9){
+                addVariableToVector(ORDER_NAMES[i], 0);
+            }
+        }
+        vectorState = initialVector;
+        initialVector = gridTo2DArray(vectorState.rows)[0];
     }
-    vectorState = initialVector;
-    initialVector = gridTo2DArray(vectorState.rows)[0];
 
     // Step size
     const [stepSize, setStepSize] = useState(0.1);
