@@ -245,8 +245,8 @@ function OdeShooting({methodName}) {
                 }
             }
         }
-        f1Node = simplify(parse(`(${functionLatexs[0]}) u + (${functionLatexs[1]}) y + (${functionLatexs[2]})`));
-        f2Node = simplify(parse(`(${functionLatexs[0]}) u + (${functionLatexs[1]}) y`));
+        f1Node = simplify(parse(`(${functionTexts[0]}) u + (${functionTexts[1]}) y + (${functionTexts[2]})`));
+        f2Node = simplify(parse(`(${functionTexts[0]}) u + (${functionTexts[1]}) y`));
         generateResults(results1, f1Node, [initialVector[1], 0]);
         generateResults(results2, f2Node, [0, 1]);
 

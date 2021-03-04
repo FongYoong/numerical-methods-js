@@ -571,3 +571,14 @@ export const initialMatrix21 = {
         { col_1: 0, col_2: 0, col_3: 1, col_4: 2},
     ]
 }
+export const initialMatrix22 = {
+    columns: [
+        { key: "col_1", name: "a", ...columnSettings },
+        { key: "col_2", name: "y(a)", ...columnSettings },
+        { key: "col_3", name: "b", ...columnSettings },
+        { key: "col_4", name: "y(b)", ...columnSettings }
+    ],
+    rows: [
+        { col_1: 0, col_2: 0, col_3: 1, col_4: 5},
+    ]
+}

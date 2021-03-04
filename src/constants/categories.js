@@ -39,6 +39,7 @@ const OdeRunge = lazy(() => import('../components/methods/ode/Runge'));
 const OdeMultistep = lazy(() => import('../components/methods/ode/Multistep'));
 const OdeSystem = lazy(() => import('../components/methods/ode/System'));
 const OdeShooting = lazy(() => import('../components/methods/ode/Shooting'));
+const OdeFiniteDiff = lazy(() => import('../components/methods/ode/FiniteDiff'));
 
 const categories = [
     {
@@ -264,6 +265,12 @@ const categories = [
                 name: "2nd Order Shooting Method",
                 path : "shooting",
                 component: OdeShooting,
+                completed: true,
+            },
+            {
+                name: "2nd Order Finite Difference",
+                path : "finite_diff",
+                component: OdeFiniteDiff,
                 completed: true,
             },
         ]
