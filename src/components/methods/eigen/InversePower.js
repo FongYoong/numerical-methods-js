@@ -117,7 +117,7 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
-function EigenInversePower({methodName}) {
+function EigenInversePower({methodName, markdown}) {
     useEffect(() => {
         // Set webpage title
         document.title = methodName;
@@ -231,7 +231,7 @@ function EigenInversePower({methodName}) {
     
     return (
         <>
-            <Header methodName = {methodName} />
+            <Header methodName={methodName} markdown={markdown} />
             <Paper className={styleClasses.paper}>
                 <Container className={styleClasses.container}>
                 <Zoom duration={500} triggerOnce cascade>

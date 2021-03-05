@@ -94,7 +94,7 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
-function LinearInverse({methodName}) {
+function LinearInverse({methodName, markdown}) {
     useEffect(() => {
         // Set webpage title
         document.title = methodName;
@@ -196,7 +196,7 @@ function LinearInverse({methodName}) {
     
     return (
         <>
-            <Header methodName = {methodName} />
+            <Header methodName={methodName} markdown={markdown} />
             <Paper className={styleClasses.paper}>
                 <Container className={styleClasses.container}>
                 <Zoom duration={500} triggerOnce cascade>

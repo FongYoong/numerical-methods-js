@@ -94,7 +94,7 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
-function LinearQR({methodName}) {
+function LinearQR({methodName, markdown}) {
     useEffect(() => {
         // Set webpage title
         document.title = methodName;
@@ -209,7 +209,7 @@ function LinearQR({methodName}) {
     
     return (
         <>
-            <Header methodName = {methodName} />
+            <Header methodName={methodName} markdown={markdown} />
             <Paper className={styleClasses.paper}>
                 <Container className={styleClasses.container}>
                 <Zoom duration={500} triggerOnce cascade>

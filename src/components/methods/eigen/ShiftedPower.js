@@ -123,7 +123,7 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
-function EigenShiftedPower({methodName}) {
+function EigenShiftedPower({methodName, markdown}) {
     useEffect(() => {
         // Set webpage title
         document.title = methodName;
@@ -247,7 +247,7 @@ function EigenShiftedPower({methodName}) {
     
     return (
         <>
-            <Header methodName = {methodName} />
+            <Header methodName={methodName} markdown={markdown} />
             <Paper className={styleClasses.paper}>
                 <Container className={styleClasses.container}>
                 <Zoom duration={500} triggerOnce cascade>

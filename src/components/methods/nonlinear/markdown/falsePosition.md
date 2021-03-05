@@ -3,11 +3,17 @@ solution of an equation of the form $ f(x) = 0 $ within a given interval $ [x_{l
 
 In that interval, the equation of a straight line that connects $ x_{lower} $ and $ x_{upper} $ is:
 
-$$ y = \frac{f(x_{upper}) - f(x_{lower})}{x_{upper} - x_{lower}} (x - x_{upper}) + f(x_{upper}) $$ **- (1)**
+$$
+\tag{1} y = \frac{f(x_{upper}) - f(x_{lower})}{x_{upper} - x_{lower}} (x - x_{upper}) + f(x_{upper})
+
+$$
 
 From **(1)**, the point of $ x_{root} $ where the line intersects the x-axis is determined by substituting $ y = 0 $ and solving for $x$:
 
-$$ x_{root} = \frac{x_{lower} \cdot f(x_{upper}) - x_{upper} \cdot f(x_{lower})}{f(x_{upper}) - f(x_{lower})}  $$ **- (2)**
+$$
+\tag{2} x_{root} = \frac{x_{lower} \cdot f(x_{upper}) - x_{upper} \cdot f(x_{lower})}{f(x_{upper}) - f(x_{lower})}
+
+$$
 
 The procedure (or algorithm) for finding a solution with the regula falsi method is almost the same as that for the bisection method.
 

@@ -90,7 +90,7 @@ const useStyles = makeStyles((theme) => ({
 
 addStyles(); // inserts the required css to the <head> block for mathquill
 
-function DiffFinite({methodName}) {
+function DiffFinite({methodName, markdown}) {
     useEffect(() => {
         // Set webpage title
         document.title = methodName;
@@ -152,20 +152,15 @@ function DiffFinite({methodName}) {
 
     let hasError = functionError || xInputError || orderError || stepSizeError;
 
-    const derivValue = useMemo(() => {
-        let d = derivative(functionValue, 'x');
-        for (let i = 0; i < order - 1; i++) {
-            d = derivative(d, 'x');
-        }
-        return d;
-    }, [functionValue, order]);
-
     // Solve
     let latexContent;
     let solve = false;
     if (isValidMath(functionValue) && !hasError) {
         solve = true;
-
+        let derivValue = derivative(functionValue, 'x');
+        for (let i = 0; i < order - 1; i++) {
+            derivValue = derivative(derivValue, 'x');
+        }
         const evaluateFunction = (forward, offset) => {
             const step = offset * stepSize ;
             return forward ? functionValue.evaluate({x : xInput + step}) : functionValue.evaluate({x : xInput - step});
@@ -302,7 +297,7 @@ function DiffFinite({methodName}) {
     
     return (
         <>
-            <Header methodName = {methodName} />
+            <Header methodName={methodName} markdown={markdown} />
             <Paper className={styleClasses.paper}>
                 <Container className={styleClasses.container}>
                 <Zoom duration={500} triggerOnce cascade>

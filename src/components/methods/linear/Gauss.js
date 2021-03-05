@@ -112,7 +112,7 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
-function LinearGauss({methodName}) {
+function LinearGauss({methodName, markdown}) {
     useEffect(() => {
         // Set webpage title
         document.title = methodName;
@@ -276,14 +276,16 @@ function LinearGauss({methodName}) {
     
     return (
         <>
-            <Header methodName = {methodName} />
+            <Header methodName={methodName} markdown={markdown} />
             <Paper className={styleClasses.paper}>
                 <Container className={styleClasses.container}>
                 <Zoom duration={500} triggerOnce cascade>
                     <Typography variant="body1">
                         This method is applied to matrices in the form of
-                        <TeX math={String.raw`\ Ax=B`} />
-                        . <Link rel="noopener noreferrer" href="https://people.richland.edu/james/lecture/m116/matrices/pivot.html" target="_blank" aria-label="Pivoting">Pivoting</Link> is also implemented.
+                        <TeX math={String.raw`\ Ax=B`} /> .
+                        <br/>
+                        <Link rel="noopener noreferrer" href="https://people.richland.edu/james/lecture/m116/matrices/pivot.html" target="_blank" aria-label="Pivoting">Pivoting</Link> is also implemented.
+                        <br/>
                         No backsubstitution or Gauss-Jordan form due to&nbsp;
                         <Link color="error" rel="noopener noreferrer" href="https://www.youtube.com/watch?v=vIci3C4JkL0" target="_blank" aria-label="laziness">laziness</Link>.
                     </Typography>

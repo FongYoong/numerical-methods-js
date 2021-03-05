@@ -92,7 +92,7 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
-function LinearPenrose({methodName}) {
+function LinearPenrose({methodName, markdown}) {
     useEffect(() => {
         // Set webpage title
         document.title = methodName;
@@ -323,12 +323,14 @@ function LinearPenrose({methodName}) {
     
     return (
         <>
-            <Header methodName = {methodName} />
+            <Header methodName={methodName} markdown={markdown} />
             <Paper className={styleClasses.paper}>
                 <Container className={styleClasses.container}>
                 <Zoom duration={500} triggerOnce cascade>
                     <Typography variant="body1">
-                        Incomplete! Experimental!
+                    Note: Errors may occur depending on the matrix used
+                    <br/>
+                    because I've not perfected the algorithm yet.
                     </Typography>
                     <Grid container spacing={1} direction="row" alignItems="center" justify="center">
                         <Grid xs item>

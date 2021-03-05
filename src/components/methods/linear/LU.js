@@ -100,7 +100,7 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
-function LinearLU({methodName}) {
+function LinearLU({methodName, markdown}) {
     useEffect(() => {
         // Set webpage title
         document.title = methodName;
@@ -214,7 +214,7 @@ function LinearLU({methodName}) {
     
     return (
         <>
-            <Header methodName = {methodName} />
+            <Header methodName={methodName} markdown={markdown} />
             <Paper className={styleClasses.paper}>
                 <Container className={styleClasses.container}>
                 <Zoom duration={500} triggerOnce cascade>

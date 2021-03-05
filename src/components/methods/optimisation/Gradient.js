@@ -108,7 +108,7 @@ const useStyles = makeStyles((theme) => ({
 
 addStyles(); // inserts the required css to the <head> block for mathquill
 
-function OptiGradient({methodName}) {
+function OptiGradient({methodName, markdown}) {
     useEffect(() => {
         // Set webpage title
         document.title = methodName;
@@ -132,6 +132,9 @@ function OptiGradient({methodName}) {
                 if (node.name.length > 1) {
                     throw "variableName";
                 }
+                if (node.name === 't') {
+                    throw "noTVariableName";
+                }
                 variables.add(node.name);
             }
         });
@@ -140,6 +143,7 @@ function OptiGradient({methodName}) {
     catch(e) {
         functionError = true;
         functionErrorText = e === "variableName" ? "Variable names must contain only one alphabet! x, y, z etc" :  "Invalid equation!";
+        functionErrorText = e === "noTVariableName" ? "Variable name t is not allowed!": functionErrorText;
     }
 
     // Grid
@@ -196,8 +200,6 @@ function OptiGradient({methodName}) {
     let solve = false;
     let derivNodes = {};
     let results = [];
-
-    console.log(functionText);
 
     if (isValidMath(functionNode) && !hasError && variables.length > 0) {
         solve = true;
@@ -285,10 +287,15 @@ function OptiGradient({methodName}) {
     
     return (
         <>
-            <Header methodName = {methodName} />
+            <Header methodName={methodName} markdown={markdown}/>
             <Paper className={styleClasses.paper}>
                 <Container className={styleClasses.container}>
                 <Zoom duration={500} triggerOnce cascade>
+                    <Typography variant="body1">
+                    Supports as many variables as possible (x, y, z, a, b, c etc).
+                    <br/>
+                    However, the more variables, the longer the computation time.
+                    </Typography>
                     <Grid container spacing={1} direction="row" alignItems="center" justify="center">
                         <Grid xs item className="function-input">
                             <Card className={styleClasses.card}>
@@ -381,7 +388,7 @@ function OptiGradient({methodName}) {
                             <Card className={styleClasses.card}>
                                 <CardContent className={styleClasses.cardContent}>
                                     <Typography variant="h6">
-                                        Error threshold for root finding:
+                                        Error threshold for finding <TeX math={String.raw`t^*`} />:
                                     </Typography>
                                     <TextField
                                         disabled={false}

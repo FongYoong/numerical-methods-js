@@ -95,7 +95,7 @@ const useStyles = makeStyles((theme) => ({
 
 addStyles(); // inserts the required css to the <head> block for mathquill
 
-function OptiGoldenSearch({methodName}) {
+function OptiGoldenSearch({methodName, markdown}) {
     useEffect(() => {
         // Set webpage title
         document.title = methodName;
@@ -241,7 +241,7 @@ function OptiGoldenSearch({methodName}) {
     
     return (
         <>
-            <Header methodName = {methodName} />
+            <Header methodName={methodName} markdown={markdown} />
             <Paper className={styleClasses.paper}>
                 <Container className={styleClasses.container}>
                 <Zoom duration={500} triggerOnce cascade>
@@ -250,7 +250,7 @@ function OptiGoldenSearch({methodName}) {
                             <Card className={styleClasses.card}>
                                 <CardContent className={styleClasses.cardContent}>
                                     <Typography variant="h6">
-                                        Function:
+                                        Function, f(x):
                                     </Typography>
                                     <EditableMathField
                                         disabled={false}

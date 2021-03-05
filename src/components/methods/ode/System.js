@@ -123,7 +123,7 @@ const useStyles = makeStyles((theme) => ({
 
 addStyles(); // inserts the required css to the <head> block for mathquill
 
-function OdeSystem({methodName}) {
+function OdeSystem({methodName, markdown}) {
     useEffect(() => {
         // Set webpage title
         document.title = methodName;
@@ -373,13 +373,15 @@ function OdeSystem({methodName}) {
     let params = {functionLatexs, solverType, order, validVariables, initialVector, stepSize, iterations, results, smallScreen};
     return (
         <>
-            <Header methodName = {methodName} />
+            <Header methodName={methodName} markdown={markdown} />
             <Paper className={styleClasses.paper}>
                 <Container className={styleClasses.container}>
                 <Zoom duration={500} triggerOnce cascade>
                     <Typography variant="body1">
                         This method is applied to 1st order differential equations of the form &nbsp;
                         <TeX math={String.raw`\frac{dy}{dx}=f(x)`} />.
+                        <br/>
+                        Up to 9 equations are supported, so even 9th order differential equation can be solved.
                     </Typography>
                     <Grid container spacing={0} direction="row" alignItems="center" justify="center">
                         <Grid xs item className="order-input">
@@ -712,13 +714,13 @@ function Steps({params}) {
                 </Alert>
             </Collapse>
             <Collapse in={!hasError}>
-                <Grid className="results" container direction={smallScreen?"column":"row"} alignItems="center" justify="space-evenly">
+                <Grid className="results" container direction="column" alignItems="center" justify="space-evenly">
                     <Grid xs item className="iteration-slider">
                         <Slide direction="left" triggerOnce>
-                            <Box id="iteration-slider" height={smallScreen?null:"20rem"} width={smallScreen?"70vw":null}>
+                            <Box id="iteration-slider" width="70vw">
                                 <Slider
-                                    orientation={smallScreen?"horizontal":"vertical"}
-                                    onChange={(event, value) => {setCurrentIteration(value)}}
+                                    orientation="horizontal"
+                                    onChangeCommitted={(event, value) => {setCurrentIteration(value)}}
                                     defaultValue={1}
                                     aria-labelledby="discrete-slider-small-steps"
                                     step={1}

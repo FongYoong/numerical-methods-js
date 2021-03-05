@@ -131,7 +131,7 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
-function LinearJacobiSeidel({methodName}) {
+function LinearJacobiSeidel({methodName, markdown}) {
     useEffect(() => {
         // Set webpage title
         document.title = methodName;
@@ -340,21 +340,23 @@ function LinearJacobiSeidel({methodName}) {
     
     return (
         <>
-            <Header methodName = {methodName} />
+            <Header methodName={methodName} markdown={markdown} />
             <Paper className={styleClasses.paper}>
                 <Container className={styleClasses.container}>
                 <Zoom duration={500} triggerOnce cascade>
                     <Typography variant="body1">
                         This method is applied to matrices in the form of
-                        <TeX math={String.raw`\ Ax=B`} />
-                        . <Link rel="noopener noreferrer" href="https://people.richland.edu/james/lecture/m116/matrices/pivot.html" target="_blank" aria-label="Pivoting">Pivoting</Link>
-                        &nbsp; bla bla bla. Warning: 7x7 matrix, factorial, 7! * 7*7
+                        <TeX math={String.raw`\ Ax=B`} /> .
+                        <br/>
+                        Warning: The process of finding a diagonally-dominant form may be slow for matrices 7x7 and beyond
+                        <br/>
+                        because it needs to search through all the possible permutations.
                     </Typography>
                     <Grid container spacing={1} direction="row" alignItems="center" justify="center">
                         <Grid xs item>
                             <Card className={styleClasses.card}>
                                 <CardContent className={styleClasses.cardContent}>
-                                    <Grid container spacing={3} direction="column" alignItems="center" justify="center">
+                                    <Grid container spacing={1} direction="column" alignItems="center" justify="center">
                                         <Grid xs item className="solver-type-input" container spacing={1} direction="row" alignItems="center" justify="center">
                                             <Typography variant="h6">
                                                 Solver Type:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;

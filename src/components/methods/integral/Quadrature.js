@@ -96,7 +96,7 @@ const useStyles = makeStyles((theme) => ({
 
 addStyles(); // inserts the required css to the <head> block for mathquill
 
-function IntegralQuadrature({methodName}) {
+function IntegralQuadrature({methodName, markdown}) {
     useEffect(() => {
         // Set webpage title
         document.title = methodName;
@@ -189,7 +189,7 @@ function IntegralQuadrature({methodName}) {
         \\   &=& ${factor} dt
         \end{array}
         \\ \begin{array}{lcl}
-        \\ \int_{${lowerX}}^{${upperX}} f(x) dx &=& \int_{${lowerX}}^{${upperX}} ${mathjsToLatex(transformedFunction)} dt
+        \\ \int_{${lowerX}}^{${upperX}} f(x) dx &=& \int_{-1}^{1} ${mathjsToLatex(transformedFunction)} dt
         \\
         \\                                      &=&
         `;
@@ -222,7 +222,7 @@ function IntegralQuadrature({methodName}) {
     
     return (
         <>
-            <Header methodName = {methodName} />
+            <Header methodName={methodName} markdown={markdown} />
             <Paper className={styleClasses.paper}>
                 <Container className={styleClasses.container}>
                 <Zoom duration={500} triggerOnce cascade>

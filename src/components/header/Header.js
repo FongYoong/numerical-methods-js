@@ -9,6 +9,8 @@ import Dialog from '@material-ui/core/Dialog';
 import MuiDialogTitle from '@material-ui/core/DialogTitle';
 import MuiDialogContent from '@material-ui/core/DialogContent';
 import Slide from '@material-ui/core/Slide';
+import Tooltip from '@material-ui/core/Tooltip';
+import useScrollTrigger from '@material-ui/core/useScrollTrigger';
 
 import IconButton from '@material-ui/core/IconButton';
 import HomeIcon from '@material-ui/icons/Home';
@@ -31,7 +33,7 @@ const useStyles = makeStyles((theme) => ({
         marginRight: theme.spacing(0),
     },
     infoButton: {
-        marginRight: theme.spacing(0),
+        marginLeft: theme.spacing(0.5),
     },
 }));
 
@@ -72,6 +74,20 @@ const DialogContent = withStyles((theme) => ({
   },
 }))(MuiDialogContent);
 
+function HideOnScroll(props) {
+  const { children, window } = props;
+  // Note that you normally won't need to set the window ref as useScrollTrigger
+  // will default to window.
+  // This is only being set here because the demo is in an iframe.
+  const trigger = useScrollTrigger({ target: window ? window() : undefined });
+
+  return (
+    <Slide appear={false} direction="down" in={!trigger}>
+      {children}
+    </Slide>
+  );
+}
+
 function Header({methodName, markdown}) {
     const styleClasses = useStyles();
 
@@ -88,26 +104,34 @@ function Header({methodName, markdown}) {
 
     return (
         <div className={styleClasses.root}>
-            <AppBar position="fixed">
+            <HideOnScroll>
+            <AppBar>
                 <Toolbar>
-                    <IconButton rel="noopener noreferrer" href="https://github.com/FongYoong/numerical-methods-js" target="_blank" edge="start" className={styleClasses.githubButton} color="inherit" aria-label="GitHub">
-                        <GitHubIcon />
-                    </IconButton>
-                    <IconButton component={Link} to={generatePath()} edge="start" className={styleClasses.homeButton} color="inherit" aria-label="Home">
-                        <HomeIcon />
-                    </IconButton>
-                    {methodName &&
-                        <IconButton onClick={handleOpenInfoDialog} className={styleClasses.infoButton} edge="start" color="inherit" aria-label="Info">
-                            <InfoIcon />
+                    <Tooltip arrow title="GitHub" placement="bottom">
+                        <IconButton rel="noopener noreferrer" href="https://github.com/FongYoong/numerical-methods-js" target="_blank" edge="start" className={styleClasses.githubButton} color="inherit" aria-label="GitHub">
+                            <GitHubIcon />
                         </IconButton>
-                    }
+                    </Tooltip>
+                    <Tooltip arrow title="Home" placement="bottom">
+                        <IconButton component={Link} to={generatePath()} edge="start" className={styleClasses.homeButton} color="inherit" aria-label="Home">
+                            <HomeIcon />
+                        </IconButton>
+                    </Tooltip>
                     <Fade>
                         <Typography variant="h6" className={styleClasses.title}>
                             {title}
                         </Typography>
                     </Fade>
+                    {methodName && markdown &&
+                        <Tooltip arrow title="Info" placement="bottom">
+                            <IconButton onClick={handleOpenInfoDialog} className={styleClasses.infoButton} edge="start" color="inherit" aria-label="Info">
+                                <InfoIcon />
+                            </IconButton>
+                        </Tooltip>
+                    }
                 </Toolbar>
             </AppBar>
+            </HideOnScroll>
             <Toolbar />
             <Dialog open={dialogOpen} onClose={handleCloseInfoDialog} TransitionComponent={Transition}>
                 <DialogTitle onClose={handleCloseInfoDialog}>

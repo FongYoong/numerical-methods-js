@@ -116,7 +116,7 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
-function EigenPower({methodName}) {
+function EigenPower({methodName, markdown}) {
     useEffect(() => {
         // Set webpage title
         document.title = methodName;
@@ -221,7 +221,7 @@ function EigenPower({methodName}) {
     
     return (
         <>
-            <Header methodName = {methodName} />
+            <Header methodName={methodName} markdown={markdown} />
             <Paper className={styleClasses.paper}>
                 <Container className={styleClasses.container}>
                 <Zoom duration={500} triggerOnce cascade>
