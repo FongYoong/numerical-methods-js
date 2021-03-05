@@ -4,6 +4,6 @@
 
 ***
 
-* `npm start` to run the React app locally.
+* `npm start` to run the React site locally.
 
-* `npm run analyze` to run the React app locally.
+* `npm run analyze` to analyze the build size of the React site.
