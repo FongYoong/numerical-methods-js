@@ -1,0 +1,1 @@
+The use of **Taylor series** in solving ODE's is explained [here](https://math.okstate.edu/people/binegar/2233-S99/2233-l05.pdf).

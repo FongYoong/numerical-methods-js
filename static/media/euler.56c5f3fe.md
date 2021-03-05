@@ -1,0 +1,1 @@
+[Wikipedia](https://en.wikipedia.org/wiki/Euler_method) has a great survey of **Euler's method**.

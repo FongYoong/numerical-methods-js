@@ -1,0 +1,1 @@
+The finite difference formulas for higher order derivatives are [summarised here](https://en.wikipedia.org/wiki/Finite_difference#Higher-order_differences).
