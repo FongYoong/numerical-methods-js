@@ -252,7 +252,7 @@ const categories = [
         ]
     },
     {
-        name : "Numerical integration",
+        name : "Numerical Integration",
         path : "integral",
         methods : [
             {

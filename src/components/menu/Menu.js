@@ -3,6 +3,7 @@ import Category from "./Category";
 import categories from "../../constants/categories";
 import {React, useEffect} from "react";
 import Paper from '@material-ui/core/Paper';
+import Box from '@material-ui/core/Box';
 import Grid from '@material-ui/core/Grid';
 import { Zoom } from "react-awesome-reveal";
 
@@ -47,19 +48,21 @@ function Menu() {
   return (
       <>
         <Header methodName = {""} />
-        <Zoom duration={500} triggerOnce>
-        <Grid container spacing={1}>
-        {
-          categories.map((category, i) => (
-            <Grid key={i} item xs={12} sm={6} md={4} lg={4} xl={4}>
-              <Paper className={styleClasses.paper}>
-                <Category category={category} methods={category.methods} />
-              </Paper>
-            </Grid>
-          ))
-        }
-        </Grid>
-        </Zoom>
+        <Box mt={"1em"}>
+          <Zoom duration={500} triggerOnce>
+          <Grid container spacing={1}>
+          {
+            categories.map((category, i) => (
+              <Grid key={i} item xs={12} sm={6} md={4} lg={4} xl={4}>
+                <Paper className={styleClasses.paper}>
+                  <Category category={category} methods={category.methods} />
+                </Paper>
+              </Grid>
+            ))
+          }
+          </Grid>
+          </Zoom>
+        </Box>
       </>
       
   );

@@ -495,20 +495,4 @@ function OdeFiniteDiff({methodName, markdown}) {
     );
 }
 
-function Steps({params}) {
-
-    const styleClasses = useStyles();
-
-    const [currentIteration, setCurrentIteration] = useState(1);
-
-    let hasError = false;
-    let errorText = "";
-
-    const initialVector = params.initialVector;
-    const xArray = params.xArray;
-    const currentX = (currentIteration === 1) ? initialVector[0] : xArray[currentIteration - 2];
-    const newX = xArray[currentIteration - 1];
-
-}
-
 export default OdeFiniteDiff;
