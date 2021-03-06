@@ -179,6 +179,11 @@ function OdeSystem({methodName, markdown}) {
     let functionErrors = orderArray.slice().fill(false);
     let functionErrorTexts = orderArray.slice().fill("");
 
+    const testScope = validVariables.reduce((accumulated, v) => {
+        accumulated[v] = 0;
+        return accumulated;
+    }, {});
+    
     for (let i = 0; i < order; i++){
         if (orderError) {
             break;
@@ -193,6 +198,7 @@ function OdeSystem({methodName, markdown}) {
                     }
                 }
             });
+            funcNode.evaluate(testScope);
         }
         catch(e) {
             functionErrors[i] = true;

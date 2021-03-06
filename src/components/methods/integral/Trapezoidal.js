@@ -117,6 +117,7 @@ function IntegralTrapezoidal({methodName, markdown}) {
                 }
             }
         });
+        functionValue.evaluate({x : 0});
     }
     catch(e) {
         functionError = true;

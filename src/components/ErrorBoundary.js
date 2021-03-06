@@ -1,8 +1,6 @@
 import React from "react";
-import {generatePath} from "./utils";
-import { Link } from "react-router-dom";
 import Button from '@material-ui/core/Button';
-import HomeIcon from '@material-ui/icons/Home';
+import RefreshIcon from '@material-ui/icons/Refresh';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
@@ -16,8 +14,28 @@ const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
-function NotFound() {
-    return (
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error) {
+    // Update state so the next render will show the fallback UI.
+    return { hasError: true };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    // You can also log the error to an error reporting service
+  }
+  refreshPage() {
+      window.location.reload();
+  }
+
+  render() {
+    if (this.state.hasError) {
+      // You can render any custom fallback UI
+      return (
         <Dialog
             open={true}
             disableBackdropClick={true}
@@ -26,22 +44,26 @@ function NotFound() {
             aria-labelledby="alert-dialog-title"
             aria-describedby="alert-dialog-description"
         >
-            <DialogTitle id="alert-dialog-title">Page not found!</DialogTitle>
+            <DialogTitle id="alert-dialog-title">Something went wrong!</DialogTitle>
             <DialogContent>
             <DialogContentText id="alert-dialog-description">
-                Seems the specified URL does not link to any valid part of the website.
+                Oops, seemed like you successfully crashed the website.
             </DialogContentText>
             <Zoom duration={500} triggerOnce cascade>
                 <img width="100%" height="auto" src={haroldImage} alt="Hide the Pain Harold" />
                 <DialogActions>
-                    <Button component={Link} to={generatePath()} variant="contained" color="primary" endIcon={<HomeIcon/>}>
-                        Go to Main Menu
+                    <Button variant="contained" color="primary" endIcon={<RefreshIcon/>} onClick={this.refreshPage}>
+                        Refresh Page!
                     </Button>
                 </DialogActions>
             </Zoom>
             </DialogContent>
         </Dialog>
-    );
+      );
+    }
+
+    return this.props.children; 
+  }
 }
 
-export default NotFound;
+export default ErrorBoundary;

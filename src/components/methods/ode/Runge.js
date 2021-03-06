@@ -120,7 +120,6 @@ function OdeRunge({methodName, markdown}) {
     let functionNode;
     let functionError = false;
     let functionErrorText = "";
-    let variables = new Set(); // Unique set of variables
     try {
         functionNode = parse(functionText);
         functionNode.traverse(function (node, path, parent) {
@@ -128,10 +127,9 @@ function OdeRunge({methodName, markdown}) {
                 if (node.name !== 'x' && node.name !== 'y') {
                     throw "variableName";
                 }
-                variables.add(node.name);
             }
         });
-        variables = [...variables].sort(); // Alphabetical order
+        functionNode.evaluate({x : 0, y : 0});
     }
     catch(e) {
         functionError = true;

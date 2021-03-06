@@ -1,4 +1,5 @@
 import styles from './Header.module.css';
+import {generatePath} from "../utils";
 import MethodInfo from '../MethodInfo';
 import React from "react";
 import { makeStyles, withStyles } from '@material-ui/core/styles';
@@ -20,7 +21,6 @@ import CloseIcon from '@material-ui/icons/Close';
 
 import { Link } from "react-router-dom";
 import { Fade } from "react-awesome-reveal";
-import {generatePath} from "../utils";
 
 const useStyles = makeStyles((theme) => ({
     root: {

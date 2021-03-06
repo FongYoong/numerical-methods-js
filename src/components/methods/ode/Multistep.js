@@ -130,6 +130,7 @@ function OdeMultistep({methodName, markdown}) {
                 }
                 variables.add(node.name);
             }
+            functionNode.evaluate({x : 0, y : 0});
         });
         variables = [...variables].sort(); // Alphabetical order
     }

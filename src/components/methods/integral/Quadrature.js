@@ -118,6 +118,7 @@ function IntegralQuadrature({methodName, markdown}) {
                 }
             }
         });
+        functionNode.evaluate({x : 0});
     }
     catch (e) {
         functionError = true;

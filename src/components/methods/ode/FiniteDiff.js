@@ -139,6 +139,7 @@ function OdeFiniteDiff({methodName, markdown}) {
                     }
                 }
             });
+            funcNode.evaluate({x : 0});
         }
         catch(e) {
             functionErrors[i] = true;

@@ -140,6 +140,7 @@ function OdeEuler({methodName, markdown}) {
                 }
             }
         });
+        functionNode.evaluate({x : 0, y : 0});
     }
     catch(e) {
         functionError = true;

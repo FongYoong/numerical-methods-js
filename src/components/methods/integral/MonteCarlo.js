@@ -126,6 +126,7 @@ function IntegralMonteCarlo({methodName, markdown}) {
                 }
             }
         });
+        functionNode.evaluate({x : 0});
     }
     catch(e) {
         functionError = true;
