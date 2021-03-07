@@ -5,6 +5,9 @@ import {React, useEffect} from "react";
 import Paper from '@material-ui/core/Paper';
 import Box from '@material-ui/core/Box';
 import Grid from '@material-ui/core/Grid';
+import Typography from '@material-ui/core/Typography';
+import 'katex/dist/katex.min.css';
+import TeX from '@matejmazur/react-katex';
 import { Zoom } from "react-awesome-reveal";
 
 import { makeStyles } from '@material-ui/core/styles';
@@ -49,6 +52,12 @@ function Menu() {
       <>
         <Header methodName = {""} />
         <Box mt={"1em"}>
+          <Typography variant="body1">
+          <br/>
+            Note: Functions such as <TeX math={String.raw`e^{x}, sin x`} /> and  <TeX math={String.raw`cos x`} /> should include brackets.
+          <br/>
+          For instance, <TeX math={String.raw`e^{(x)}, sin (x)`} /> and  <TeX math={String.raw`cos (x)`} />.
+          </Typography>
           <Zoom duration={500} triggerOnce>
           <Grid container spacing={1}>
           {
