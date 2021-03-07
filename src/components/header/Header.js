@@ -7,9 +7,12 @@ import { makeStyles, withStyles } from '@material-ui/core/styles';
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
+
 import Autocomplete from '@material-ui/lab/Autocomplete';
 import TextField from '@material-ui/core/TextField';
 import InputAdornment from '@material-ui/core/InputAdornment';
+import ListItem from '@material-ui/core/ListItem';
+import ListItemText from '@material-ui/core/ListItemText';
 import Box from '@material-ui/core/Box';
 import { useTheme } from '@material-ui/core/styles';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
@@ -47,14 +50,14 @@ const useStyles = makeStyles((theme) => ({
         marginRight: theme.spacing(0),
     },
     infoButton: {
-        marginLeft: theme.spacing(0.5),
+        marginLeft: theme.spacing(0),
     },
     dropDownButton: {
         color: 'white',
     },
     inputRoot: {
         color: 'white',
-        '&$cssFocused $notchedOutline': {
+        '&$notchedOutline': {
             borderColor: `white !important`,
         },
     },
@@ -64,6 +67,14 @@ const useStyles = makeStyles((theme) => ({
     notchedOutline: {
         borderWidth: '2px',
         borderColor: 'white !important'
+    },
+    listItem: {
+        transition: 'transform 0.2s',
+        "&:hover": {
+            '-ms-transform': 'scale(1.1)', /* IE 9 */
+            '-webkit-transform': 'scale(1.1)', /* Safari 3-8 */
+            'transform': 'scale(1.1)',
+        },
     },
 }));
 
@@ -170,8 +181,9 @@ function Header({methodName, markdown}) {
                     }
                     <Box mt={"1em"} mb={"1em"} ml={"auto"}>
                         <Autocomplete
-                        autoComplete={true}
                         autoHighlight={true}
+                        openOnFocus={true}
+                        clearOnBlur={false}
                         popupIcon={<ArrowDropDownCircleIcon className={styleClasses.dropDownButton} />}
                         options={searchOptions}
                         groupBy={(option) => option.category}
@@ -206,6 +218,12 @@ function Header({methodName, markdown}) {
                                 variant="outlined"
                             />
                         }
+                        renderOption={(option) => 
+                            <ListItem divider component={Link} button={true} to={generatePath(option.categoryPath, option.methodPath)} className={styleClasses.listItem}>
+                                <ListItemText primary={<Box fontWeight="fontWeightBold">{option.methodName}</Box>} primaryTypographyProps={{variant:'body1'}}/>
+                            </ListItem>
+                        }
+ 
                         />
                     </Box>
                 </Toolbar>
@@ -224,3 +242,12 @@ function Header({methodName, markdown}) {
     );
 }
 export default Header;
+
+/*
+
+                       renderOption={(option) => 
+                            <ListItem divider component={Link} button={true} to={generatePath(option.categoryPath, option.methodPath)} className={styleClasses.listItem}>
+                                <ListItemText primary={<Box fontWeight="fontWeightBold">{option.methodName}</Box>} primaryTypographyProps={{variant:'subtitle1'}}/>
+                            </ListItem>
+                        }
+                        */
